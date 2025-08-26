@@ -2,6 +2,35 @@
 
 A comprehensive guide for developers working on the SwimTrainApp project.
 
+## 🚀 **Quick Start Commands Reference**
+
+### **Essential Commands - Start Here!**
+
+```bash
+# 📱 Start Mobile/Web App (Frontend)
+cd mobile
+npx expo start --web    # Web browser
+npx expo start          # Mobile (QR code)
+
+# ⚙️ Start Backend API  
+cd backend
+npm run dev             # API server (port 3000)
+
+# 🚀 Start Everything (from root)
+npm run dev             # Both frontend and backend
+```
+
+### **Directory Structure - Where to Run What**
+```
+swimTrainApp/
+├── mobile/          # 📱 Run: npx expo start
+├── backend/         # ⚙️ Run: npm run dev  
+├── shared/          # 📦 Types only
+└── (root)           # 🚀 Run: npm run dev (both)
+```
+
+---
+
 ## 🏗️ Project Architecture
 
 ### Overview
@@ -115,25 +144,61 @@ npm run db:studio
 
 ## 🚀 Development Workflow
 
+### 🎯 **Important: Where to Run Commands**
+
+**📱 For Mobile/Web App (Frontend):**
+```bash
+# ALWAYS run from mobile/ directory
+cd mobile
+
+# Then run:
+npx expo start --web    # Web browser
+npx expo start          # Mobile (QR code)
+npx expo start --ios    # iOS simulator (macOS only)
+npx expo start --android # Android emulator
+npx expo start --clear  # Clear cache
+```
+
+**⚙️ For Backend API:**
+```bash
+# ALWAYS run from backend/ directory
+cd backend
+
+# Then run:
+npm run dev             # Start API server (port 3000)
+npm run db:studio       # Database GUI
+npm run type-check      # TypeScript checking
+```
+
+**🚀 For Both Services at Once:**
+```bash
+# Run from ROOT directory only
+npm run dev             # Starts both backend and mobile
+```
+
 ### Starting Development Servers
 
-**All services at once:**
+**Option 1: All services at once (from root):**
 ```bash
 npm run dev
 ```
 
-**Individual services:**
+**Option 2: Individual services:**
 ```bash
-# Backend only (port 3000)
+# Backend only (from root)
 npm run dev:backend
 
-# Mobile app only
+# Mobile app only (from root)
 npm run dev:mobile
+
+# OR manually:
+cd backend && npm run dev      # Backend
+cd mobile && npx expo start   # Mobile
 ```
 
 ### Mobile Development
 
-**Platform-specific commands:**
+**Platform-specific commands (run from mobile/ directory):**
 ```bash
 cd mobile
 
@@ -521,7 +586,26 @@ JWT_SECRET=your-production-secret
 
 ### Common Development Issues
 
-**1. Metro bundler cache issues:**
+**1. "Cannot resolve entry file" Error:**
+```bash
+# Make sure you're in the correct directory
+cd mobile              # For mobile commands
+cd backend             # For backend commands
+
+# Check your current directory
+pwd                    # (Linux/Mac) or Get-Location (Windows)
+```
+
+**2. "Port already in use" Error:**
+```bash
+# Choose different port when prompted
+? Use port 8082 instead? » Y
+
+# Or kill existing processes
+npx expo start --port 8082
+```
+
+**3. "Metro bundler cache issues":**
 ```bash
 cd mobile
 npx expo start --clear
@@ -529,7 +613,17 @@ rm -rf node_modules
 npm install
 ```
 
-**2. TypeScript compilation errors:**
+**4. "Command not found" Errors:**
+```bash
+# Make sure you're in the right directory
+cd mobile              # For expo commands
+cd backend             # For npm run commands
+
+# Install dependencies if missing
+npm install
+```
+
+**5. TypeScript compilation errors:**
 ```bash
 # Clear TypeScript cache
 rm -rf node_modules/.cache
@@ -537,25 +631,27 @@ rm -rf dist/
 npm run build
 ```
 
-**3. Database connection issues:**
+**6. Database connection issues:**
 ```bash
-# Check connection
+# Check connection (from backend directory)
+cd backend
 npm run db:studio
 
 # Reset database
 npm run db:push --force-reset
 ```
 
-**4. Expo CLI issues:**
+**7. Expo CLI issues:**
 ```bash
 # Update Expo CLI
 npm install -g @expo/cli@latest
 
 # Fix dependencies
+cd mobile
 npx expo install --fix
 ```
 
-**5. PowerShell execution policy (Windows):**
+**8. PowerShell execution policy (Windows):**
 ```powershell
 Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
 ```
