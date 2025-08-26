@@ -1,0 +1,118 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  username  String   @unique
+  firstName String?
+  lastName  String?
+  avatar    String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Swimming specific fields
+  teamId    String?
+  team      Team?     @relation(fields: [teamId], references: [id])
+  
+  // Relations
+  sessions  Session[]
+  workouts  Workout[]
+
+  @@map("users")
+}
+
+model Team {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  avatar      String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  members  User[]
+  sessions Session[]
+
+  @@map("teams")
+}
+
+model Session {
+  id          String   @id @default(cuid())
+  title       String
+  description String?
+  date        DateTime
+  duration    Int      // in minutes
+  distance    Float?   // in meters
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  userId   String
+  user     User   @relation(fields: [userId], references: [id])
+  teamId   String?
+  team     Team?  @relation(fields: [teamId], references: [id])
+  workouts Workout[]
+
+  @@map("sessions")
+}
+
+model Workout {
+  id          String      @id @default(cuid())
+  type        WorkoutType
+  distance    Float       // in meters
+  time        Int?        // in seconds
+  sets        Int?
+  reps        Int?
+  restTime    Int?        // in seconds
+  stroke      Stroke?
+  intensity   Intensity?
+  notes       String?
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  // Relations
+  sessionId String
+  session   Session @relation(fields: [sessionId], references: [id])
+  userId    String
+  user      User    @relation(fields: [userId], references: [id])
+
+  @@map("workouts")
+}
+
+enum WorkoutType {
+  WARMUP
+  MAIN_SET
+  COOLDOWN
+  TECHNIQUE
+  SPRINT
+  ENDURANCE
+  KICK
+  PULL
+}
+
+enum Stroke {
+  FREESTYLE
+  BACKSTROKE
+  BREASTSTROKE
+  BUTTERFLY
+  INDIVIDUAL_MEDLEY
+  MIXED
+}
+
+enum Intensity {
+  EASY
+  MODERATE
+  HARD
+  RACE_PACE
+  RECOVERY
+}

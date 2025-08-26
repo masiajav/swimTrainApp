@@ -1,0 +1,25 @@
+{
+  "name": "swim-train-app",
+  "version": "1.0.0",
+  "description": "A swimming training tracker for teams",
+  "main": "index.js",
+  "scripts": {
+    "dev": "concurrently \"npm run dev:backend\" \"npm run dev:mobile\"",
+    "dev:backend": "cd backend && npm run dev",
+    "dev:mobile": "cd mobile && npx expo start",
+    "install:all": "npm install && cd backend && npm install && cd ../mobile && npm install",
+    "build:mobile": "cd mobile && npx expo export",
+    "type-check": "cd backend && npm run type-check && cd ../mobile && npx tsc --noEmit"
+  },
+  "keywords": ["swimming", "training", "tracker", "react-native", "expo"],
+  "author": "Swimming Team",
+  "license": "MIT",
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  },
+  "workspaces": [
+    "backend",
+    "mobile",
+    "shared"
+  ]
+}

@@ -1,0 +1,13 @@
+{
+  "name": "swimtrainapp-shared",
+  "version": "1.0.0",
+  "description": "Shared types and utilities for SwimTrainApp",
+  "main": "index.ts",
+  "scripts": {
+    "build": "tsc",
+    "type-check": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "typescript": "^5.2.2"
+  }
+}
