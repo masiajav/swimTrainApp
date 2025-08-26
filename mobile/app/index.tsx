@@ -1,135 +1,138 @@
-import { View, Text, TouchableOpacity, ScrollView, Dimensions } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView, StyleSheet } from 'react-native';
 import { Link } from 'expo-router';
 
 export default function WelcomeScreen() {
   return (
-    <ScrollView className="flex-1">
+    <ScrollView style={styles.container}>
       {/* Hero Section with Gradient Background */}
-      <View className="flex-1 min-h-screen bg-gradient-to-br from-blue-400 via-blue-500 to-teal-600" style={{
-        backgroundColor: '#3b82f6',
-        backgroundImage: 'linear-gradient(135deg, #60a5fa 0%, #3b82f6 50%, #14b8a6 100%)'
-      }}>
+      <View style={styles.heroSection}>
         
         {/* Floating Elements for Visual Interest */}
-        <View className="absolute top-20 right-10 w-20 h-20 bg-white/10 rounded-full animate-pulse-slow" />
-        <View className="absolute top-40 left-8 w-16 h-16 bg-white/10 rounded-full animate-bounce-slow" />
-        <View className="absolute bottom-32 right-6 w-12 h-12 bg-white/10 rounded-full animate-float" />
-        <View className="absolute top-60 right-20 w-8 h-8 bg-white/10 rounded-full" />
-        <View className="absolute bottom-60 left-12 w-6 h-6 bg-white/10 rounded-full" />
+        <View style={[styles.floatingElement, { top: 80, right: 40, width: 80, height: 80 }]} />
+        <View style={[styles.floatingElement, { top: 160, left: 32, width: 64, height: 64 }]} />
+        <View style={[styles.floatingElement, { bottom: 128, right: 24, width: 48, height: 48 }]} />
+        <View style={[styles.floatingElement, { top: 240, right: 80, width: 32, height: 32 }]} />
+        <View style={[styles.floatingElement, { bottom: 240, left: 48, width: 24, height: 24 }]} />
         
         {/* Main Content */}
-        <View className="flex-1 justify-center items-center px-8 pt-16 pb-12">
+        <View style={styles.mainContent}>
           {/* Swimming Icon with Glow Effect */}
-          <View className="mb-8 items-center">
-            <View className="bg-white/20 rounded-full p-8 mb-4 shadow-2xl backdrop-blur-sm border border-white/30">
-              <Text className="text-6xl">🏊‍♀️</Text>
+          <View style={styles.iconContainer}>
+            <View style={styles.iconWrapper}>
+              <Text style={styles.iconEmoji}>🏊‍♀️</Text>
             </View>
-            <View className="h-2 w-16 bg-white/30 rounded-full shadow-glow" />
+            <View style={styles.iconGlow} />
           </View>
           
           {/* App Title */}
-          <View className="items-center mb-8">
-            <Text className="text-5xl font-black text-white text-center mb-3 tracking-wide drop-shadow-lg">
+          <View style={styles.titleContainer}>
+            <Text style={styles.appTitle}>
               SwimTrainApp
             </Text>
-            <View className="h-1 w-32 bg-teal-300 rounded-full mb-6 shadow-glow-teal" />
-            <Text className="text-xl text-blue-100 text-center font-medium leading-relaxed px-4">
+            <View style={styles.titleUnderline} />
+            <Text style={styles.subtitle}>
               Track your swimming training sessions{'\n'}with your team like never before ✨
             </Text>
           </View>
           
           {/* Feature Highlights */}
-          <View className="w-full mb-10 px-4">
-            <View className="flex-row items-center justify-center mb-4">
-              <View className="bg-white/20 rounded-full p-3 mr-4 backdrop-blur-sm">
-                <Text className="text-2xl">📊</Text>
+          <View style={styles.featuresContainer}>
+            <View style={styles.featureRow}>
+              <View style={styles.featureIcon}>
+                <Text style={styles.featureEmoji}>📊</Text>
               </View>
-              <Text className="text-white/90 font-semibold text-lg">Track Progress & Analytics</Text>
+              <Text style={styles.featureText}>Track Progress & Analytics</Text>
             </View>
-            <View className="flex-row items-center justify-center mb-4">
-              <View className="bg-white/20 rounded-full p-3 mr-4 backdrop-blur-sm">
-                <Text className="text-2xl">👥</Text>
+            <View style={styles.featureRow}>
+              <View style={styles.featureIcon}>
+                <Text style={styles.featureEmoji}>👥</Text>
               </View>
-              <Text className="text-white/90 font-semibold text-lg">Team Collaboration</Text>
+              <Text style={styles.featureText}>Team Collaboration</Text>
             </View>
-            <View className="flex-row items-center justify-center">
-              <View className="bg-white/20 rounded-full p-3 mr-4 backdrop-blur-sm">
-                <Text className="text-2xl">🏆</Text>
+            <View style={styles.featureRow}>
+              <View style={styles.featureIcon}>
+                <Text style={styles.featureEmoji}>🏆</Text>
               </View>
-              <Text className="text-white/90 font-semibold text-lg">Goal Achievement</Text>
+              <Text style={styles.featureText}>Goal Achievement</Text>
             </View>
           </View>
           
-          {/* Action Buttons */}
-          <View className="w-full space-y-5 max-w-sm px-4">
-            <Link href="/auth/login" asChild>
-              <TouchableOpacity className="bg-white rounded-2xl py-5 px-8 shadow-xl active:scale-95 transform transition-transform">
-                <View className="flex-row items-center justify-center">
-                  <Text className="text-swimming-blue text-center font-bold text-xl mr-3">
-                    Get Started
-                  </Text>
-                  <Text className="text-2xl">🚀</Text>
-                </View>
-              </TouchableOpacity>
-            </Link>
-            
-            <Link href="/(tabs)" asChild>
-              <TouchableOpacity className="bg-white/20 border-2 border-white/40 rounded-2xl py-5 px-8 backdrop-blur-sm active:scale-95 transform transition-transform">
-                <View className="flex-row items-center justify-center">
-                  <Text className="text-white text-center font-bold text-xl mr-3">
-                    Try Demo
-                  </Text>
-                  <Text className="text-2xl">👀</Text>
-                </View>
-              </TouchableOpacity>
-            </Link>
+          {/* Action Buttons - Modern Centered Design */}
+          <View style={styles.buttonContainer}>
+            <View style={styles.buttonWrapper}>
+              <Link href="/auth/login" asChild>
+                <TouchableOpacity style={styles.primaryButton} activeOpacity={0.8}>
+                  <View style={styles.buttonContent}>
+                    <View style={styles.buttonIcon}>
+                      <Text style={styles.buttonIconText}>→</Text>
+                    </View>
+                    <Text style={styles.primaryButtonText}>
+                      Get Started
+                    </Text>
+                  </View>
+                </TouchableOpacity>
+              </Link>
+              
+              <Link href="/(tabs)" asChild>
+                <TouchableOpacity style={styles.secondaryButton} activeOpacity={0.8}>
+                  <View style={styles.buttonContent}>
+                    <View style={styles.secondaryButtonIcon}>
+                      <Text style={styles.secondaryButtonIconText}>◉</Text>
+                    </View>
+                    <Text style={styles.secondaryButtonText}>
+                      Try Demo
+                    </Text>
+                  </View>
+                </TouchableOpacity>
+              </Link>
+            </View>
           </View>
           
           {/* App Features Cards */}
-          <View className="w-full mt-16 space-y-4 px-4">
-            <View className="bg-white/15 backdrop-blur-sm rounded-2xl p-6 border border-white/30 shadow-xl">
-              <Text className="text-white font-bold text-center mb-2 text-lg">
+          <View style={styles.cardsContainer}>
+            <View style={styles.featureCard}>
+              <Text style={styles.cardTitle}>
                 🌊 Swimming-Specific Features
               </Text>
-              <Text className="text-white/80 text-center leading-relaxed">
+              <Text style={styles.cardDescription}>
                 Track strokes, laps, times, and technique improvements with specialized swimming metrics
               </Text>
             </View>
             
-            <View className="bg-white/15 backdrop-blur-sm rounded-2xl p-6 border border-white/30 shadow-xl">
-              <Text className="text-white font-bold text-center mb-2 text-lg">
+            <View style={styles.featureCard}>
+              <Text style={styles.cardTitle}>
                 📱 Cross-Platform & Free Forever
               </Text>
-              <Text className="text-white/80 text-center leading-relaxed">
+              <Text style={styles.cardDescription}>
                 Works seamlessly on phone, tablet, and web • Always free • Open source • Privacy-first
               </Text>
             </View>
           </View>
           
           {/* Stats Preview */}
-          <View className="w-full mt-12 px-4">
-            <View className="flex-row justify-around">
-              <View className="items-center">
-                <Text className="text-3xl font-bold text-white">500+</Text>
-                <Text className="text-white/70 text-sm">Sessions Tracked</Text>
+          <View style={styles.statsContainer}>
+            <View style={styles.statsRow}>
+              <View style={styles.statItem}>
+                <Text style={styles.statNumber}>500+</Text>
+                <Text style={styles.statLabel}>Sessions Tracked</Text>
               </View>
-              <View className="items-center">
-                <Text className="text-3xl font-bold text-white">50+</Text>
-                <Text className="text-white/70 text-sm">Swimming Teams</Text>
+              <View style={styles.statItem}>
+                <Text style={styles.statNumber}>50+</Text>
+                <Text style={styles.statLabel}>Swimming Teams</Text>
               </View>
-              <View className="items-center">
-                <Text className="text-3xl font-bold text-white">10k+</Text>
-                <Text className="text-white/70 text-sm">Kilometers Swum</Text>
+              <View style={styles.statItem}>
+                <Text style={styles.statNumber}>10k+</Text>
+                <Text style={styles.statLabel}>Kilometers Swum</Text>
               </View>
             </View>
           </View>
           
           {/* Footer */}
-          <View className="mt-16 items-center">
-            <Text className="text-white/70 text-center font-medium">
+          <View style={styles.footer}>
+            <Text style={styles.footerText}>
               Made with ❤️ for swimmers around the world
             </Text>
-            <Text className="text-white/50 text-center text-sm mt-2">
+            <Text style={styles.footerSubtext}>
               Free • Open Source • Privacy-First • No Ads Ever
             </Text>
           </View>
@@ -138,3 +141,251 @@ export default function WelcomeScreen() {
     </ScrollView>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
+  heroSection: {
+    flex: 1,
+    minHeight: 800,
+    backgroundColor: '#3b82f6',
+    position: 'relative',
+  },
+  floatingElement: {
+    position: 'absolute',
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    borderRadius: 50,
+  },
+  mainContent: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 32,
+    paddingTop: 64,
+    paddingBottom: 48,
+  },
+  iconContainer: {
+    marginBottom: 32,
+    alignItems: 'center',
+  },
+  iconWrapper: {
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    borderRadius: 50,
+    padding: 32,
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.3)',
+  },
+  iconEmoji: {
+    fontSize: 72,
+  },
+  iconGlow: {
+    height: 8,
+    width: 64,
+    backgroundColor: 'rgba(255, 255, 255, 0.3)',
+    borderRadius: 20,
+  },
+  titleContainer: {
+    alignItems: 'center',
+    marginBottom: 32,
+  },
+  appTitle: {
+    fontSize: 48,
+    fontWeight: '900',
+    color: 'white',
+    textAlign: 'center',
+    marginBottom: 12,
+    letterSpacing: 1,
+  },
+  titleUnderline: {
+    height: 4,
+    width: 128,
+    backgroundColor: '#5eead4',
+    borderRadius: 20,
+    marginBottom: 24,
+  },
+  subtitle: {
+    fontSize: 20,
+    color: '#bfdbfe',
+    textAlign: 'center',
+    fontWeight: '500',
+    lineHeight: 28,
+    paddingHorizontal: 16,
+  },
+  featuresContainer: {
+    width: '100%',
+    marginBottom: 40,
+    paddingHorizontal: 16,
+  },
+  featureRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 16,
+  },
+  featureIcon: {
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    borderRadius: 50,
+    padding: 12,
+    marginRight: 16,
+  },
+  featureEmoji: {
+    fontSize: 32,
+  },
+  featureText: {
+    color: 'rgba(255, 255, 255, 0.9)',
+    fontWeight: '600',
+    fontSize: 18,
+  },
+  buttonContainer: {
+    width: '100%',
+    alignItems: 'center',
+    paddingHorizontal: 32,
+    marginBottom: 32,
+  },
+  buttonWrapper: {
+    width: '100%',
+    maxWidth: 320,
+  },
+  primaryButton: {
+    backgroundColor: 'rgba(255, 255, 255, 0.95)',
+    borderRadius: 24,
+    paddingVertical: 24,
+    paddingHorizontal: 40,
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.2)',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.3,
+    shadowRadius: 24,
+    elevation: 12,
+  },
+  secondaryButton: {
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    borderWidth: 2,
+    borderColor: 'rgba(255, 255, 255, 0.3)',
+    borderRadius: 24,
+    paddingVertical: 24,
+    paddingHorizontal: 40,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 12,
+    elevation: 6,
+  },
+  buttonContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  buttonIcon: {
+    backgroundColor: '#3b82f6',
+    borderRadius: 20,
+    width: 32,
+    height: 32,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 16,
+  },
+  buttonIconText: {
+    color: 'white',
+    fontSize: 18,
+    fontWeight: 'bold',
+  },
+  secondaryButtonIcon: {
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    borderRadius: 20,
+    width: 32,
+    height: 32,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 16,
+  },
+  secondaryButtonIconText: {
+    color: 'white',
+    fontSize: 18,
+    fontWeight: 'bold',
+  },
+  primaryButtonText: {
+    color: '#1e40af',
+    textAlign: 'center',
+    fontWeight: 'bold',
+    fontSize: 18,
+    letterSpacing: 1,
+  },
+  secondaryButtonText: {
+    color: 'white',
+    textAlign: 'center',
+    fontWeight: 'bold',
+    fontSize: 18,
+    letterSpacing: 1,
+  },
+  cardsContainer: {
+    width: '100%',
+    marginTop: 64,
+    paddingHorizontal: 16,
+  },
+  featureCard: {
+    backgroundColor: 'rgba(255, 255, 255, 0.15)',
+    borderRadius: 16,
+    padding: 24,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.3)',
+    marginBottom: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 12,
+    elevation: 6,
+  },
+  cardTitle: {
+    color: 'white',
+    fontWeight: 'bold',
+    textAlign: 'center',
+    marginBottom: 8,
+    fontSize: 18,
+  },
+  cardDescription: {
+    color: 'rgba(255, 255, 255, 0.8)',
+    textAlign: 'center',
+    lineHeight: 22,
+  },
+  statsContainer: {
+    width: '100%',
+    marginTop: 48,
+    paddingHorizontal: 16,
+  },
+  statsRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+  },
+  statItem: {
+    alignItems: 'center',
+  },
+  statNumber: {
+    fontSize: 36,
+    fontWeight: 'bold',
+    color: 'white',
+  },
+  statLabel: {
+    color: 'rgba(255, 255, 255, 0.7)',
+    fontSize: 12,
+  },
+  footer: {
+    marginTop: 64,
+    alignItems: 'center',
+  },
+  footerText: {
+    color: 'rgba(255, 255, 255, 0.7)',
+    textAlign: 'center',
+    fontWeight: '500',
+  },
+  footerSubtext: {
+    color: 'rgba(255, 255, 255, 0.5)',
+    textAlign: 'center',
+    fontSize: 12,
+    marginTop: 8,
+  },
+});
