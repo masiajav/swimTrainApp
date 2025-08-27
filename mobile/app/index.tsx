@@ -67,7 +67,20 @@ export default function WelcomeScreen() {
                       <Text style={styles.buttonIconText}>→</Text>
                     </View>
                     <Text style={styles.primaryButtonText}>
-                      Get Started
+                      Sign In
+                    </Text>
+                  </View>
+                </TouchableOpacity>
+              </Link>
+              
+              <Link href="/auth/register" asChild>
+                <TouchableOpacity style={styles.signUpButton} activeOpacity={0.8}>
+                  <View style={styles.buttonContent}>
+                    <View style={styles.signUpButtonIcon}>
+                      <Text style={styles.signUpButtonIconText}>+</Text>
+                    </View>
+                    <Text style={styles.signUpButtonText}>
+                      Sign Up
                     </Text>
                   </View>
                 </TouchableOpacity>
@@ -316,6 +329,41 @@ const styles = StyleSheet.create({
     letterSpacing: 1,
   },
   secondaryButtonText: {
+    color: 'white',
+    textAlign: 'center',
+    fontWeight: 'bold',
+    fontSize: 18,
+    letterSpacing: 1,
+  },
+  signUpButton: {
+    backgroundColor: 'rgba(16, 185, 129, 0.95)',
+    borderRadius: 24,
+    paddingVertical: 24,
+    paddingHorizontal: 40,
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(16, 185, 129, 0.3)',
+    shadowColor: '#059669',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.3,
+    shadowRadius: 24,
+    elevation: 12,
+  },
+  signUpButtonIcon: {
+    backgroundColor: 'white',
+    borderRadius: 20,
+    width: 32,
+    height: 32,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 16,
+  },
+  signUpButtonIconText: {
+    color: '#059669',
+    fontSize: 18,
+    fontWeight: 'bold',
+  },
+  signUpButtonText: {
     color: 'white',
     textAlign: 'center',
     fontWeight: 'bold',

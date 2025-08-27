@@ -1,4 +1,4 @@
-import { View, Text, TextInput, TouchableOpacity, Alert } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, Alert, StyleSheet } from 'react-native';
 import { useState } from 'react';
 import { Link, router } from 'expo-router';
 
@@ -23,46 +23,189 @@ export default function LoginScreen() {
   };
 
   return (
-    <View className="flex-1 bg-blue-50 justify-center px-6">
-      <View className="bg-white rounded-xl p-8 shadow-lg">
-        <Text className="text-2xl font-bold text-swimming-navy text-center mb-6">
-          Welcome Back! 🏊‍♀️
-        </Text>
+    <View style={styles.container}>
+      {/* Header with Swimming Theme */}
+      <View style={styles.header}>
+        <Text style={styles.headerEmoji}>🏊‍♀️</Text>
+        <Text style={styles.headerTitle}>SwimTrainApp</Text>
+        <Text style={styles.headerSubtitle}>Welcome back to your training</Text>
+      </View>
+
+      {/* Login Form Card */}
+      <View style={styles.formCard}>
+        <View style={styles.cardHeader}>
+          <Text style={styles.welcomeText}>Welcome Back!</Text>
+          <Text style={styles.welcomeSubtext}>Sign in to continue your training journey</Text>
+        </View>
         
-        <TextInput
-          placeholder="Email"
-          value={email}
-          onChangeText={setEmail}
-          keyboardType="email-address"
-          autoCapitalize="none"
-          className="border border-gray-300 rounded-lg p-4 mb-4"
-        />
+        <View style={styles.inputContainer}>
+          <Text style={styles.inputLabel}>📧 Email</Text>
+          <TextInput
+            placeholder="Enter your email"
+            value={email}
+            onChangeText={setEmail}
+            keyboardType="email-address"
+            autoCapitalize="none"
+            style={styles.input}
+            placeholderTextColor="#94a3b8"
+          />
+        </View>
         
-        <TextInput
-          placeholder="Password"
-          value={password}
-          onChangeText={setPassword}
-          secureTextEntry
-          className="border border-gray-300 rounded-lg p-4 mb-6"
-        />
+        <View style={styles.inputContainer}>
+          <Text style={styles.inputLabel}>🔒 Password</Text>
+          <TextInput
+            placeholder="Enter your password"
+            value={password}
+            onChangeText={setPassword}
+            secureTextEntry
+            style={styles.input}
+            placeholderTextColor="#94a3b8"
+          />
+        </View>
         
         <TouchableOpacity 
           onPress={handleLogin}
-          className="bg-swimming-blue py-4 px-6 rounded-lg mb-4"
+          style={styles.loginButton}
         >
-          <Text className="text-white text-center font-semibold text-lg">
-            Login
+          <Text style={styles.loginButtonText}>
+            🏊‍♀️ Sign In
           </Text>
         </TouchableOpacity>
         
         <Link href="/auth/register" asChild>
-          <TouchableOpacity>
-            <Text className="text-swimming-blue text-center">
-              Don't have an account? Sign up
+          <TouchableOpacity style={styles.signUpLink}>
+            <Text style={styles.signUpText}>
+              Don't have an account? <Text style={styles.signUpTextBold}>Sign up</Text>
             </Text>
           </TouchableOpacity>
         </Link>
       </View>
+
+      {/* Bottom Wave Decoration */}
+      <View style={styles.waveContainer}>
+        <Text style={styles.waveText}>🌊 🌊 🌊</Text>
+      </View>
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#f0f9ff',
+  },
+  header: {
+    paddingTop: 80,
+    paddingBottom: 40,
+    paddingHorizontal: 20,
+    backgroundColor: '#3b82f6',
+    alignItems: 'center',
+    borderBottomLeftRadius: 30,
+    borderBottomRightRadius: 30,
+  },
+  headerEmoji: {
+    fontSize: 48,
+    marginBottom: 12,
+  },
+  headerTitle: {
+    fontSize: 28,
+    fontWeight: 'bold',
+    color: 'white',
+    marginBottom: 8,
+  },
+  headerSubtitle: {
+    fontSize: 16,
+    color: '#e0f2fe',
+  },
+  formCard: {
+    backgroundColor: 'white',
+    marginHorizontal: 20,
+    marginTop: -20,
+    borderRadius: 20,
+    padding: 32,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+    shadowOpacity: 0.15,
+    shadowRadius: 12,
+    elevation: 8,
+  },
+  cardHeader: {
+    alignItems: 'center',
+    marginBottom: 32,
+  },
+  welcomeText: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#1e293b',
+    marginBottom: 8,
+  },
+  welcomeSubtext: {
+    fontSize: 16,
+    color: '#64748b',
+    textAlign: 'center',
+  },
+  inputContainer: {
+    marginBottom: 20,
+  },
+  inputLabel: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#374151',
+    marginBottom: 8,
+  },
+  input: {
+    borderWidth: 2,
+    borderColor: '#e2e8f0',
+    borderRadius: 12,
+    padding: 16,
+    fontSize: 16,
+    backgroundColor: '#f8fafc',
+    color: '#1e293b',
+  },
+  loginButton: {
+    backgroundColor: '#3b82f6',
+    borderRadius: 12,
+    padding: 18,
+    marginTop: 12,
+    marginBottom: 24,
+    shadowColor: '#3b82f6',
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  loginButtonText: {
+    color: 'white',
+    fontSize: 18,
+    fontWeight: 'bold',
+    textAlign: 'center',
+  },
+  signUpLink: {
+    alignItems: 'center',
+  },
+  signUpText: {
+    fontSize: 16,
+    color: '#64748b',
+  },
+  signUpTextBold: {
+    fontWeight: 'bold',
+    color: '#3b82f6',
+  },
+  waveContainer: {
+    position: 'absolute',
+    bottom: 40,
+    left: 0,
+    right: 0,
+    alignItems: 'center',
+  },
+  waveText: {
+    fontSize: 24,
+    opacity: 0.3,
+  },
+});
