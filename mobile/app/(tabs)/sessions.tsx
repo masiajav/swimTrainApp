@@ -38,6 +38,80 @@ export default function SessionsScreen() {
     }
   };
 
+  const calculateWeeklySummary = () => {
+    const now = new Date();
+    const oneWeekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+    
+    const weekSessions = sessions.filter(session => {
+      const sessionDate = new Date(session.date);
+      return sessionDate >= oneWeekAgo && sessionDate <= now;
+    });
+
+    const totalDistance = weekSessions.reduce((sum, session) => sum + (session.distance || 0), 0);
+    const totalDuration = weekSessions.reduce((sum, session) => sum + session.duration, 0);
+    
+    return {
+      sessionCount: weekSessions.length,
+      totalDistance: totalDistance,
+      totalDuration: totalDuration,
+    };
+  };
+
+  const formatDistance = (meters: number) => {
+    if (meters >= 1000) {
+      return `${(meters / 1000).toFixed(1)}km`;
+    }
+    return `${meters}m`;
+  };
+
+  const formatDuration = (minutes: number) => {
+    if (minutes >= 60) {
+      const hours = Math.floor(minutes / 60);
+      const remainingMinutes = minutes % 60;
+      if (remainingMinutes === 0) {
+        return `${hours}h`;
+      }
+      return `${hours}h ${remainingMinutes}m`;
+    }
+    return `${minutes}m`;
+  };
+
+  const calculateMonthlySummary = () => {
+    const now = new Date();
+    const oneMonthAgo = new Date(now.getFullYear(), now.getMonth() - 1, now.getDate());
+    
+    const monthSessions = sessions.filter(session => {
+      const sessionDate = new Date(session.date);
+      return sessionDate >= oneMonthAgo && sessionDate <= now;
+    });
+
+    const totalDistance = monthSessions.reduce((sum, session) => sum + (session.distance || 0), 0);
+    const totalDuration = monthSessions.reduce((sum, session) => sum + session.duration, 0);
+    const avgDistance = monthSessions.length > 0 ? totalDistance / monthSessions.length : 0;
+    
+    return {
+      sessionCount: monthSessions.length,
+      totalDistance,
+      totalDuration,
+      avgDistance,
+    };
+  };
+
+  const getWorkoutTypeStats = () => {
+    const typeCount: { [key: string]: number } = {};
+    sessions.forEach(session => {
+      if (session.workoutType) {
+        typeCount[session.workoutType] = (typeCount[session.workoutType] || 0) + 1;
+      }
+    });
+    
+    const sortedTypes = Object.entries(typeCount)
+      .sort(([,a], [,b]) => b - a)
+      .slice(0, 3);
+    
+    return sortedTypes;
+  };
+
   // Reload sessions when screen comes into focus
   useFocusEffect(
     React.useCallback(() => {
@@ -237,21 +311,62 @@ export default function SessionsScreen() {
 
       {/* Weekly Summary */}
       <View style={styles.summaryCard}>
-        <Text style={styles.summaryTitle}>This Week Summary</Text>
+        <Text style={styles.summaryTitle}>📊 This Week Summary</Text>
         <View style={styles.summaryStats}>
           <View style={styles.summaryItem}>
-            <Text style={styles.summaryValue}>4</Text>
+            <Text style={styles.summaryValue}>{calculateWeeklySummary().sessionCount}</Text>
             <Text style={styles.summaryLabel}>Sessions</Text>
           </View>
           <View style={styles.summaryItem}>
-            <Text style={styles.summaryValue}>7.7km</Text>
+            <Text style={styles.summaryValue}>{formatDistance(calculateWeeklySummary().totalDistance)}</Text>
             <Text style={styles.summaryLabel}>Total Distance</Text>
           </View>
           <View style={styles.summaryItem}>
-            <Text style={styles.summaryValue}>3h</Text>
+            <Text style={styles.summaryValue}>{formatDuration(calculateWeeklySummary().totalDuration)}</Text>
             <Text style={styles.summaryLabel}>Total Time</Text>
           </View>
         </View>
+        {calculateWeeklySummary().sessionCount === 0 && (
+          <View style={styles.emptyWeekMessage}>
+            <Text style={styles.emptyWeekText}>No sessions this week yet. Start training! 💪</Text>
+          </View>
+        )}
+      </View>
+
+      {/* Monthly Stats */}
+      <View style={styles.summaryCard}>
+        <Text style={styles.summaryTitle}>📈 Monthly Overview</Text>
+        <View style={styles.summaryStats}>
+          <View style={styles.summaryItem}>
+            <Text style={styles.summaryValue}>{calculateMonthlySummary().sessionCount}</Text>
+            <Text style={styles.summaryLabel}>Sessions</Text>
+          </View>
+          <View style={styles.summaryItem}>
+            <Text style={styles.summaryValue}>{formatDistance(calculateMonthlySummary().totalDistance)}</Text>
+            <Text style={styles.summaryLabel}>Total Distance</Text>
+          </View>
+          <View style={styles.summaryItem}>
+            <Text style={styles.summaryValue}>{formatDistance(Math.round(calculateMonthlySummary().avgDistance))}</Text>
+            <Text style={styles.summaryLabel}>Avg Distance</Text>
+          </View>
+        </View>
+
+        {/* Top Workout Types */}
+        {getWorkoutTypeStats().length > 0 && (
+          <View style={styles.workoutTypesSection}>
+            <Text style={styles.workoutTypesTitle}>🏊 Most Common Workouts:</Text>
+            <View style={styles.workoutTypesList}>
+              {getWorkoutTypeStats().map(([type, count]) => (
+                <View key={type} style={styles.workoutTypeItem}>
+                  <View style={[styles.workoutTypeBadge, { backgroundColor: getTypeColor(type) }]}>
+                    <Text style={styles.workoutTypeBadgeText}>{type.replace('_', ' ')}</Text>
+                  </View>
+                  <Text style={styles.workoutTypeCount}>{count}x</Text>
+                </View>
+              ))}
+            </View>
+          </View>
+        )}
       </View>
     </ScrollView>
   );
@@ -499,6 +614,62 @@ const styles = StyleSheet.create({
   summaryLabel: {
     fontSize: 12,
     color: '#64748b',
+    fontWeight: '500',
+  },
+  emptyWeekMessage: {
+    marginTop: 16,
+    padding: 12,
+    backgroundColor: '#f0f9ff',
+    borderRadius: 8,
+    borderLeftWidth: 4,
+    borderLeftColor: '#3b82f6',
+  },
+  emptyWeekText: {
+    fontSize: 14,
+    color: '#1e40af',
+    textAlign: 'center',
+    fontStyle: 'italic',
+  },
+  workoutTypesSection: {
+    marginTop: 16,
+    paddingTop: 16,
+    borderTopWidth: 1,
+    borderTopColor: '#f1f5f9',
+  },
+  workoutTypesTitle: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#374151',
+    marginBottom: 12,
+  },
+  workoutTypesList: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  workoutTypeItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#f8fafc',
+    borderRadius: 8,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+  },
+  workoutTypeBadge: {
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 6,
+    marginRight: 6,
+  },
+  workoutTypeBadgeText: {
+    color: 'white',
+    fontSize: 10,
+    fontWeight: 'bold',
+    textTransform: 'uppercase',
+  },
+  workoutTypeCount: {
+    fontSize: 12,
+    color: '#6b7280',
     fontWeight: '500',
   },
   loadingContainer: {
