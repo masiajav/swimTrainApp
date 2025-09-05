@@ -108,10 +108,81 @@ router.get('/:id', authenticateToken, async (req: any, res) => {
       return res.status(404).json({ error: 'Session not found' });
     }
 
-    res.json({ session });
+    res.json({ data: session });
   } catch (error) {
     console.error('Get session error:', error);
     res.status(500).json({ error: 'Failed to fetch session' });
+  }
+});
+
+// PUT /api/sessions/:id - Update session
+router.put('/:id', authenticateToken, async (req: any, res) => {
+  try {
+    const { title, description, date, duration, distance, workoutType, stroke, intensity } = createSessionSchema.parse(req.body);
+
+    const existingSession = await prisma.session.findFirst({
+      where: {
+        id: req.params.id,
+        userId: req.userId,
+      },
+    });
+
+    if (!existingSession) {
+      return res.status(404).json({ error: 'Session not found' });
+    }
+
+    const session = await prisma.session.update({
+      where: { id: req.params.id },
+      data: {
+        title,
+        description,
+        date: new Date(date),
+        duration,
+        distance,
+        workoutType,
+        stroke,
+        intensity,
+      },
+      include: {
+        workouts: true,
+      },
+    });
+
+    res.json({
+      message: 'Session updated successfully',
+      data: session,
+    });
+  } catch (error: any) {
+    console.error('Update session error:', error);
+    if (error.errors) {
+      return res.status(400).json({ error: 'Invalid session data', details: error.errors });
+    }
+    res.status(500).json({ error: 'Failed to update session' });
+  }
+});
+
+// DELETE /api/sessions/:id - Delete session
+router.delete('/:id', authenticateToken, async (req: any, res) => {
+  try {
+    const existingSession = await prisma.session.findFirst({
+      where: {
+        id: req.params.id,
+        userId: req.userId,
+      },
+    });
+
+    if (!existingSession) {
+      return res.status(404).json({ error: 'Session not found' });
+    }
+
+    await prisma.session.delete({
+      where: { id: req.params.id },
+    });
+
+    res.json({ message: 'Session deleted successfully' });
+  } catch (error) {
+    console.error('Delete session error:', error);
+    res.status(500).json({ error: 'Failed to delete session' });
   }
 });
 

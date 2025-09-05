@@ -142,6 +142,36 @@ class ApiService {
     });
     return response;
   }
+
+  async updateSession(id: string, sessionData: {
+    title: string;
+    description?: string;
+    date: string;
+    duration: number;
+    distance?: number;
+    workoutType?: string;
+    stroke?: string;
+    intensity?: string;
+  }) {
+    const response = await this.request(`/sessions/${id}`, {
+      method: 'PUT',
+      headers: {
+        ...this.getAuthHeaders(),
+      },
+      body: JSON.stringify(sessionData),
+    });
+    return response;
+  }
+
+  async deleteSession(id: string) {
+    const response = await this.request(`/sessions/${id}`, {
+      method: 'DELETE',
+      headers: {
+        ...this.getAuthHeaders(),
+      },
+    });
+    return response;
+  }
 }
 
 export const apiService = new ApiService();

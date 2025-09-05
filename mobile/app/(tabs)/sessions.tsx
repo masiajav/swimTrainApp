@@ -150,7 +150,11 @@ export default function SessionsScreen() {
           </View>
         ) : (
           sessions.map((session) => (
-            <TouchableOpacity key={session.id} style={styles.sessionCard}>
+            <TouchableOpacity 
+              key={session.id} 
+              style={styles.sessionCard}
+              onPress={() => router.push(`/session/${session.id}`)}
+            >
               <View style={styles.sessionHeader}>
                 <View style={styles.sessionTitleRow}>
                   <Text style={styles.sessionTitle}>{session.title}</Text>
@@ -213,10 +217,16 @@ export default function SessionsScreen() {
               )}
 
               <View style={styles.sessionFooter}>
-                <TouchableOpacity style={styles.viewButton}>
+                <TouchableOpacity 
+                  style={styles.viewButton}
+                  onPress={() => router.push(`/session/${session.id}`)}
+                >
                   <Text style={styles.viewButtonText}>View Details</Text>
                 </TouchableOpacity>
-                <TouchableOpacity style={styles.editButton}>
+                <TouchableOpacity 
+                  style={styles.editButton}
+                  onPress={() => router.push(`/session/edit/${session.id}`)}
+                >
                   <Text style={styles.editButtonText}>Edit</Text>
                 </TouchableOpacity>
               </View>
