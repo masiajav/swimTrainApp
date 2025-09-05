@@ -1,10 +1,12 @@
 import { View, Text, TextInput, TouchableOpacity, Alert, StyleSheet } from 'react-native';
 import { useState } from 'react';
 import { Link, router } from 'expo-router';
+import { apiService } from '../../services/api';
 
 export default function LoginScreen() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleLogin = async () => {
     if (!email || !password) {
@@ -12,13 +14,39 @@ export default function LoginScreen() {
       return;
     }
 
+    setIsLoading(true);
     try {
-      // TODO: Implement actual login logic
-      console.log('Login attempt:', { email, password });
-      Alert.alert('Success', 'Login successful!');
+      const response = await apiService.login({ email, password });
+      
+      // Store the token for future requests
+      apiService.setAuthToken(response.token);
+      
+      // You might want to store this in secure storage
+      console.log('Login successful:', response.user);
+      
+      Alert.alert('Success', `Welcome back, ${response.user.firstName || response.user.username}!`);
       router.replace('/(tabs)');
-    } catch (error) {
-      Alert.alert('Error', 'Login failed. Please try again.');
+    } catch (error: any) {
+      console.error('Login error:', error);
+      Alert.alert('Error', error.message || 'Login failed. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleGoogleLogin = async () => {
+    setIsLoading(true);
+    try {
+      // For web, we'll use Supabase's built-in Google OAuth
+      const SUPABASE_URL = 'https://pkrtqzsudfeehwufyduy.supabase.co';
+      const redirectUrl = window.location.origin + '/auth/callback';
+      
+      // Redirect to Supabase Google OAuth
+      window.location.href = `${SUPABASE_URL}/auth/v1/authorize?provider=google&redirect_to=${encodeURIComponent(redirectUrl)}`;
+    } catch (error: any) {
+      console.error('Google login error:', error);
+      Alert.alert('Error', 'Google sign-in failed. Please try again.');
+      setIsLoading(false);
     }
   };
 
@@ -65,10 +93,29 @@ export default function LoginScreen() {
         
         <TouchableOpacity 
           onPress={handleLogin}
-          style={styles.loginButton}
+          style={[styles.loginButton, isLoading && styles.loginButtonDisabled]}
+          disabled={isLoading}
         >
           <Text style={styles.loginButtonText}>
-            🏊‍♀️ Sign In
+            {isLoading ? '🏊‍♀️ Signing In...' : '🏊‍♀️ Sign In'}
+          </Text>
+        </TouchableOpacity>
+
+        {/* Divider */}
+        <View style={styles.divider}>
+          <View style={styles.dividerLine} />
+          <Text style={styles.dividerText}>or</Text>
+          <View style={styles.dividerLine} />
+        </View>
+
+        {/* Google Sign In Button */}
+        <TouchableOpacity 
+          onPress={handleGoogleLogin}
+          style={styles.googleButton}
+          disabled={isLoading}
+        >
+          <Text style={styles.googleButtonText}>
+            🔍 Continue with Google
           </Text>
         </TouchableOpacity>
         
@@ -180,6 +227,10 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     elevation: 4,
   },
+  loginButtonDisabled: {
+    backgroundColor: '#94a3b8',
+    shadowOpacity: 0.1,
+  },
   loginButtonText: {
     color: 'white',
     fontSize: 18,
@@ -207,5 +258,43 @@ const styles = StyleSheet.create({
   waveText: {
     fontSize: 24,
     opacity: 0.3,
+  },
+  divider: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginVertical: 20,
+  },
+  dividerLine: {
+    flex: 1,
+    height: 1,
+    backgroundColor: '#e2e8f0',
+  },
+  dividerText: {
+    marginHorizontal: 16,
+    fontSize: 14,
+    color: '#64748b',
+    fontWeight: '500',
+  },
+  googleButton: {
+    backgroundColor: 'white',
+    borderRadius: 12,
+    padding: 18,
+    marginBottom: 24,
+    borderWidth: 2,
+    borderColor: '#e2e8f0',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  googleButtonText: {
+    color: '#374151',
+    fontSize: 18,
+    fontWeight: '600',
+    textAlign: 'center',
   },
 });
