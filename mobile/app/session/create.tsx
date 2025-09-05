@@ -16,6 +16,8 @@ import { WorkoutType, Stroke, Intensity } from '../../../shared/types';
 
 export default function CreateSession() {
   const [loading, setLoading] = useState(false);
+  const [errors, setErrors] = useState<{[key: string]: string}>({});
+  const [successMessage, setSuccessMessage] = useState('');
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -29,6 +31,21 @@ export default function CreateSession() {
   const [showWorkoutTypePicker, setShowWorkoutTypePicker] = useState(false);
   const [showStrokePicker, setShowStrokePicker] = useState(false);
   const [showIntensityPicker, setShowIntensityPicker] = useState(false);
+
+  const resetForm = () => {
+    setFormData({
+      title: '',
+      description: '',
+      date: new Date().toISOString().split('T')[0],
+      duration: '',
+      distance: '',
+      workoutType: '',
+      stroke: '',
+      intensity: '',
+    });
+    setErrors({});
+    setSuccessMessage('');
+  };
 
   const workoutTypes: WorkoutType[] = [
     WorkoutType.WARMUP,
@@ -60,31 +77,108 @@ export default function CreateSession() {
       ...prev,
       [field]: value
     }));
+    
+    // Clear error when user starts typing
+    if (errors[field]) {
+      setErrors(prev => ({
+        ...prev,
+        [field]: ''
+      }));
+    }
+    
+    // Real-time validation
+    validateField(field, value);
+  };
+
+  const validateField = (field: string, value: string) => {
+    let error = '';
+    
+    switch (field) {
+      case 'title':
+        if (!value.trim()) {
+          error = 'Session title is required';
+        } else if (value.trim().length < 3) {
+          error = 'Title must be at least 3 characters';
+        }
+        break;
+      case 'duration':
+        if (!value.trim()) {
+          error = 'Duration is required';
+        } else if (isNaN(Number(value)) || Number(value) <= 0) {
+          error = 'Duration must be a positive number';
+        } else if (Number(value) > 600) {
+          error = 'Duration seems too long (max 600 minutes)';
+        }
+        break;
+      case 'distance':
+        if (value && (isNaN(Number(value)) || Number(value) < 0)) {
+          error = 'Distance must be a positive number';
+        } else if (value && Number(value) > 50000) {
+          error = 'Distance seems too long (max 50km)';
+        }
+        break;
+      case 'date':
+        const selectedDate = new Date(value);
+        const today = new Date();
+        const oneYearAgo = new Date();
+        oneYearAgo.setFullYear(today.getFullYear() - 1);
+        
+        if (selectedDate > today) {
+          error = 'Date cannot be in the future';
+        } else if (selectedDate < oneYearAgo) {
+          error = 'Date cannot be more than a year ago';
+        }
+        break;
+    }
+    
+    setErrors(prev => ({
+      ...prev,
+      [field]: error
+    }));
   };
 
   const validateForm = () => {
+    const newErrors: {[key: string]: string} = {};
+    
+    // Validate all required fields
     if (!formData.title.trim()) {
-      Alert.alert('Error', 'Please enter a session title');
-      return false;
+      newErrors.title = 'Session title is required';
+    } else if (formData.title.trim().length < 3) {
+      newErrors.title = 'Title must be at least 3 characters';
     }
+    
     if (!formData.duration.trim()) {
-      Alert.alert('Error', 'Please enter session duration (in minutes)');
-      return false;
+      newErrors.duration = 'Duration is required';
+    } else if (isNaN(Number(formData.duration)) || Number(formData.duration) <= 0) {
+      newErrors.duration = 'Duration must be a positive number';
     }
-    if (isNaN(Number(formData.duration)) || Number(formData.duration) <= 0) {
-      Alert.alert('Error', 'Please enter a valid duration in minutes');
-      return false;
-    }
+    
     if (formData.distance && (isNaN(Number(formData.distance)) || Number(formData.distance) < 0)) {
-      Alert.alert('Error', 'Please enter a valid distance in meters');
-      return false;
+      newErrors.distance = 'Distance must be a positive number';
     }
-    return true;
+    
+    const selectedDate = new Date(formData.date);
+    const today = new Date();
+    if (selectedDate > today) {
+      newErrors.date = 'Date cannot be in the future';
+    }
+    
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
   };
 
   const handleSubmit = async () => {
     console.log('Form submission started');
-    if (!validateForm()) return;
+    if (!validateForm()) {
+      // Show first error message
+      const firstError = Object.values(errors).find(error => error);
+      if (firstError) {
+        if (typeof window !== 'undefined') {
+          window.alert(firstError);
+        }
+      }
+      return;
+    }
 
     setLoading(true);
     try {
@@ -104,16 +198,34 @@ export default function CreateSession() {
       console.log('API response:', response);
       
       if (response.data) {
-        Alert.alert('Success', 'Session created successfully!', [
-          { text: 'OK', onPress: () => router.replace('/(tabs)/') }
-        ]);
+        setSuccessMessage('Session created successfully! 🎉');
+        setTimeout(() => {
+          router.replace('/(tabs)/sessions');
+        }, 1500); // Show success message for 1.5 seconds
       } else {
         console.error('API Error:', response.error);
-        Alert.alert('Error', response.error || 'Failed to create session. Please try again.');
+        if (typeof window !== 'undefined') {
+          window.alert(response.error || 'Failed to create session. Please try again.');
+        }
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Create session error:', error);
-      Alert.alert('Error', 'Failed to create session. Please try again.');
+      let errorMessage = 'Failed to create session. Please try again.';
+      
+      // Handle specific error types
+      if (error.message?.includes('fetch')) {
+        errorMessage = 'Network error. Please check your connection.';
+      } else if (error.message?.includes('401')) {
+        errorMessage = 'Authentication error. Please log in again.';
+        router.replace('/auth/login');
+        return;
+      } else if (error.message?.includes('400')) {
+        errorMessage = 'Invalid data. Please check your inputs.';
+      }
+      
+      if (typeof window !== 'undefined') {
+        window.alert(errorMessage);
+      }
     } finally {
       setLoading(false);
     }
@@ -177,53 +289,71 @@ export default function CreateSession() {
           <Ionicons name="arrow-back" size={24} color="#0ea5e9" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>New Swimming Session</Text>
+        <TouchableOpacity onPress={resetForm} style={styles.resetButton}>
+          <Ionicons name="refresh" size={20} color="#6b7280" />
+        </TouchableOpacity>
       </View>
+
+      {/* Success Message */}
+      {successMessage && (
+        <View style={styles.successMessage}>
+          <Text style={styles.successText}>{successMessage}</Text>
+        </View>
+      )}
 
       <View style={styles.form}>
         <View style={styles.inputGroup}>
-          <Text style={styles.label}>Session Title *</Text>
+          <View style={styles.labelRow}>
+            <Text style={styles.label}>Session Title *</Text>
+            <Text style={styles.charCounter}>{formData.title.length}/50</Text>
+          </View>
           <TextInput
-            style={styles.input}
+            style={[styles.input, errors.title && styles.inputError]}
             value={formData.title}
-            onChangeText={(value) => handleInputChange('title', value)}
+            onChangeText={(value) => handleInputChange('title', value.slice(0, 50))}
             placeholder="e.g., Morning Freestyle Practice"
             placeholderTextColor="#9ca3af"
+            maxLength={50}
           />
+          {errors.title && <Text style={styles.errorText}>{errors.title}</Text>}
         </View>
 
         <View style={styles.inputGroup}>
           <Text style={styles.label}>Date *</Text>
           <TextInput
-            style={styles.input}
+            style={[styles.input, errors.date && styles.inputError]}
             value={formData.date}
             onChangeText={(value) => handleInputChange('date', value)}
             placeholder="YYYY-MM-DD"
             placeholderTextColor="#9ca3af"
           />
+          {errors.date && <Text style={styles.errorText}>{errors.date}</Text>}
         </View>
 
         <View style={styles.inputGroup}>
           <Text style={styles.label}>Duration (minutes) *</Text>
           <TextInput
-            style={styles.input}
+            style={[styles.input, errors.duration && styles.inputError]}
             value={formData.duration}
             onChangeText={(value) => handleInputChange('duration', value)}
             placeholder="e.g., 60"
             placeholderTextColor="#9ca3af"
             keyboardType="numeric"
           />
+          {errors.duration && <Text style={styles.errorText}>{errors.duration}</Text>}
         </View>
 
         <View style={styles.inputGroup}>
           <Text style={styles.label}>Distance (meters)</Text>
           <TextInput
-            style={styles.input}
+            style={[styles.input, errors.distance && styles.inputError]}
             value={formData.distance}
             onChangeText={(value) => handleInputChange('distance', value)}
             placeholder="e.g., 2000"
             placeholderTextColor="#9ca3af"
             keyboardType="numeric"
           />
+          {errors.distance && <Text style={styles.errorText}>{errors.distance}</Text>}
         </View>
 
         <View style={styles.inputGroup}>
@@ -266,16 +396,20 @@ export default function CreateSession() {
         </View>
 
         <View style={styles.inputGroup}>
-          <Text style={styles.label}>Description</Text>
+          <View style={styles.labelRow}>
+            <Text style={styles.label}>Description</Text>
+            <Text style={styles.charCounter}>{formData.description.length}/200</Text>
+          </View>
           <TextInput
             style={[styles.input, styles.textArea]}
             value={formData.description}
-            onChangeText={(value) => handleInputChange('description', value)}
+            onChangeText={(value) => handleInputChange('description', value.slice(0, 200))}
             placeholder="Additional notes about your session..."
             placeholderTextColor="#9ca3af"
             multiline
             numberOfLines={4}
             textAlignVertical="top"
+            maxLength={200}
           />
         </View>
 
@@ -441,5 +575,42 @@ const styles = StyleSheet.create({
   selectedOptionText: {
     color: '#0ea5e9',
     fontWeight: '600',
+  },
+  inputError: {
+    borderColor: '#ef4444',
+    borderWidth: 2,
+  },
+  errorText: {
+    color: '#ef4444',
+    fontSize: 12,
+    marginTop: 4,
+    marginLeft: 4,
+  },
+  resetButton: {
+    padding: 8,
+    borderRadius: 8,
+    backgroundColor: '#f3f4f6',
+  },
+  successMessage: {
+    backgroundColor: '#10b981',
+    margin: 20,
+    padding: 16,
+    borderRadius: 12,
+    alignItems: 'center',
+  },
+  successText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  labelRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  charCounter: {
+    fontSize: 12,
+    color: '#6b7280',
   },
 });
