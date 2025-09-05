@@ -1,6 +1,53 @@
-import { View, Text, ScrollView, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Alert } from 'react-native';
+import { router } from 'expo-router';
+import { apiService } from '../../services/api';
 
 export default function ProfileScreen() {
+  const handleLogout = () => {
+    console.log('Logout button clicked!');
+    
+    // For web platform, use window.confirm instead of Alert
+    if (typeof window !== 'undefined') {
+      const confirmed = window.confirm('Are you sure you want to logout?');
+      if (confirmed) {
+        console.log('Logout confirmed, clearing token and redirecting...');
+        // Clear the auth token
+        apiService.clearAuthToken();
+        console.log('Token cleared, redirecting to login...');
+        
+        // Redirect to login screen
+        router.replace('/auth/login');
+      } else {
+        console.log('Logout cancelled');
+      }
+    } else {
+      // For native platforms, use Alert
+      Alert.alert(
+        'Logout',
+        'Are you sure you want to logout?',
+        [
+          {
+            text: 'Cancel',
+            style: 'cancel',
+            onPress: () => console.log('Logout cancelled'),
+          },
+          {
+            text: 'Logout',
+            style: 'destructive',
+            onPress: () => {
+              console.log('Logout confirmed, clearing token and redirecting...');
+              // Clear the auth token
+              apiService.clearAuthToken();
+              console.log('Token cleared, redirecting to login...');
+              
+              // Redirect to login screen
+              router.replace('/auth/login');
+            },
+          },
+        ]
+      );
+    }
+  };
   return (
     <View style={styles.container}>
       {/* Header with Gradient */}
@@ -110,7 +157,7 @@ export default function ProfileScreen() {
         </View>
 
         {/* Logout Button */}
-        <TouchableOpacity style={styles.logoutButton}>
+        <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
           <Text style={styles.logoutText}>🚪 Logout</Text>
         </TouchableOpacity>
       </ScrollView>
