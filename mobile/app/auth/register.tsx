@@ -1,6 +1,7 @@
 import { View, Text, TextInput, TouchableOpacity, Alert, StyleSheet, ScrollView } from 'react-native';
 import { useState } from 'react';
 import { Link, router } from 'expo-router';
+import { apiService } from '../../services/api';
 
 export default function RegisterScreen() {
   const [email, setEmail] = useState('');
@@ -8,6 +9,7 @@ export default function RegisterScreen() {
   const [password, setPassword] = useState('');
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleRegister = async () => {
     if (!email || !username || !password) {
@@ -15,13 +17,43 @@ export default function RegisterScreen() {
       return;
     }
 
+    setIsLoading(true);
     try {
-      // TODO: Implement actual registration logic
-      console.log('Register attempt:', { email, username, firstName, lastName });
-      Alert.alert('Success', 'Registration successful!');
+      const response = await apiService.register({
+        email,
+        username,
+        password,
+        firstName,
+        lastName,
+      });
+      
+      // Store the token for future requests
+      apiService.setAuthToken(response.token);
+      
+      console.log('Registration successful:', response.user);
+      Alert.alert('Success', `Welcome to SwimTrainApp, ${response.user.firstName || response.user.username}!`);
       router.replace('/(tabs)');
-    } catch (error) {
-      Alert.alert('Error', 'Registration failed. Please try again.');
+    } catch (error: any) {
+      console.error('Registration error:', error);
+      Alert.alert('Error', error.message || 'Registration failed. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleGoogleSignUp = async () => {
+    setIsLoading(true);
+    try {
+      // For web, we'll use Supabase's built-in Google OAuth
+      const SUPABASE_URL = 'https://pkrtqzsudfeehwufyduy.supabase.co';
+      const redirectUrl = window.location.origin + '/auth/callback';
+      
+      // Redirect to Supabase Google OAuth
+      window.location.href = `${SUPABASE_URL}/auth/v1/authorize?provider=google&redirect_to=${encodeURIComponent(redirectUrl)}`;
+    } catch (error: any) {
+      console.error('Google sign-up error:', error);
+      Alert.alert('Error', 'Google sign-up failed. Please try again.');
+      setIsLoading(false);
     }
   };
 
@@ -115,10 +147,29 @@ export default function RegisterScreen() {
           
           <TouchableOpacity 
             onPress={handleRegister}
-            style={styles.registerButton}
+            style={[styles.registerButton, isLoading && styles.registerButtonDisabled]}
+            disabled={isLoading}
           >
             <Text style={styles.registerButtonText}>
-              🏊‍♀️ Create Account
+              {isLoading ? '🏊‍♀️ Creating Account...' : '🏊‍♀️ Create Account'}
+            </Text>
+          </TouchableOpacity>
+
+          {/* Divider */}
+          <View style={styles.divider}>
+            <View style={styles.dividerLine} />
+            <Text style={styles.dividerText}>or</Text>
+            <View style={styles.dividerLine} />
+          </View>
+
+          {/* Google Sign Up Button */}
+          <TouchableOpacity 
+            onPress={handleGoogleSignUp}
+            style={styles.googleButton}
+            disabled={isLoading}
+          >
+            <Text style={styles.googleButtonText}>
+              🔍 Sign up with Google
             </Text>
           </TouchableOpacity>
           
@@ -256,10 +307,52 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     elevation: 4,
   },
+  registerButtonDisabled: {
+    backgroundColor: '#94a3b8',
+    shadowOpacity: 0.1,
+  },
   registerButtonText: {
     color: 'white',
     fontSize: 18,
     fontWeight: 'bold',
+    textAlign: 'center',
+  },
+  divider: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginVertical: 20,
+  },
+  dividerLine: {
+    flex: 1,
+    height: 1,
+    backgroundColor: '#e2e8f0',
+  },
+  dividerText: {
+    marginHorizontal: 16,
+    fontSize: 14,
+    color: '#64748b',
+    fontWeight: '500',
+  },
+  googleButton: {
+    backgroundColor: 'white',
+    borderRadius: 12,
+    padding: 18,
+    marginBottom: 24,
+    borderWidth: 2,
+    borderColor: '#e2e8f0',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  googleButtonText: {
+    color: '#374151',
+    fontSize: 18,
+    fontWeight: '600',
     textAlign: 'center',
   },
   loginLink: {
