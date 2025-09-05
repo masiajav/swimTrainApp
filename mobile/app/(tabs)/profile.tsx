@@ -1,6 +1,183 @@
-import { View, Text, ScrollView, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Alert } from 'react-native';
+import { router, useFocusEffect } from 'expo-router';
+import React, { useState, useEffect } from 'react';
+import { apiService } from '../../services/api';
+
+interface Session {
+  id: string;
+  title: string;
+  date: string;
+  distance?: number;
+  duration: number;
+  workoutType?: string;
+  stroke?: string;
+  intensity?: string;
+}
 
 export default function ProfileScreen() {
+  const [sessions, setSessions] = useState<Session[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  const loadSessions = async () => {
+    try {
+      setLoading(true);
+      const response = await apiService.getSessions();
+      if (response.data) {
+        setSessions(response.data as Session[]);
+      } else {
+        setSessions([]);
+      }
+    } catch (error) {
+      console.error('Failed to load sessions:', error);
+      setSessions([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Reload sessions when screen comes into focus
+  useFocusEffect(
+    React.useCallback(() => {
+      const token = apiService.getStoredAuthToken();
+      if (!token) {
+        router.replace('/auth/login');
+        return;
+      }
+      
+      loadSessions();
+    }, [])
+  );
+
+  const calculateStats = () => {
+    const totalDistance = sessions.reduce((sum, session) => sum + (session.distance || 0), 0);
+    const totalDuration = sessions.reduce((sum, session) => sum + session.duration, 0);
+    const sessionCount = sessions.length;
+    
+    // Calculate average distance
+    const avgDistance = sessionCount > 0 ? totalDistance / sessionCount : 0;
+    
+    // Find best workout types
+    const workoutCounts: { [key: string]: number } = {};
+    sessions.forEach(session => {
+      if (session.workoutType) {
+        workoutCounts[session.workoutType] = (workoutCounts[session.workoutType] || 0) + 1;
+      }
+    });
+    
+    const favoriteWorkout = Object.entries(workoutCounts)
+      .sort(([,a], [,b]) => b - a)[0]?.[0] || 'None';
+    
+    return {
+      totalDistance,
+      sessionCount,
+      totalDuration,
+      avgDistance,
+      favoriteWorkout,
+    };
+  };
+
+  const formatDistance = (meters: number) => {
+    if (meters >= 1000) {
+      return (meters / 1000).toFixed(1);
+    }
+    return Math.round(meters).toString();
+  };
+
+  const formatDuration = (minutes: number) => {
+    if (minutes >= 60) {
+      return `${(minutes / 60).toFixed(1)}h`;
+    }
+    return `${minutes}m`;
+  };
+
+  const generateAchievements = () => {
+    const stats = calculateStats();
+    const achievements = [];
+
+    if (stats.sessionCount >= 10) {
+      achievements.push({
+        emoji: '🥇',
+        title: 'Session Master',
+        description: `Completed ${stats.sessionCount} sessions`,
+        date: 'Recently earned'
+      });
+    }
+
+    if (stats.totalDistance >= 10000) {
+      achievements.push({
+        emoji: '🏊',
+        title: 'Distance Champion',
+        description: `Swam ${formatDistance(stats.totalDistance)}km total`,
+        date: 'Recently earned'
+      });
+    }
+
+    if (stats.totalDuration >= 300) {
+      achievements.push({
+        emoji: '⏱️',
+        title: 'Time Champion',
+        description: `${formatDuration(stats.totalDuration)} total time`,
+        date: 'Recently earned'
+      });
+    }
+
+    // Add default achievements if none earned yet
+    if (achievements.length === 0) {
+      achievements.push({
+        emoji: '🎯',
+        title: 'Getting Started',
+        description: 'Create your first session to earn achievements!',
+        date: 'Waiting to unlock'
+      });
+    }
+
+    return achievements.slice(0, 3); // Show max 3 achievements
+  };
+  const handleLogout = () => {
+    console.log('Logout button clicked!');
+    
+    // For web platform, use window.confirm instead of Alert
+    if (typeof window !== 'undefined') {
+      const confirmed = window.confirm('Are you sure you want to logout?');
+      if (confirmed) {
+        console.log('Logout confirmed, clearing token and redirecting...');
+        // Clear the auth token
+        apiService.clearAuthToken();
+        console.log('Token cleared, redirecting to login...');
+        
+        // Redirect to login screen
+        router.replace('/auth/login');
+      } else {
+        console.log('Logout cancelled');
+      }
+    } else {
+      // For native platforms, use Alert
+      Alert.alert(
+        'Logout',
+        'Are you sure you want to logout?',
+        [
+          {
+            text: 'Cancel',
+            style: 'cancel',
+            onPress: () => console.log('Logout cancelled'),
+          },
+          {
+            text: 'Logout',
+            style: 'destructive',
+            onPress: () => {
+              console.log('Logout confirmed, clearing token and redirecting...');
+              // Clear the auth token
+              apiService.clearAuthToken();
+              console.log('Token cleared, redirecting to login...');
+              
+              // Redirect to login screen
+              router.replace('/auth/login');
+            },
+          },
+        ]
+      );
+    }
+  };
   return (
     <View style={styles.container}>
       {/* Header with Gradient */}
@@ -26,55 +203,62 @@ export default function ProfileScreen() {
         <View style={styles.statsGrid}>
           <View style={styles.statCard}>
             <Text style={styles.statEmoji}>🏊</Text>
-            <Text style={styles.statValue}>45.2</Text>
-            <Text style={styles.statLabel}>Total km</Text>
+            <Text style={styles.statValue}>
+              {loading ? '...' : formatDistance(calculateStats().totalDistance)}
+            </Text>
+            <Text style={styles.statLabel}>
+              {calculateStats().totalDistance >= 1000 ? 'Total km' : 'Total m'}
+            </Text>
           </View>
           <View style={styles.statCard}>
             <Text style={styles.statEmoji}>📊</Text>
-            <Text style={styles.statValue}>23</Text>
+            <Text style={styles.statValue}>
+              {loading ? '...' : calculateStats().sessionCount}
+            </Text>
             <Text style={styles.statLabel}>Sessions</Text>
           </View>
           <View style={styles.statCard}>
             <Text style={styles.statEmoji}>⏱️</Text>
-            <Text style={styles.statValue}>24.5s</Text>
-            <Text style={styles.statLabel}>Best 50m</Text>
+            <Text style={styles.statValue}>
+              {loading ? '...' : formatDuration(calculateStats().totalDuration)}
+            </Text>
+            <Text style={styles.statLabel}>Total Time</Text>
           </View>
           <View style={styles.statCard}>
             <Text style={styles.statEmoji}>🏆</Text>
-            <Text style={styles.statValue}>12</Text>
-            <Text style={styles.statLabel}>Achievements</Text>
+            <Text style={styles.statValue}>
+              {loading ? '...' : Math.round(calculateStats().avgDistance)}
+            </Text>
+            <Text style={styles.statLabel}>Avg Distance</Text>
           </View>
         </View>
 
         {/* Achievements Section */}
         <View style={styles.card}>
           <Text style={styles.sectionTitle}>🏆 Recent Achievements</Text>
-          <View style={styles.achievementsList}>
-            <View style={styles.achievementItem}>
-              <Text style={styles.achievementEmoji}>🥇</Text>
-              <View style={styles.achievementContent}>
-                <Text style={styles.achievementTitle}>Distance Master</Text>
-                <Text style={styles.achievementDescription}>Completed 40km total distance</Text>
-              </View>
-              <Text style={styles.achievementDate}>2 days ago</Text>
+          {loading ? (
+            <View style={styles.loadingContainer}>
+              <Text style={styles.loadingText}>Loading achievements...</Text>
             </View>
-            <View style={styles.achievementItem}>
-              <Text style={styles.achievementEmoji}>⚡</Text>
-              <View style={styles.achievementContent}>
-                <Text style={styles.achievementTitle}>Speed Demon</Text>
-                <Text style={styles.achievementDescription}>New personal best in 50m freestyle</Text>
-              </View>
-              <Text style={styles.achievementDate}>1 week ago</Text>
+          ) : (
+            <View style={styles.achievementsList}>
+              {generateAchievements().map((achievement, index) => (
+                <View key={index} style={styles.achievementItem}>
+                  <Text style={styles.achievementEmoji}>{achievement.emoji}</Text>
+                  <View style={styles.achievementContent}>
+                    <Text style={styles.achievementTitle}>{achievement.title}</Text>
+                    <Text style={styles.achievementDescription}>{achievement.description}</Text>
+                  </View>
+                  <Text style={styles.achievementDate}>{achievement.date}</Text>
+                </View>
+              ))}
+              {generateAchievements().length === 0 && (
+                <View style={styles.achievementItem}>
+                  <Text style={styles.emptyText}>Complete your first session to earn achievements!</Text>
+                </View>
+              )}
             </View>
-            <View style={styles.achievementItem}>
-              <Text style={styles.achievementEmoji}>🔥</Text>
-              <View style={styles.achievementContent}>
-                <Text style={styles.achievementTitle}>Streak Champion</Text>
-                <Text style={styles.achievementDescription}>7 consecutive training days</Text>
-              </View>
-              <Text style={styles.achievementDate}>2 weeks ago</Text>
-            </View>
-          </View>
+          )}
         </View>
 
         {/* Settings Section */}
@@ -110,7 +294,7 @@ export default function ProfileScreen() {
         </View>
 
         {/* Logout Button */}
-        <TouchableOpacity style={styles.logoutButton}>
+        <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
           <Text style={styles.logoutText}>🚪 Logout</Text>
         </TouchableOpacity>
       </ScrollView>
@@ -322,6 +506,19 @@ const styles = StyleSheet.create({
     color: 'white',
     fontSize: 16,
     fontWeight: '600',
+    textAlign: 'center',
+  },
+  loadingContainer: {
+    padding: 16,
+    alignItems: 'center',
+  },
+  loadingText: {
+    fontSize: 14,
+    color: '#64748b',
+  },
+  emptyText: {
+    fontSize: 14,
+    color: '#64748b',
     textAlign: 'center',
   },
 });

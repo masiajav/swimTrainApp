@@ -1,67 +1,189 @@
 import { View, Text, ScrollView, TouchableOpacity, StyleSheet } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { router, useFocusEffect } from 'expo-router';
+import { apiService } from '../../services/api';
+
+interface Session {
+  id: string;
+  title: string;
+  date: string;
+  distance?: number;
+  duration: number;
+  workoutType?: string;
+  stroke?: string;
+  intensity?: string;
+  description?: string;
+}
 
 export default function SessionsScreen() {
-  const sessions = [
-    { 
-      id: 1, 
-      title: 'Morning Practice', 
-      date: '2025-08-26', 
-      distance: 2000,
-      duration: 45,
-      type: 'Training',
-      strokes: ['Freestyle', 'Backstroke'],
-      intensity: 'Medium'
-    },
-    { 
-      id: 2, 
-      title: 'Sprint Training', 
-      date: '2025-08-25', 
-      distance: 1500,
-      duration: 35,
-      type: 'Sprint',
-      strokes: ['Freestyle'],
-      intensity: 'High'
-    },
-    { 
-      id: 3, 
-      title: 'Endurance Set', 
-      date: '2025-08-24', 
-      distance: 3000,
-      duration: 60,
-      type: 'Endurance',
-      strokes: ['Freestyle', 'Breaststroke'],
-      intensity: 'Low'
-    },
-    { 
-      id: 4, 
-      title: 'Technique Focus', 
-      date: '2025-08-23', 
-      distance: 1200,
-      duration: 40,
-      type: 'Technique',
-      strokes: ['Butterfly'],
-      intensity: 'Medium'
-    },
-  ];
+  const [sessions, setSessions] = useState<Session[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const getTypeColor = (type: string) => {
-    switch (type) {
-      case 'Sprint': return '#ef4444';
-      case 'Endurance': return '#22c55e';
-      case 'Training': return '#3b82f6';
-      case 'Technique': return '#8b5cf6';
-      default: return '#64748b';
+  const loadSessions = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const response = await apiService.getSessions();
+      if (response.data) {
+        setSessions(response.data as Session[]);
+      } else {
+        setSessions([]);
+      }
+    } catch (err) {
+      console.error('Failed to load sessions:', err);
+      setError('Failed to load sessions');
+    } finally {
+      setLoading(false);
     }
   };
 
-  const getIntensityColor = (intensity: string) => {
-    switch (intensity) {
-      case 'High': return '#ef4444';
-      case 'Medium': return '#f59e0b';
-      case 'Low': return '#22c55e';
-      default: return '#64748b';
+  const calculateWeeklySummary = () => {
+    const now = new Date();
+    const oneWeekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+    
+    const weekSessions = sessions.filter(session => {
+      const sessionDate = new Date(session.date);
+      return sessionDate >= oneWeekAgo && sessionDate <= now;
+    });
+
+    const totalDistance = weekSessions.reduce((sum, session) => sum + (session.distance || 0), 0);
+    const totalDuration = weekSessions.reduce((sum, session) => sum + session.duration, 0);
+    
+    return {
+      sessionCount: weekSessions.length,
+      totalDistance: totalDistance,
+      totalDuration: totalDuration,
+    };
+  };
+
+  const formatDistance = (meters: number) => {
+    if (meters >= 1000) {
+      return `${(meters / 1000).toFixed(1)}km`;
+    }
+    return `${meters}m`;
+  };
+
+  const formatDuration = (minutes: number) => {
+    if (minutes >= 60) {
+      const hours = Math.floor(minutes / 60);
+      const remainingMinutes = minutes % 60;
+      if (remainingMinutes === 0) {
+        return `${hours}h`;
+      }
+      return `${hours}h ${remainingMinutes}m`;
+    }
+    return `${minutes}m`;
+  };
+
+  const calculateMonthlySummary = () => {
+    const now = new Date();
+    const oneMonthAgo = new Date(now.getFullYear(), now.getMonth() - 1, now.getDate());
+    
+    const monthSessions = sessions.filter(session => {
+      const sessionDate = new Date(session.date);
+      return sessionDate >= oneMonthAgo && sessionDate <= now;
+    });
+
+    const totalDistance = monthSessions.reduce((sum, session) => sum + (session.distance || 0), 0);
+    const totalDuration = monthSessions.reduce((sum, session) => sum + session.duration, 0);
+    const avgDistance = monthSessions.length > 0 ? totalDistance / monthSessions.length : 0;
+    
+    return {
+      sessionCount: monthSessions.length,
+      totalDistance,
+      totalDuration,
+      avgDistance,
+    };
+  };
+
+  const getWorkoutTypeStats = () => {
+    const typeCount: { [key: string]: number } = {};
+    sessions.forEach(session => {
+      if (session.workoutType) {
+        typeCount[session.workoutType] = (typeCount[session.workoutType] || 0) + 1;
+      }
+    });
+    
+    const sortedTypes = Object.entries(typeCount)
+      .sort(([,a], [,b]) => b - a)
+      .slice(0, 3);
+    
+    return sortedTypes;
+  };
+
+  // Reload sessions when screen comes into focus
+  useFocusEffect(
+    React.useCallback(() => {
+      // Check if user is authenticated
+      const token = apiService.getStoredAuthToken();
+      if (!token) {
+        // Redirect to login if no auth token
+        router.replace('/auth/login');
+        return;
+      }
+      
+      loadSessions();
+    }, [])
+  );
+
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric'
+    });
+  };
+
+  const getTypeColor = (type?: string) => {
+    if (!type) return '#6b7280';
+    switch (type.toUpperCase()) {
+      case 'SPRINT': return '#ef4444';
+      case 'ENDURANCE': return '#22c55e';
+      case 'TECHNIQUE': return '#3b82f6';
+      case 'WARMUP': return '#f59e0b';
+      case 'COOLDOWN': return '#8b5cf6';
+      case 'MAIN_SET': return '#10b981';
+      case 'KICK': return '#f97316';
+      case 'PULL': return '#06b6d4';
+      default: return '#6b7280';
     }
   };
+
+  const getIntensityColor = (intensity?: string) => {
+    if (!intensity) return '#6b7280';
+    switch (intensity.toUpperCase()) {
+      case 'HARD': 
+      case 'RACE_PACE': return '#ef4444';
+      case 'MODERATE': return '#f59e0b';
+      case 'EASY': return '#22c55e';
+      default: return '#6b7280';
+    }
+  };
+
+  if (loading) {
+    return (
+      <View style={styles.container}>
+        <View style={styles.loadingContainer}>
+          <Text style={styles.loadingText}>Loading sessions...</Text>
+        </View>
+      </View>
+    );
+  }
+
+  if (error) {
+    return (
+      <View style={styles.container}>
+        <View style={styles.errorContainer}>
+          <Text style={styles.errorText}>{error}</Text>
+          <TouchableOpacity style={styles.retryButton} onPress={loadSessions}>
+            <Text style={styles.retryButtonText}>Retry</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    );
+  }
 
   return (
     <ScrollView style={styles.container}>
@@ -73,7 +195,10 @@ export default function SessionsScreen() {
 
       {/* Filter/Add Section */}
       <View style={styles.actionSection}>
-        <TouchableOpacity style={styles.addButton}>
+        <TouchableOpacity 
+          style={styles.addButton}
+          onPress={() => router.push('/session/create')}
+        >
           <Text style={styles.addButtonIcon}>+</Text>
           <Text style={styles.addButtonText}>New Session</Text>
         </TouchableOpacity>
@@ -86,84 +211,162 @@ export default function SessionsScreen() {
 
       {/* Sessions List */}
       <View style={styles.sessionsContainer}>
-        {sessions.map((session) => (
-          <TouchableOpacity key={session.id} style={styles.sessionCard}>
-            <View style={styles.sessionHeader}>
-              <View style={styles.sessionTitleRow}>
-                <Text style={styles.sessionTitle}>{session.title}</Text>
-                <View style={[styles.typeBadge, { backgroundColor: getTypeColor(session.type) }]}>
-                  <Text style={styles.typeBadgeText}>{session.type}</Text>
+        {sessions.length === 0 ? (
+          <View style={styles.emptyState}>
+            <Text style={styles.emptyStateText}>No sessions yet</Text>
+            <Text style={styles.emptyStateSubtext}>Create your first swimming session to get started!</Text>
+            <TouchableOpacity 
+              style={styles.emptyStateButton}
+              onPress={() => router.push('/session/create')}
+            >
+              <Text style={styles.emptyStateButtonText}>Create Session</Text>
+            </TouchableOpacity>
+          </View>
+        ) : (
+          sessions.map((session) => (
+            <TouchableOpacity 
+              key={session.id} 
+              style={styles.sessionCard}
+              onPress={() => router.push(`/session/${session.id}`)}
+            >
+              <View style={styles.sessionHeader}>
+                <View style={styles.sessionTitleRow}>
+                  <Text style={styles.sessionTitle}>{session.title}</Text>
+                  {session.workoutType && (
+                    <View style={[styles.typeBadge, { backgroundColor: getTypeColor(session.workoutType) }]}>
+                      <Text style={styles.typeBadgeText}>{session.workoutType.replace('_', ' ')}</Text>
+                    </View>
+                  )}
                 </View>
-              </View>
-              <Text style={styles.sessionDate}>{session.date}</Text>
-            </View>
-
-            <View style={styles.sessionStats}>
-              <View style={styles.statItem}>
-                <Text style={styles.statIcon}>🏊‍♀️</Text>
-                <View style={styles.statContent}>
-                  <Text style={styles.statValue}>{session.distance}m</Text>
-                  <Text style={styles.statLabel}>Distance</Text>
-                </View>
+                <Text style={styles.sessionDate}>{formatDate(session.date)}</Text>
               </View>
 
-              <View style={styles.statItem}>
-                <Text style={styles.statIcon}>⏱️</Text>
-                <View style={styles.statContent}>
-                  <Text style={styles.statValue}>{session.duration}min</Text>
-                  <Text style={styles.statLabel}>Duration</Text>
-                </View>
-              </View>
-
-              <View style={styles.statItem}>
-                <Text style={styles.statIcon}>💪</Text>
-                <View style={styles.statContent}>
-                  <View style={[styles.intensityDot, { backgroundColor: getIntensityColor(session.intensity) }]} />
-                  <Text style={styles.statLabel}>{session.intensity}</Text>
-                </View>
-              </View>
-            </View>
-
-            <View style={styles.strokesContainer}>
-              <Text style={styles.strokesLabel}>Strokes:</Text>
-              <View style={styles.strokesList}>
-                {session.strokes.map((stroke, index) => (
-                  <View key={index} style={styles.strokeBadge}>
-                    <Text style={styles.strokeText}>{stroke}</Text>
+              <View style={styles.sessionStats}>
+                {session.distance && (
+                  <View style={styles.statItem}>
+                    <Text style={styles.statIcon}>🏊‍♀️</Text>
+                    <View style={styles.statContent}>
+                      <Text style={styles.statValue}>{session.distance}m</Text>
+                      <Text style={styles.statLabel}>Distance</Text>
+                    </View>
                   </View>
-                ))}
-              </View>
-            </View>
+                )}
 
-            <View style={styles.sessionFooter}>
-              <TouchableOpacity style={styles.viewButton}>
-                <Text style={styles.viewButtonText}>View Details</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.editButton}>
-                <Text style={styles.editButtonText}>Edit</Text>
-              </TouchableOpacity>
-            </View>
-          </TouchableOpacity>
-        ))}
+                <View style={styles.statItem}>
+                  <Text style={styles.statIcon}>⏱️</Text>
+                  <View style={styles.statContent}>
+                    <Text style={styles.statValue}>{session.duration}min</Text>
+                    <Text style={styles.statLabel}>Duration</Text>
+                  </View>
+                </View>
+
+                {session.intensity && (
+                  <View style={styles.statItem}>
+                    <Text style={styles.statIcon}>💪</Text>
+                    <View style={styles.statContent}>
+                      <View style={[styles.intensityDot, { backgroundColor: getIntensityColor(session.intensity) }]} />
+                      <Text style={styles.statLabel}>{session.intensity.replace('_', ' ')}</Text>
+                    </View>
+                  </View>
+                )}
+              </View>
+
+              {session.stroke && (
+                <View style={styles.strokesContainer}>
+                  <Text style={styles.strokesLabel}>Primary Stroke:</Text>
+                  <View style={styles.strokesList}>
+                    <View style={styles.strokeBadge}>
+                      <Text style={styles.strokeText}>{session.stroke}</Text>
+                    </View>
+                  </View>
+                </View>
+              )}
+
+              {session.description && (
+                <View style={styles.descriptionContainer}>
+                  <Text style={styles.descriptionText} numberOfLines={2}>
+                    {session.description}
+                  </Text>
+                </View>
+              )}
+
+              <View style={styles.sessionFooter}>
+                <TouchableOpacity 
+                  style={styles.viewButton}
+                  onPress={() => router.push(`/session/${session.id}`)}
+                >
+                  <Text style={styles.viewButtonText}>View Details</Text>
+                </TouchableOpacity>
+                <TouchableOpacity 
+                  style={styles.editButton}
+                  onPress={() => router.push(`/session/edit/${session.id}`)}
+                >
+                  <Text style={styles.editButtonText}>Edit</Text>
+                </TouchableOpacity>
+              </View>
+            </TouchableOpacity>
+          ))
+        )}
       </View>
 
       {/* Weekly Summary */}
       <View style={styles.summaryCard}>
-        <Text style={styles.summaryTitle}>This Week Summary</Text>
+        <Text style={styles.summaryTitle}>📊 This Week Summary</Text>
         <View style={styles.summaryStats}>
           <View style={styles.summaryItem}>
-            <Text style={styles.summaryValue}>4</Text>
+            <Text style={styles.summaryValue}>{calculateWeeklySummary().sessionCount}</Text>
             <Text style={styles.summaryLabel}>Sessions</Text>
           </View>
           <View style={styles.summaryItem}>
-            <Text style={styles.summaryValue}>7.7km</Text>
+            <Text style={styles.summaryValue}>{formatDistance(calculateWeeklySummary().totalDistance)}</Text>
             <Text style={styles.summaryLabel}>Total Distance</Text>
           </View>
           <View style={styles.summaryItem}>
-            <Text style={styles.summaryValue}>3h</Text>
+            <Text style={styles.summaryValue}>{formatDuration(calculateWeeklySummary().totalDuration)}</Text>
             <Text style={styles.summaryLabel}>Total Time</Text>
           </View>
         </View>
+        {calculateWeeklySummary().sessionCount === 0 && (
+          <View style={styles.emptyWeekMessage}>
+            <Text style={styles.emptyWeekText}>No sessions this week yet. Start training! 💪</Text>
+          </View>
+        )}
+      </View>
+
+      {/* Monthly Stats */}
+      <View style={styles.summaryCard}>
+        <Text style={styles.summaryTitle}>📈 Monthly Overview</Text>
+        <View style={styles.summaryStats}>
+          <View style={styles.summaryItem}>
+            <Text style={styles.summaryValue}>{calculateMonthlySummary().sessionCount}</Text>
+            <Text style={styles.summaryLabel}>Sessions</Text>
+          </View>
+          <View style={styles.summaryItem}>
+            <Text style={styles.summaryValue}>{formatDistance(calculateMonthlySummary().totalDistance)}</Text>
+            <Text style={styles.summaryLabel}>Total Distance</Text>
+          </View>
+          <View style={styles.summaryItem}>
+            <Text style={styles.summaryValue}>{formatDistance(Math.round(calculateMonthlySummary().avgDistance))}</Text>
+            <Text style={styles.summaryLabel}>Avg Distance</Text>
+          </View>
+        </View>
+
+        {/* Top Workout Types */}
+        {getWorkoutTypeStats().length > 0 && (
+          <View style={styles.workoutTypesSection}>
+            <Text style={styles.workoutTypesTitle}>🏊 Most Common Workouts:</Text>
+            <View style={styles.workoutTypesList}>
+              {getWorkoutTypeStats().map(([type, count]) => (
+                <View key={type} style={styles.workoutTypeItem}>
+                  <View style={[styles.workoutTypeBadge, { backgroundColor: getTypeColor(type) }]}>
+                    <Text style={styles.workoutTypeBadgeText}>{type.replace('_', ' ')}</Text>
+                  </View>
+                  <Text style={styles.workoutTypeCount}>{count}x</Text>
+                </View>
+              ))}
+            </View>
+          </View>
+        )}
       </View>
     </ScrollView>
   );
@@ -412,5 +615,130 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#64748b',
     fontWeight: '500',
+  },
+  emptyWeekMessage: {
+    marginTop: 16,
+    padding: 12,
+    backgroundColor: '#f0f9ff',
+    borderRadius: 8,
+    borderLeftWidth: 4,
+    borderLeftColor: '#3b82f6',
+  },
+  emptyWeekText: {
+    fontSize: 14,
+    color: '#1e40af',
+    textAlign: 'center',
+    fontStyle: 'italic',
+  },
+  workoutTypesSection: {
+    marginTop: 16,
+    paddingTop: 16,
+    borderTopWidth: 1,
+    borderTopColor: '#f1f5f9',
+  },
+  workoutTypesTitle: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#374151',
+    marginBottom: 12,
+  },
+  workoutTypesList: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  workoutTypeItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#f8fafc',
+    borderRadius: 8,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+  },
+  workoutTypeBadge: {
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 6,
+    marginRight: 6,
+  },
+  workoutTypeBadgeText: {
+    color: 'white',
+    fontSize: 10,
+    fontWeight: 'bold',
+    textTransform: 'uppercase',
+  },
+  workoutTypeCount: {
+    fontSize: 12,
+    color: '#6b7280',
+    fontWeight: '500',
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  loadingText: {
+    fontSize: 16,
+    color: '#6b7280',
+  },
+  errorContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  errorText: {
+    fontSize: 16,
+    color: '#dc2626',
+    textAlign: 'center',
+    marginBottom: 16,
+  },
+  retryButton: {
+    backgroundColor: '#3b82f6',
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    borderRadius: 8,
+  },
+  retryButtonText: {
+    color: 'white',
+    fontWeight: '600',
+  },
+  emptyState: {
+    alignItems: 'center',
+    padding: 40,
+  },
+  emptyStateText: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#374151',
+    marginBottom: 8,
+  },
+  emptyStateSubtext: {
+    fontSize: 14,
+    color: '#6b7280',
+    textAlign: 'center',
+    marginBottom: 20,
+  },
+  emptyStateButton: {
+    backgroundColor: '#3b82f6',
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+    borderRadius: 8,
+  },
+  emptyStateButtonText: {
+    color: 'white',
+    fontWeight: '600',
+  },
+  descriptionContainer: {
+    marginTop: 12,
+    paddingTop: 12,
+    borderTopWidth: 1,
+    borderTopColor: '#f1f5f9',
+  },
+  descriptionText: {
+    fontSize: 14,
+    color: '#64748b',
+    lineHeight: 20,
   },
 });

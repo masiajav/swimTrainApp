@@ -8,12 +8,16 @@ class ApiService {
     options: RequestInit = {}
   ): Promise<ApiResponse<T>> {
     try {
+      const defaultHeaders = {
+        'Content-Type': 'application/json',
+      };
+      
       const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+        ...options,
         headers: {
-          'Content-Type': 'application/json',
+          ...defaultHeaders,
           ...options.headers,
         },
-        ...options,
       });
 
       const data = await response.json();
@@ -57,12 +61,116 @@ class ApiService {
   // Helper to set auth token for authenticated requests
   setAuthToken(token: string) {
     this.authToken = token;
+    // Persist token to localStorage for web
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('authToken', token);
+    }
+  }
+
+  // Helper to get auth token from storage
+  getStoredAuthToken(): string | null {
+    if (this.authToken) return this.authToken;
+    
+    // Try to get from localStorage for web
+    if (typeof window !== 'undefined') {
+      const storedToken = localStorage.getItem('authToken');
+      if (storedToken) {
+        this.authToken = storedToken;
+        return storedToken;
+      }
+    }
+    return null;
+  }
+
+  // Helper to clear auth token
+  clearAuthToken() {
+    this.authToken = null;
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('authToken');
+    }
   }
 
   private authToken: string | null = null;
 
-  private getAuthHeaders() {
-    return this.authToken ? { Authorization: `Bearer ${this.authToken}` } : {};
+  private getAuthHeaders(): Record<string, string> {
+    const token = this.getStoredAuthToken();
+    return token ? { Authorization: `Bearer ${token}` } : {};
+  }
+
+  // Sessions endpoints
+  async getSessions() {
+    const response = await this.request('/sessions', {
+      method: 'GET',
+      headers: {
+        ...this.getAuthHeaders(),
+      },
+    });
+    return response;
+  }
+
+  async createSession(sessionData: {
+    title: string;
+    description?: string;
+    date: string;
+    duration: number;
+    distance?: number;
+    workoutType?: string;
+    stroke?: string;
+    intensity?: string;
+  }) {
+    console.log('Creating session with data:', sessionData);
+    console.log('Auth token:', this.authToken ? 'Present' : 'Missing');
+    
+    const response = await this.request('/sessions', {
+      method: 'POST',
+      headers: {
+        ...this.getAuthHeaders(),
+      },
+      body: JSON.stringify(sessionData),
+    });
+    
+    console.log('Create session response:', response);
+    return response;
+  }
+
+  async getSession(id: string) {
+    const response = await this.request(`/sessions/${id}`, {
+      method: 'GET',
+      headers: {
+        ...this.getAuthHeaders(),
+      },
+    });
+    return response;
+  }
+
+  async updateSession(id: string, sessionData: {
+    title: string;
+    description?: string;
+    date: string;
+    duration: number;
+    distance?: number;
+    workoutType?: string;
+    stroke?: string;
+    intensity?: string;
+  }) {
+    const response = await this.request(`/sessions/${id}`, {
+      method: 'PUT',
+      headers: {
+        ...this.getAuthHeaders(),
+      },
+      body: JSON.stringify(sessionData),
+    });
+    return response;
+  }
+
+  async deleteSession(id: string) {
+    const response = await this.request(`/sessions/${id}`, {
+      method: 'DELETE',
+      headers: {
+        ...this.getAuthHeaders(),
+      },
+    });
+    return response;
   }
 }
 

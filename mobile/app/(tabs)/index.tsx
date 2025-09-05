@@ -1,18 +1,156 @@
 import { View, Text, ScrollView, TouchableOpacity, StyleSheet } from 'react-native';
+import { router, useFocusEffect } from 'expo-router';
+import React, { useState, useEffect } from 'react';
+import { apiService } from '../../services/api';
+
+interface Session {
+  id: string;
+  title: string;
+  date: string;
+  distance?: number;
+  duration: number;
+  workoutType?: string;
+  stroke?: string;
+  intensity?: string;
+}
 
 export default function DashboardScreen() {
-  const recentSessions = [
-    { id: 1, title: 'Morning Practice', date: '2025-08-26', distance: 2000, time: '45 min' },
-    { id: 2, title: 'Sprint Training', date: '2025-08-25', distance: 1500, time: '38 min' },
-    { id: 3, title: 'Endurance Set', date: '2025-08-24', distance: 3000, time: '72 min' },
-  ];
+  const [recentSessions, setRecentSessions] = useState<Session[]>([]);
+  const [allSessions, setAllSessions] = useState<Session[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const weeklyStats = [
-    { title: 'Distance', value: '8.5km', icon: '🏊‍♀️', color: '#3b82f6' },
-    { title: 'Sessions', value: '5', icon: '📊', color: '#14b8a6' },
-    { title: 'Time', value: '3.2h', icon: '⏱️', color: '#8b5cf6' },
-    { title: 'Calories', value: '850', icon: '🔥', color: '#f59e0b' },
-  ];
+  const loadRecentSessions = async () => {
+    try {
+      setLoading(true);
+      const response = await apiService.getSessions();
+      if (response.data) {
+        const sessions = response.data as Session[];
+        // Store all sessions for calculations
+        setAllSessions(sessions);
+        
+        // Get the 3 most recent sessions
+        const recent = sessions
+          .sort((a: Session, b: Session) => new Date(b.date).getTime() - new Date(a.date).getTime())
+          .slice(0, 3);
+        setRecentSessions(recent);
+      } else {
+        setRecentSessions([]);
+        setAllSessions([]);
+      }
+    } catch (error) {
+      console.error('Failed to load recent sessions:', error);
+      setRecentSessions([]);
+      setAllSessions([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Reload sessions when screen comes into focus
+  useFocusEffect(
+    React.useCallback(() => {
+      // Check if user is authenticated
+      const token = apiService.getStoredAuthToken();
+      if (!token) {
+        // Redirect to login if no auth token
+        router.replace('/auth/login');
+        return;
+      }
+      
+      loadRecentSessions();
+    }, [])
+  );
+
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric'
+    });
+  };
+
+  const formatDuration = (minutes: number) => {
+    if (minutes < 60) return `${minutes} min`;
+    const hours = Math.floor(minutes / 60);
+    const remainingMinutes = minutes % 60;
+    return `${hours}h ${remainingMinutes}min`;
+  };
+
+  const calculateWeeklyStats = () => {
+    const now = new Date();
+    const oneWeekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+    
+    const weekSessions = allSessions.filter(session => {
+      const sessionDate = new Date(session.date);
+      return sessionDate >= oneWeekAgo && sessionDate <= now;
+    });
+
+    const totalDistance = weekSessions.reduce((sum, session) => sum + (session.distance || 0), 0);
+    const totalDuration = weekSessions.reduce((sum, session) => sum + session.duration, 0);
+    
+    // Calculate estimated calories (rough estimate: ~10 calories per minute of swimming)
+    const estimatedCalories = Math.round(totalDuration * 10);
+    
+    return {
+      distance: formatDistance(totalDistance),
+      sessions: weekSessions.length.toString(),
+      time: formatTime(totalDuration),
+      calories: estimatedCalories.toString(),
+    };
+  };
+
+  const formatDistance = (meters: number) => {
+    if (meters >= 1000) {
+      return `${(meters / 1000).toFixed(1)}km`;
+    }
+    return `${meters}m`;
+  };
+
+  const formatTime = (minutes: number) => {
+    if (minutes >= 60) {
+      const hours = Math.floor(minutes / 60);
+      const remainingMinutes = minutes % 60;
+      if (remainingMinutes === 0) {
+        return `${hours}h`;
+      }
+      return `${hours}h ${remainingMinutes}m`;
+    }
+    return `${minutes}m`;
+  };
+
+  const getWeeklyStats = () => {
+    const stats = calculateWeeklyStats();
+    return [
+      { title: 'Distance', value: stats.distance, icon: '🏊‍♀️', color: '#3b82f6' },
+      { title: 'Sessions', value: stats.sessions, icon: '📊', color: '#14b8a6' },
+      { title: 'Time', value: stats.time, icon: '⏱️', color: '#8b5cf6' },
+      { title: 'Calories', value: stats.calories, icon: '🔥', color: '#f59e0b' },
+    ];
+  };
+
+  const getWorkoutTypeColor = (type?: string) => {
+    if (!type) return '#6b7280';
+    switch (type.toUpperCase()) {
+      case 'SPRINT': return '#ef4444';
+      case 'ENDURANCE': return '#22c55e';
+      case 'TECHNIQUE': return '#3b82f6';
+      case 'WARMUP': return '#f59e0b';
+      case 'COOLDOWN': return '#8b5cf6';
+      case 'MAIN_SET': return '#10b981';
+      default: return '#6b7280';
+    }
+  };
+
+  const getIntensityColor = (intensity?: string) => {
+    if (!intensity) return '#6b7280';
+    switch (intensity.toUpperCase()) {
+      case 'HARD': 
+      case 'RACE_PACE': return '#ef4444';
+      case 'MODERATE': return '#f59e0b';
+      case 'EASY': return '#22c55e';
+      default: return '#6b7280';
+    }
+  };
 
   return (
     <ScrollView style={styles.container}>
@@ -35,7 +173,7 @@ export default function DashboardScreen() {
         <View style={styles.statsContainer}>
           <Text style={styles.sectionTitle}>Weekly Overview</Text>
           <View style={styles.statsGrid}>
-            {weeklyStats.map((stat, index) => (
+            {getWeeklyStats().map((stat, index) => (
               <View key={index} style={styles.statCard}>
                 <View style={[styles.statIcon, { backgroundColor: stat.color }]}>
                   <Text style={styles.statIconText}>{stat.icon}</Text>
@@ -45,43 +183,82 @@ export default function DashboardScreen() {
               </View>
             ))}
           </View>
+          {allSessions.length === 0 && (
+            <View style={styles.noDataMessage}>
+              <Text style={styles.noDataText}>Start swimming to see your weekly stats! 💪</Text>
+            </View>
+          )}
         </View>
 
         {/* Recent Sessions */}
         <View style={styles.sessionsContainer}>
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>Recent Sessions</Text>
-            <TouchableOpacity>
+            <TouchableOpacity onPress={() => router.push('/(tabs)/sessions')}>
               <Text style={styles.seeAllText}>See All</Text>
             </TouchableOpacity>
           </View>
           
-          {recentSessions.map((session) => (
-            <TouchableOpacity key={session.id} style={styles.sessionCard}>
-              <View style={styles.sessionLeft}>
-                <View style={styles.sessionIcon}>
-                  <Text style={styles.sessionIconText}>🏊‍♀️</Text>
+          {loading ? (
+            <View style={styles.loadingContainer}>
+              <Text style={styles.loadingText}>Loading sessions...</Text>
+            </View>
+          ) : recentSessions.length === 0 ? (
+            <View style={styles.emptyContainer}>
+              <Text style={styles.emptyText}>No sessions yet</Text>
+              <Text style={styles.emptySubtext}>Create your first session to get started!</Text>
+              <TouchableOpacity 
+                style={styles.createButton}
+                onPress={() => router.push('/session/create')}
+              >
+                <Text style={styles.createButtonText}>Create Session</Text>
+              </TouchableOpacity>
+            </View>
+          ) : (
+            recentSessions.map((session) => (
+              <TouchableOpacity 
+                key={session.id} 
+                style={styles.sessionCard}
+                onPress={() => router.push(`/session/${session.id}`)}
+              >
+                <View style={styles.sessionLeft}>
+                  <View style={[styles.sessionIcon, { backgroundColor: getWorkoutTypeColor(session.workoutType) }]}>
+                    <Text style={styles.sessionIconText}>🏊‍♀️</Text>
+                  </View>
+                  <View style={styles.sessionInfo}>
+                    <Text style={styles.sessionTitle}>{session.title}</Text>
+                    <Text style={styles.sessionDate}>{formatDate(session.date)}</Text>
+                    {session.workoutType && (
+                      <Text style={styles.sessionType}>{session.workoutType.replace('_', ' ')}</Text>
+                    )}
+                  </View>
                 </View>
-                <View style={styles.sessionInfo}>
-                  <Text style={styles.sessionTitle}>{session.title}</Text>
-                  <Text style={styles.sessionDate}>{session.date}</Text>
+                <View style={styles.sessionRight}>
+                  <View style={styles.distanceBadge}>
+                    <Text style={styles.distanceText}>
+                      {session.distance ? `${session.distance}m` : '—'}
+                    </Text>
+                  </View>
+                  <Text style={styles.timeText}>{formatDuration(session.duration)}</Text>
+                  {session.intensity && (
+                    <View style={[styles.intensityBadge, { backgroundColor: getIntensityColor(session.intensity) }]}>
+                      <Text style={styles.intensityText}>{session.intensity}</Text>
+                    </View>
+                  )}
                 </View>
-              </View>
-              <View style={styles.sessionRight}>
-                <View style={styles.distanceBadge}>
-                  <Text style={styles.distanceText}>{session.distance}m</Text>
-                </View>
-                <Text style={styles.timeText}>{session.time}</Text>
-              </View>
-            </TouchableOpacity>
-          ))}
+              </TouchableOpacity>
+            ))
+          )}
         </View>
 
         {/* Quick Actions */}
         <View style={styles.actionsContainer}>
           <Text style={styles.sectionTitle}>Quick Actions</Text>
           
-          <TouchableOpacity style={styles.primaryAction}>
+          <TouchableOpacity 
+            style={styles.primaryAction}
+            onPress={() => router.push('/session/create')}
+          >
             <View style={styles.actionContent}>
               <View style={styles.actionIcon}>
                 <Text style={styles.actionIconText}>+</Text>
@@ -359,5 +536,74 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: 'bold',
     color: '#3b82f6',
+  },
+  loadingContainer: {
+    padding: 20,
+    alignItems: 'center',
+  },
+  loadingText: {
+    fontSize: 16,
+    color: '#6b7280',
+  },
+  emptyContainer: {
+    padding: 30,
+    alignItems: 'center',
+    backgroundColor: 'white',
+    borderRadius: 16,
+    margin: 4,
+  },
+  emptyText: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#374151',
+    marginBottom: 8,
+  },
+  emptySubtext: {
+    fontSize: 14,
+    color: '#6b7280',
+    textAlign: 'center',
+    marginBottom: 20,
+  },
+  createButton: {
+    backgroundColor: '#3b82f6',
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    borderRadius: 8,
+  },
+  createButtonText: {
+    color: 'white',
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  sessionType: {
+    fontSize: 12,
+    color: '#6b7280',
+    textTransform: 'capitalize',
+  },
+  intensityBadge: {
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 8,
+    marginTop: 4,
+  },
+  intensityText: {
+    color: 'white',
+    fontSize: 10,
+    fontWeight: 'bold',
+    textTransform: 'uppercase',
+  },
+  noDataMessage: {
+    marginTop: 16,
+    padding: 12,
+    backgroundColor: '#f0f9ff',
+    borderRadius: 8,
+    borderLeftWidth: 4,
+    borderLeftColor: '#3b82f6',
+  },
+  noDataText: {
+    fontSize: 14,
+    color: '#1e40af',
+    textAlign: 'center',
+    fontStyle: 'italic',
   },
 });

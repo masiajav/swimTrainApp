@@ -76,7 +76,6 @@ export enum Intensity {
   MODERATE = 'MODERATE',
   HARD = 'HARD',
   RACE_PACE = 'RACE_PACE',
-  RECOVERY = 'RECOVERY',
 }
 
 // API Request/Response types
