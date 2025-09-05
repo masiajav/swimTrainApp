@@ -1,11 +1,71 @@
 import { View, Text, ScrollView, TouchableOpacity, StyleSheet } from 'react-native';
+import { router, useFocusEffect } from 'expo-router';
+import React, { useState, useEffect } from 'react';
+import { apiService } from '../../services/api';
+
+interface Session {
+  id: string;
+  title: string;
+  date: string;
+  distance?: number;
+  duration: number;
+}
 
 export default function DashboardScreen() {
-  const recentSessions = [
-    { id: 1, title: 'Morning Practice', date: '2025-08-26', distance: 2000, time: '45 min' },
-    { id: 2, title: 'Sprint Training', date: '2025-08-25', distance: 1500, time: '38 min' },
-    { id: 3, title: 'Endurance Set', date: '2025-08-24', distance: 3000, time: '72 min' },
-  ];
+  const [recentSessions, setRecentSessions] = useState<Session[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  const loadRecentSessions = async () => {
+    try {
+      setLoading(true);
+      const response = await apiService.getSessions();
+      if (response.data) {
+        // Get the 3 most recent sessions
+        const sessions = response.data as Session[];
+        const recent = sessions
+          .sort((a: Session, b: Session) => new Date(b.date).getTime() - new Date(a.date).getTime())
+          .slice(0, 3);
+        setRecentSessions(recent);
+      } else {
+        setRecentSessions([]);
+      }
+    } catch (error) {
+      console.error('Failed to load recent sessions:', error);
+      setRecentSessions([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Reload sessions when screen comes into focus
+  useFocusEffect(
+    React.useCallback(() => {
+      // Check if user is authenticated
+      const token = apiService.getStoredAuthToken();
+      if (!token) {
+        // Redirect to login if no auth token
+        router.replace('/auth/login');
+        return;
+      }
+      
+      loadRecentSessions();
+    }, [])
+  );
+
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric'
+    });
+  };
+
+  const formatDuration = (minutes: number) => {
+    if (minutes < 60) return `${minutes} min`;
+    const hours = Math.floor(minutes / 60);
+    const remainingMinutes = minutes % 60;
+    return `${hours}h ${remainingMinutes}min`;
+  };
 
   const weeklyStats = [
     { title: 'Distance', value: '8.5km', icon: '🏊‍♀️', color: '#3b82f6' },
@@ -69,9 +129,11 @@ export default function DashboardScreen() {
               </View>
               <View style={styles.sessionRight}>
                 <View style={styles.distanceBadge}>
-                  <Text style={styles.distanceText}>{session.distance}m</Text>
+                  <Text style={styles.distanceText}>
+                    {session.distance ? `${session.distance}m` : 'N/A'}
+                  </Text>
                 </View>
-                <Text style={styles.timeText}>{session.time}</Text>
+                <Text style={styles.timeText}>{formatDuration(session.duration)}</Text>
               </View>
             </TouchableOpacity>
           ))}
@@ -81,7 +143,10 @@ export default function DashboardScreen() {
         <View style={styles.actionsContainer}>
           <Text style={styles.sectionTitle}>Quick Actions</Text>
           
-          <TouchableOpacity style={styles.primaryAction}>
+          <TouchableOpacity 
+            style={styles.primaryAction}
+            onPress={() => router.push('/session/create')}
+          >
             <View style={styles.actionContent}>
               <View style={styles.actionIcon}>
                 <Text style={styles.actionIconText}>+</Text>

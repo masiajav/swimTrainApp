@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { router } from 'expo-router';
+import { apiService } from '../../services/api';
 
 export default function AuthCallbackScreen() {
   useEffect(() => {
@@ -33,8 +34,9 @@ export default function AuthCallbackScreen() {
             const data = await response.json();
             console.log('Backend response:', data);
             
-            if (response.ok) {
-              // Store the JWT token (you might want to use secure storage)
+            if (response.ok && data.token) {
+              // Store the JWT token using our API service
+              apiService.setAuthToken(data.token);
               console.log('Google authentication successful:', data.user);
               
               // Redirect to dashboard

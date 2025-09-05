@@ -47,14 +47,17 @@ model Team {
 }
 
 model Session {
-  id          String   @id @default(cuid())
+  id          String      @id @default(cuid())
   title       String
   description String?
   date        DateTime
-  duration    Int      // in minutes
-  distance    Float?   // in meters
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  duration    Int         // in minutes
+  distance    Float?      // in meters
+  workoutType WorkoutType?
+  stroke      Stroke?
+  intensity   Intensity?
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
 
   // Relations
   userId   String
