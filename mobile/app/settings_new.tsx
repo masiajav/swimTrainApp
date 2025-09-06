@@ -92,13 +92,10 @@ export default function SettingsScreen() {
   const loadProfile = async () => {
     try {
       setLoading(true);
-      const [profileResponse, sessionsResponse] = await Promise.all([
+      const [profileData, sessionsData] = await Promise.all([
         apiService.getProfile(),
         apiService.getSessions()
       ]);
-      
-      const profileData = profileResponse.data as UserProfile;
-      const sessionsData = sessionsResponse.data as any[];
       
       setProfile(profileData);
       setFirstName(profileData.firstName || '');
@@ -124,7 +121,6 @@ export default function SettingsScreen() {
       await apiService.updateProfile({
         firstName,
         lastName,
-        username,
         avatar,
       });
       
@@ -156,10 +152,7 @@ export default function SettingsScreen() {
 
     try {
       setSaving(true);
-      await apiService.changePassword({
-        currentPassword,
-        newPassword
-      });
+      await apiService.changePassword(currentPassword, newPassword);
       Alert.alert('Success', 'Password changed successfully!');
       setCurrentPassword('');
       setNewPassword('');

@@ -34,6 +34,11 @@ const updateProfileSchema = z.object({
   avatar: z.string().optional(),
 });
 
+const changePasswordSchema = z.object({
+  currentPassword: z.string().min(6),
+  newPassword: z.string().min(6),
+});
+
 // Helper function to generate JWT
 const generateToken = (userId: string) => {
   return jwt.sign({ userId }, process.env.JWT_SECRET!, { expiresIn: '7d' });
@@ -280,6 +285,51 @@ router.put('/profile', authenticateToken, async (req: any, res) => {
       return res.status(400).json({ error: 'Invalid profile data' });
     }
     res.status(500).json({ error: 'Failed to update profile' });
+  }
+});
+
+// PUT /api/auth/change-password - Change user password
+router.put('/change-password', authenticateToken, async (req: any, res) => {
+  try {
+    const userId = req.userId;
+    const { currentPassword, newPassword } = changePasswordSchema.parse(req.body);
+    
+    // Get user from database
+    const user = await prisma.user.findUnique({
+      where: { id: userId }
+    });
+
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    // Verify current password with Supabase
+    const { error: signInError } = await supabase.auth.signInWithPassword({
+      email: user.email,
+      password: currentPassword,
+    });
+
+    if (signInError) {
+      return res.status(400).json({ error: 'Current password is incorrect' });
+    }
+
+    // Update password in Supabase
+    const { error: updateError } = await supabase.auth.admin.updateUserById(
+      userId,
+      { password: newPassword }
+    );
+
+    if (updateError) {
+      return res.status(400).json({ error: 'Failed to update password' });
+    }
+
+    res.json({ message: 'Password changed successfully' });
+  } catch (error) {
+    console.error('Change password error:', error);
+    if (error instanceof z.ZodError) {
+      return res.status(400).json({ error: 'Invalid password data' });
+    }
+    res.status(500).json({ error: 'Failed to change password' });
   }
 });
 

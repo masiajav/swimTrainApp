@@ -2,6 +2,7 @@ import { View, Text, ScrollView, TouchableOpacity, StyleSheet } from 'react-nati
 import { router, useFocusEffect } from 'expo-router';
 import React, { useState, useEffect } from 'react';
 import { apiService } from '../../services/api';
+import { useTheme } from '../../contexts/ThemeContext';
 
 interface Session {
   id: string;
@@ -15,6 +16,7 @@ interface Session {
 }
 
 export default function DashboardScreen() {
+  const { isDarkMode, colors } = useTheme();
   const [recentSessions, setRecentSessions] = useState<Session[]>([]);
   const [allSessions, setAllSessions] = useState<Session[]>([]);
   const [loading, setLoading] = useState(true);
@@ -153,9 +155,9 @@ export default function DashboardScreen() {
   };
 
   return (
-    <ScrollView style={styles.container}>
+    <ScrollView style={[styles.container, { backgroundColor: colors.background }]}>
       {/* Header with Gradient */}
-      <View style={styles.header}>
+      <View style={[styles.header, { backgroundColor: colors.primary }]}>
         <View style={styles.headerContent}>
           <Text style={styles.welcomeText}>Welcome back, Swimmer! 🏊‍♀️</Text>
           <Text style={styles.headerSubtext}>
@@ -171,21 +173,21 @@ export default function DashboardScreen() {
       <View style={styles.content}>
         {/* Quick Stats Grid */}
         <View style={styles.statsContainer}>
-          <Text style={styles.sectionTitle}>Weekly Overview</Text>
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>Weekly Overview</Text>
           <View style={styles.statsGrid}>
             {getWeeklyStats().map((stat, index) => (
-              <View key={index} style={styles.statCard}>
+              <View key={index} style={[styles.statCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
                 <View style={[styles.statIcon, { backgroundColor: stat.color }]}>
                   <Text style={styles.statIconText}>{stat.icon}</Text>
                 </View>
-                <Text style={styles.statValue}>{stat.value}</Text>
-                <Text style={styles.statTitle}>{stat.title}</Text>
+                <Text style={[styles.statValue, { color: colors.text }]}>{stat.value}</Text>
+                <Text style={[styles.statTitle, { color: colors.textSecondary }]}>{stat.title}</Text>
               </View>
             ))}
           </View>
           {allSessions.length === 0 && (
             <View style={styles.noDataMessage}>
-              <Text style={styles.noDataText}>Start swimming to see your weekly stats! 💪</Text>
+              <Text style={[styles.noDataText, { color: colors.textSecondary }]}>Start swimming to see your weekly stats! 💪</Text>
             </View>
           )}
         </View>
@@ -193,22 +195,22 @@ export default function DashboardScreen() {
         {/* Recent Sessions */}
         <View style={styles.sessionsContainer}>
           <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Recent Sessions</Text>
+            <Text style={[styles.sectionTitle, { color: colors.text }]}>Recent Sessions</Text>
             <TouchableOpacity onPress={() => router.push('/(tabs)/sessions')}>
-              <Text style={styles.seeAllText}>See All</Text>
+              <Text style={[styles.seeAllText, { color: colors.primary }]}>See All</Text>
             </TouchableOpacity>
           </View>
           
           {loading ? (
             <View style={styles.loadingContainer}>
-              <Text style={styles.loadingText}>Loading sessions...</Text>
+              <Text style={[styles.loadingText, { color: colors.textSecondary }]}>Loading sessions...</Text>
             </View>
           ) : recentSessions.length === 0 ? (
             <View style={styles.emptyContainer}>
-              <Text style={styles.emptyText}>No sessions yet</Text>
-              <Text style={styles.emptySubtext}>Create your first session to get started!</Text>
+              <Text style={[styles.emptyText, { color: colors.text }]}>No sessions yet</Text>
+              <Text style={[styles.emptySubtext, { color: colors.textSecondary }]}>Create your first session to get started!</Text>
               <TouchableOpacity 
-                style={styles.createButton}
+                style={[styles.createButton, { backgroundColor: colors.primary }]}
                 onPress={() => router.push('/session/create')}
               >
                 <Text style={styles.createButtonText}>Create Session</Text>
@@ -218,7 +220,7 @@ export default function DashboardScreen() {
             recentSessions.map((session) => (
               <TouchableOpacity 
                 key={session.id} 
-                style={styles.sessionCard}
+                style={[styles.sessionCard, { backgroundColor: colors.surface, borderColor: colors.border }]}
                 onPress={() => router.push(`/session/${session.id}`)}
               >
                 <View style={styles.sessionLeft}>
@@ -226,20 +228,20 @@ export default function DashboardScreen() {
                     <Text style={styles.sessionIconText}>🏊‍♀️</Text>
                   </View>
                   <View style={styles.sessionInfo}>
-                    <Text style={styles.sessionTitle}>{session.title}</Text>
-                    <Text style={styles.sessionDate}>{formatDate(session.date)}</Text>
+                    <Text style={[styles.sessionTitle, { color: colors.text }]}>{session.title}</Text>
+                    <Text style={[styles.sessionDate, { color: colors.textSecondary }]}>{formatDate(session.date)}</Text>
                     {session.workoutType && (
-                      <Text style={styles.sessionType}>{session.workoutType.replace('_', ' ')}</Text>
+                      <Text style={[styles.sessionType, { color: colors.textSecondary }]}>{session.workoutType.replace('_', ' ')}</Text>
                     )}
                   </View>
                 </View>
                 <View style={styles.sessionRight}>
-                  <View style={styles.distanceBadge}>
-                    <Text style={styles.distanceText}>
+                  <View style={[styles.distanceBadge, { backgroundColor: colors.background, borderColor: colors.border }]}>
+                    <Text style={[styles.distanceText, { color: colors.text }]}>
                       {session.distance ? `${session.distance}m` : '—'}
                     </Text>
                   </View>
-                  <Text style={styles.timeText}>{formatDuration(session.duration)}</Text>
+                  <Text style={[styles.timeText, { color: colors.textSecondary }]}>{formatDuration(session.duration)}</Text>
                   {session.intensity && (
                     <View style={[styles.intensityBadge, { backgroundColor: getIntensityColor(session.intensity) }]}>
                       <Text style={styles.intensityText}>{session.intensity}</Text>

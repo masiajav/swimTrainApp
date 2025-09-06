@@ -2,6 +2,7 @@ import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Alert, Image } fr
 import { router, useFocusEffect } from 'expo-router';
 import React, { useState, useEffect } from 'react';
 import { apiService } from '../../services/api';
+import { useTheme } from '../../contexts/ThemeContext';
 
 interface Session {
   id: string;
@@ -25,6 +26,7 @@ interface UserProfile {
 }
 
 export default function ProfileScreen() {
+  const { isDarkMode, colors } = useTheme();
   const [sessions, setSessions] = useState<Session[]>([]);
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
@@ -216,15 +218,15 @@ export default function ProfileScreen() {
     }
   };
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
       {/* Header with Gradient */}
-      <View style={styles.header}>
-        <Text style={styles.headerText}>Profile</Text>
+      <View style={[styles.header, { backgroundColor: colors.primary }]}>
+        <Text style={[styles.headerText, { color: 'white' }]}>Profile</Text>
       </View>
 
-      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+      <ScrollView style={[styles.content, { backgroundColor: colors.background }]} showsVerticalScrollIndicator={false}>
         {/* Profile Card */}
-        <View style={styles.profileCard}>
+        <View style={[styles.profileCard, { backgroundColor: colors.surface }]}>
           <TouchableOpacity 
             style={styles.avatarContainer}
             onPress={() => router.push('/settings')}
@@ -234,73 +236,73 @@ export default function ProfileScreen() {
               <Text style={styles.editIcon}>✏️</Text>
             </View>
           </TouchableOpacity>
-          <Text style={styles.userName}>
+          <Text style={[styles.userName, { color: colors.text }]}>
             {profile ? `${profile.firstName || ''} ${profile.lastName || ''}`.trim() || 'Swimming Enthusiast' : 'Loading...'}
           </Text>
-          <Text style={styles.userHandle}>
+          <Text style={[styles.userHandle, { color: colors.textSecondary }]}>
             @{profile?.username || 'username'}
           </Text>
-          <Text style={styles.userRole}>
+          <Text style={[styles.userRole, { color: colors.textSecondary }]}>
             {profile?.role || 'Swimming Team Member'}
           </Text>
         </View>
 
         {/* Quick Stats Grid */}
         <View style={styles.statsGrid}>
-          <View style={styles.statCard}>
+          <View style={[styles.statCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
             <Text style={styles.statEmoji}>🏊</Text>
-            <Text style={styles.statValue}>
+            <Text style={[styles.statValue, { color: colors.text }]}>
               {loading ? '...' : formatDistance(calculateStats().totalDistance)}
             </Text>
-            <Text style={styles.statLabel}>
+            <Text style={[styles.statLabel, { color: colors.textSecondary }]}>
               {calculateStats().totalDistance >= 1000 ? 'Total km' : 'Total m'}
             </Text>
           </View>
-          <View style={styles.statCard}>
+          <View style={[styles.statCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
             <Text style={styles.statEmoji}>📊</Text>
-            <Text style={styles.statValue}>
+            <Text style={[styles.statValue, { color: colors.text }]}>
               {loading ? '...' : calculateStats().sessionCount}
             </Text>
-            <Text style={styles.statLabel}>Sessions</Text>
+            <Text style={[styles.statLabel, { color: colors.textSecondary }]}>Sessions</Text>
           </View>
-          <View style={styles.statCard}>
+          <View style={[styles.statCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
             <Text style={styles.statEmoji}>⏱️</Text>
-            <Text style={styles.statValue}>
+            <Text style={[styles.statValue, { color: colors.text }]}>
               {loading ? '...' : formatDuration(calculateStats().totalDuration)}
             </Text>
-            <Text style={styles.statLabel}>Total Time</Text>
+            <Text style={[styles.statLabel, { color: colors.textSecondary }]}>Total Time</Text>
           </View>
-          <View style={styles.statCard}>
+          <View style={[styles.statCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
             <Text style={styles.statEmoji}>🏆</Text>
-            <Text style={styles.statValue}>
+            <Text style={[styles.statValue, { color: colors.text }]}>
               {loading ? '...' : Math.round(calculateStats().avgDistance)}
             </Text>
-            <Text style={styles.statLabel}>Avg Distance</Text>
+            <Text style={[styles.statLabel, { color: colors.textSecondary }]}>Avg Distance</Text>
           </View>
         </View>
 
         {/* Achievements Section */}
-        <View style={styles.card}>
-          <Text style={styles.sectionTitle}>🏆 Recent Achievements</Text>
+        <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>🏆 Recent Achievements</Text>
           {loading ? (
             <View style={styles.loadingContainer}>
-              <Text style={styles.loadingText}>Loading achievements...</Text>
+              <Text style={[styles.loadingText, { color: colors.textSecondary }]}>Loading achievements...</Text>
             </View>
           ) : (
             <View style={styles.achievementsList}>
               {generateAchievements().map((achievement, index) => (
-                <View key={index} style={styles.achievementItem}>
+                <View key={index} style={[styles.achievementItem, { backgroundColor: colors.background, borderColor: colors.border }]}>
                   <Text style={styles.achievementEmoji}>{achievement.emoji}</Text>
                   <View style={styles.achievementContent}>
-                    <Text style={styles.achievementTitle}>{achievement.title}</Text>
-                    <Text style={styles.achievementDescription}>{achievement.description}</Text>
+                    <Text style={[styles.achievementTitle, { color: colors.text }]}>{achievement.title}</Text>
+                    <Text style={[styles.achievementDescription, { color: colors.textSecondary }]}>{achievement.description}</Text>
                   </View>
-                  <Text style={styles.achievementDate}>{achievement.date}</Text>
+                  <Text style={[styles.achievementDate, { color: colors.textSecondary }]}>{achievement.date}</Text>
                 </View>
               ))}
               {generateAchievements().length === 0 && (
                 <View style={styles.achievementItem}>
-                  <Text style={styles.emptyText}>Complete your first session to earn achievements!</Text>
+                  <Text style={[styles.emptyText, { color: colors.textSecondary }]}>Complete your first session to earn achievements!</Text>
                 </View>
               )}
             </View>
@@ -308,40 +310,43 @@ export default function ProfileScreen() {
         </View>
 
         {/* Settings Section */}
-        <View style={styles.card}>
-          <Text style={styles.sectionTitle}>⚙️ Settings</Text>
+        <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>⚙️ Settings</Text>
           <View style={styles.settingsList}>
-            <TouchableOpacity style={styles.settingItem}>
+            <TouchableOpacity 
+              style={[styles.settingItem, { borderBottomColor: colors.border }]}
+              onPress={() => router.push('/settings')}
+            >
               <Text style={styles.settingEmoji}>👤</Text>
-              <Text style={styles.settingText}>Edit Profile</Text>
-              <Text style={styles.settingArrow}>›</Text>
+              <Text style={[styles.settingText, { color: colors.text }]}>Edit Profile</Text>
+              <Text style={[styles.settingArrow, { color: colors.textSecondary }]}>›</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={styles.settingItem}>
+            <TouchableOpacity style={[styles.settingItem, { borderBottomColor: colors.border }]}>
               <Text style={styles.settingEmoji}>🔔</Text>
-              <Text style={styles.settingText}>Notifications</Text>
-              <Text style={styles.settingArrow}>›</Text>
+              <Text style={[styles.settingText, { color: colors.text }]}>Notifications</Text>
+              <Text style={[styles.settingArrow, { color: colors.textSecondary }]}>›</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={styles.settingItem}>
+            <TouchableOpacity style={[styles.settingItem, { borderBottomColor: colors.border }]}>
               <Text style={styles.settingEmoji}>🔒</Text>
-              <Text style={styles.settingText}>Privacy Settings</Text>
-              <Text style={styles.settingArrow}>›</Text>
+              <Text style={[styles.settingText, { color: colors.text }]}>Privacy Settings</Text>
+              <Text style={[styles.settingArrow, { color: colors.textSecondary }]}>›</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={styles.settingItem}>
+            <TouchableOpacity style={[styles.settingItem, { borderBottomColor: colors.border }]}>
               <Text style={styles.settingEmoji}>📊</Text>
-              <Text style={styles.settingText}>Analytics</Text>
-              <Text style={styles.settingArrow}>›</Text>
+              <Text style={[styles.settingText, { color: colors.text }]}>Analytics</Text>
+              <Text style={[styles.settingArrow, { color: colors.textSecondary }]}>›</Text>
             </TouchableOpacity>
             <TouchableOpacity style={[styles.settingItem, styles.lastSettingItem]}>
               <Text style={styles.settingEmoji}>❓</Text>
-              <Text style={styles.settingText}>Help & Support</Text>
-              <Text style={styles.settingArrow}>›</Text>
+              <Text style={[styles.settingText, { color: colors.text }]}>Help & Support</Text>
+              <Text style={[styles.settingArrow, { color: colors.textSecondary }]}>›</Text>
             </TouchableOpacity>
           </View>
         </View>
 
         {/* Logout Button */}
-        <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
-          <Text style={styles.logoutText}>🚪 Logout</Text>
+        <TouchableOpacity style={[styles.logoutButton, { backgroundColor: colors.surface, borderColor: colors.border }]} onPress={handleLogout}>
+          <Text style={[styles.logoutText, { color: '#FF4444' }]}>🚪 Logout</Text>
         </TouchableOpacity>
       </ScrollView>
     </View>

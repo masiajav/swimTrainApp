@@ -262,6 +262,20 @@ class ApiService {
     return response;
   }
 
+  async changePassword(passwordData: {
+    currentPassword: string;
+    newPassword: string;
+  }) {
+    const response = await this.request('/auth/change-password', {
+      method: 'PUT',
+      headers: {
+        ...this.getAuthHeaders(),
+      },
+      body: JSON.stringify(passwordData),
+    });
+    return response;
+  }
+
   async logout() {
     // Clear stored token
     if (typeof window !== 'undefined') {

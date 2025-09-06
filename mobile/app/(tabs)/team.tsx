@@ -3,8 +3,10 @@ import { View, Text, ScrollView, TouchableOpacity, StyleSheet, TextInput, Alert,
 import { useFocusEffect } from '@react-navigation/native';
 import { apiService } from '../../services/api';
 import { Team, TeamStats, UserRole } from '../../../shared/types';
+import { useTheme } from '../../contexts/ThemeContext';
 
 export default function TeamScreen() {
+  const { isDarkMode, colors } = useTheme();
   const [team, setTeam] = useState<Team | null>(null);
   const [teamStats, setTeamStats] = useState<TeamStats | null>(null);
   const [loading, setLoading] = useState(true);
@@ -171,9 +173,9 @@ export default function TeamScreen() {
 
   if (loading) {
     return (
-      <View style={styles.container}>
+      <View style={[styles.container, { backgroundColor: colors.background }]}>
         <View style={styles.loadingContainer}>
-          <Text style={styles.loadingText}>Loading team information...</Text>
+          <Text style={[styles.loadingText, { color: colors.textSecondary }]}>Loading team information...</Text>
         </View>
       </View>
     );
@@ -182,8 +184,8 @@ export default function TeamScreen() {
   // No team state
   if (!team) {
     return (
-      <ScrollView style={styles.container}>
-        <View style={styles.header}>
+      <ScrollView style={[styles.container, { backgroundColor: colors.background }]}>
+        <View style={[styles.header, { backgroundColor: colors.primary }]}>
           <Text style={styles.headerTitle}>Join a Team</Text>
           <Text style={styles.headerSubtitle}>
             Connect with swimmers and track progress together
@@ -194,8 +196,8 @@ export default function TeamScreen() {
           <View style={styles.noTeamIcon}>
             <Text style={styles.noTeamIconText}>🏊‍♀️</Text>
           </View>
-          <Text style={styles.noTeamTitle}>No Team Yet</Text>
-          <Text style={styles.noTeamDescription}>
+          <Text style={[styles.noTeamTitle, { color: colors.text }]}>No Team Yet</Text>
+          <Text style={[styles.noTeamDescription, { color: colors.textSecondary }]}>
             Join an existing team with an invite code or create your own team to get started.
           </Text>
 
@@ -275,9 +277,9 @@ export default function TeamScreen() {
 
   // Has team state
   return (
-    <ScrollView style={styles.container}>
+    <ScrollView style={[styles.container, { backgroundColor: colors.background }]}>
       {/* Header */}
-      <View style={styles.header}>
+      <View style={[styles.header, { backgroundColor: colors.primary }]}>
         <Text style={styles.headerTitle}>{team.name}</Text>
         <Text style={styles.headerSubtitle}>
           {team.members.length} members • Invite Code: {team.inviteCode}
@@ -290,35 +292,35 @@ export default function TeamScreen() {
       {/* Team Stats */}
       {teamStats && (
         <View style={styles.statsContainer}>
-          <Text style={styles.sectionTitle}>Team Overview</Text>
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>Team Overview</Text>
           <View style={styles.statsGrid}>
-            <View style={styles.statCard}>
+            <View style={[styles.statCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
               <View style={[styles.statIcon, { backgroundColor: '#3b82f6' }]}>
                 <Text style={styles.statIconText}>👥</Text>
               </View>
-              <Text style={styles.statValue}>{teamStats.members}</Text>
-              <Text style={styles.statTitle}>Members</Text>
+              <Text style={[styles.statValue, { color: colors.text }]}>{teamStats.members}</Text>
+              <Text style={[styles.statTitle, { color: colors.textSecondary }]}>Members</Text>
             </View>
-            <View style={styles.statCard}>
+            <View style={[styles.statCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
               <View style={[styles.statIcon, { backgroundColor: '#14b8a6' }]}>
                 <Text style={styles.statIconText}>🏊‍♀️</Text>
               </View>
-              <Text style={styles.statValue}>{teamStats.totalSessions}</Text>
-              <Text style={styles.statTitle}>Sessions</Text>
+              <Text style={[styles.statValue, { color: colors.text }]}>{teamStats.totalSessions}</Text>
+              <Text style={[styles.statTitle, { color: colors.textSecondary }]}>Sessions</Text>
             </View>
-            <View style={styles.statCard}>
+            <View style={[styles.statCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
               <View style={[styles.statIcon, { backgroundColor: '#8b5cf6' }]}>
                 <Text style={styles.statIconText}>📏</Text>
               </View>
-              <Text style={styles.statValue}>{formatDistance(teamStats.totalDistance)}</Text>
-              <Text style={styles.statTitle}>Distance</Text>
+              <Text style={[styles.statValue, { color: colors.text }]}>{formatDistance(teamStats.totalDistance)}</Text>
+              <Text style={[styles.statTitle, { color: colors.textSecondary }]}>Distance</Text>
             </View>
-            <View style={styles.statCard}>
+            <View style={[styles.statCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
               <View style={[styles.statIcon, { backgroundColor: '#f59e0b' }]}>
                 <Text style={styles.statIconText}>📊</Text>
               </View>
-              <Text style={styles.statValue}>{teamStats.weeklySessions}</Text>
-              <Text style={styles.statTitle}>This Week</Text>
+              <Text style={[styles.statValue, { color: colors.text }]}>{teamStats.weeklySessions}</Text>
+              <Text style={[styles.statTitle, { color: colors.textSecondary }]}>This Week</Text>
             </View>
           </View>
         </View>
@@ -326,13 +328,13 @@ export default function TeamScreen() {
 
       {/* Team Members */}
       <View style={styles.membersContainer}>
-        <Text style={styles.sectionTitle}>Team Members</Text>
+        <Text style={[styles.sectionTitle, { color: colors.text }]}>Team Members</Text>
         {team.members.map((member: any) => (
-          <View key={member.id} style={styles.memberCard}>
+          <View key={member.id} style={[styles.memberCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
             <View style={styles.memberInfo}>
               {renderMemberAvatar(member)}
               <View style={styles.memberDetails}>
-                <Text style={styles.memberName}>
+                <Text style={[styles.memberName, { color: colors.text }]}>
                   {member.firstName} {member.lastName} (@{member.username})
                 </Text>
                 <View style={[styles.roleTag, { backgroundColor: getRoleColor(member.role) }]}>
@@ -346,8 +348,8 @@ export default function TeamScreen() {
 
       {/* Team Actions */}
       <View style={styles.teamActions}>
-        <TouchableOpacity style={styles.leaveButton} onPress={handleLeaveTeam}>
-          <Text style={styles.leaveButtonText}>Leave Team</Text>
+        <TouchableOpacity style={[styles.leaveButton, { backgroundColor: colors.surface, borderColor: '#ef4444' }]} onPress={handleLeaveTeam}>
+          <Text style={[styles.leaveButtonText, { color: '#ef4444' }]}>Leave Team</Text>
         </TouchableOpacity>
       </View>
     </ScrollView>
