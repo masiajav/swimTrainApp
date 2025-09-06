@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { createClient } from '@supabase/supabase-js';
 import { prisma } from '../index';
 import jwt from 'jsonwebtoken';
+import { authenticateToken } from '../middleware/auth';
 
 const router = Router();
 
@@ -24,6 +25,13 @@ const registerSchema = z.object({
   password: z.string().min(6),
   firstName: z.string().optional(),
   lastName: z.string().optional(),
+});
+
+const updateProfileSchema = z.object({
+  firstName: z.string().optional(),
+  lastName: z.string().optional(),
+  username: z.string().min(3),
+  avatar: z.string().optional(),
 });
 
 // Helper function to generate JWT
@@ -193,6 +201,85 @@ router.post('/google', async (req, res) => {
   } catch (error) {
     console.error('Google auth error:', error);
     res.status(500).json({ error: 'Google authentication failed' });
+  }
+});
+
+// GET /api/auth/profile - Get current user profile
+router.get('/profile', authenticateToken, async (req: any, res) => {
+  try {
+    const userId = req.userId;
+    
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: {
+        id: true,
+        email: true,
+        username: true,
+        firstName: true,
+        lastName: true,
+        avatar: true,
+        createdAt: true,
+      }
+    });
+
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    res.json({ user });
+  } catch (error) {
+    console.error('Get profile error:', error);
+    res.status(500).json({ error: 'Failed to get profile' });
+  }
+});
+
+// PUT /api/auth/profile - Update user profile
+router.put('/profile', authenticateToken, async (req: any, res) => {
+  try {
+    const userId = req.userId;
+    const { firstName, lastName, username, avatar } = updateProfileSchema.parse(req.body);
+    
+    // Check if username is already taken (excluding current user)
+    const existingUser = await prisma.user.findFirst({
+      where: {
+        username,
+        NOT: { id: userId }
+      }
+    });
+
+    if (existingUser) {
+      return res.status(400).json({ error: 'Username is already taken' });
+    }
+
+    // Update user profile
+    const updatedUser = await prisma.user.update({
+      where: { id: userId },
+      data: {
+        firstName,
+        lastName,
+        username,
+        avatar,
+      },
+      select: {
+        id: true,
+        email: true,
+        username: true,
+        firstName: true,
+        lastName: true,
+        avatar: true,
+      }
+    });
+
+    res.json({ 
+      message: 'Profile updated successfully',
+      user: updatedUser 
+    });
+  } catch (error) {
+    console.error('Update profile error:', error);
+    if (error instanceof z.ZodError) {
+      return res.status(400).json({ error: 'Invalid profile data' });
+    }
+    res.status(500).json({ error: 'Failed to update profile' });
   }
 });
 

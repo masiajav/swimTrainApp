@@ -23,6 +23,7 @@ model User {
   // Swimming specific fields
   teamId    String?
   team      Team?     @relation(fields: [teamId], references: [id])
+  role      UserRole  @default(MEMBER)
   
   // Relations
   sessions  Session[]
@@ -36,6 +37,7 @@ model Team {
   name        String
   description String?
   avatar      String?
+  inviteCode  String   @unique @default(cuid())
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
@@ -118,4 +120,11 @@ enum Intensity {
   HARD
   RACE_PACE
   RECOVERY
+}
+
+enum UserRole {
+  MEMBER
+  COACH
+  CAPTAIN
+  ADMIN
 }
