@@ -1,4 +1,4 @@
-import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Alert } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Alert, Image } from 'react-native';
 import { router, useFocusEffect } from 'expo-router';
 import React, { useState, useEffect } from 'react';
 import { apiService } from '../../services/api';
@@ -14,28 +14,48 @@ interface Session {
   intensity?: string;
 }
 
+interface UserProfile {
+  id: string;
+  email: string;
+  username: string;
+  firstName?: string;
+  lastName?: string;
+  avatar?: string;
+  role?: string;
+}
+
 export default function ProfileScreen() {
   const [sessions, setSessions] = useState<Session[]>([]);
+  const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
 
-  const loadSessions = async () => {
+  const loadProfileData = async () => {
     try {
       setLoading(true);
-      const response = await apiService.getSessions();
-      if (response.data) {
-        setSessions(response.data as Session[]);
+      
+      // Load sessions
+      const sessionsResponse = await apiService.getSessions();
+      if (sessionsResponse.data) {
+        setSessions(sessionsResponse.data as Session[]);
       } else {
         setSessions([]);
       }
+
+      // Load user profile
+      const profileResponse = await apiService.getProfile();
+      if ((profileResponse as any).user) {
+        setProfile((profileResponse as any).user);
+      }
     } catch (error) {
-      console.error('Failed to load sessions:', error);
+      console.error('Failed to load profile data:', error);
       setSessions([]);
+      setProfile(null);
     } finally {
       setLoading(false);
     }
   };
 
-  // Reload sessions when screen comes into focus
+  // Reload data when screen comes into focus
   useFocusEffect(
     React.useCallback(() => {
       const token = apiService.getStoredAuthToken();
@@ -44,9 +64,25 @@ export default function ProfileScreen() {
         return;
       }
       
-      loadSessions();
+      loadProfileData();
     }, [])
   );
+
+  const renderUserAvatar = () => {
+    if (profile?.avatar && profile.avatar.startsWith('http')) {
+      return (
+        <Image
+          source={{ uri: profile.avatar }}
+          style={styles.userAvatarImage}
+          resizeMode="cover"
+        />
+      );
+    } else if (profile?.avatar) {
+      return <Text style={styles.avatarEmoji}>{profile.avatar}</Text>;
+    } else {
+      return <Text style={styles.avatarEmoji}>🏊‍♂️</Text>;
+    }
+  };
 
   const calculateStats = () => {
     const totalDistance = sessions.reduce((sum, session) => sum + (session.distance || 0), 0);
@@ -133,6 +169,7 @@ export default function ProfileScreen() {
 
     return achievements.slice(0, 3); // Show max 3 achievements
   };
+
   const handleLogout = () => {
     console.log('Logout button clicked!');
     
@@ -188,15 +225,24 @@ export default function ProfileScreen() {
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
         {/* Profile Card */}
         <View style={styles.profileCard}>
-          <View style={styles.avatarContainer}>
-            <Text style={styles.avatarEmoji}>🏊‍♂️</Text>
-            <View style={styles.statusBadge}>
-              <Text style={styles.statusText}>Pro</Text>
+          <TouchableOpacity 
+            style={styles.avatarContainer}
+            onPress={() => router.push('/settings')}
+          >
+            {renderUserAvatar()}
+            <View style={styles.editBadge}>
+              <Text style={styles.editIcon}>✏️</Text>
             </View>
-          </View>
-          <Text style={styles.userName}>John Swimmer</Text>
-          <Text style={styles.userHandle}>@johnswimmer</Text>
-          <Text style={styles.userRole}>Swimming Team Member</Text>
+          </TouchableOpacity>
+          <Text style={styles.userName}>
+            {profile ? `${profile.firstName || ''} ${profile.lastName || ''}`.trim() || 'Swimming Enthusiast' : 'Loading...'}
+          </Text>
+          <Text style={styles.userHandle}>
+            @{profile?.username || 'username'}
+          </Text>
+          <Text style={styles.userRole}>
+            {profile?.role || 'Swimming Team Member'}
+          </Text>
         </View>
 
         {/* Quick Stats Grid */}
@@ -342,9 +388,27 @@ const styles = StyleSheet.create({
   avatarContainer: {
     position: 'relative',
     marginBottom: 16,
+    alignItems: 'center',
   },
   avatarEmoji: {
     fontSize: 64,
+  },
+  userAvatarImage: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+  },
+  editBadge: {
+    position: 'absolute',
+    bottom: 0,
+    right: -8,
+    backgroundColor: '#3b82f6',
+    borderRadius: 12,
+    paddingHorizontal: 6,
+    paddingVertical: 4,
+  },
+  editIcon: {
+    fontSize: 12,
   },
   statusBadge: {
     position: 'absolute',
