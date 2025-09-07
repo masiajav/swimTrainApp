@@ -76,18 +76,43 @@ router.post('/', authenticateToken, async (req: any, res) => {
 // GET /api/sessions/:id - Get specific session
 router.get('/:id', authenticateToken, async (req: any, res) => {
   try {
-    const session = await prisma.session.findFirst({
-      where: {
-        id: req.params.id,
-        userId: req.userId, // Ensure user can only access their own sessions
-      },
+    const requesterId = req.userId;
+    const sessionId = req.params.id;
+
+    // Get the session with user info
+    const session = await prisma.session.findUnique({
+      where: { id: sessionId },
       include: {
         workouts: true,
+        user: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            username: true,
+            teamId: true,
+          }
+        }
       },
     });
 
     if (!session) {
       return res.status(404).json({ error: 'Session not found' });
+    }
+
+    // Get requester's team info
+    const requester = await prisma.user.findUnique({
+      where: { id: requesterId },
+      select: { teamId: true }
+    });
+
+    // Check if user can access this session
+    // Allow access if: 1) It's their own session, or 2) They're in the same team
+    const canAccess = session.userId === requesterId || 
+                     (requester?.teamId && requester.teamId === session.user.teamId);
+
+    if (!canAccess) {
+      return res.status(403).json({ error: 'You do not have permission to view this session' });
     }
 
     res.json({ data: session });

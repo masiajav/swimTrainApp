@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, StyleSheet, TextInput, Alert, Image } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
+import { router } from 'expo-router';
 import { apiService } from '../../services/api';
 import { Team, TeamStats, UserRole } from '../../../shared/types';
 import { useTheme } from '../../contexts/ThemeContext';
@@ -330,7 +331,11 @@ export default function TeamScreen() {
       <View style={styles.membersContainer}>
         <Text style={[styles.sectionTitle, { color: colors.text }]}>Team Members</Text>
         {team.members.map((member: any) => (
-          <View key={member.id} style={[styles.memberCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+          <TouchableOpacity 
+            key={member.id} 
+            style={[styles.memberCard, { backgroundColor: colors.surface, borderColor: colors.border }]}
+            onPress={() => router.push(`/team/member/${member.id}`)}
+          >
             <View style={styles.memberInfo}>
               {renderMemberAvatar(member)}
               <View style={styles.memberDetails}>
@@ -341,8 +346,9 @@ export default function TeamScreen() {
                   <Text style={styles.roleText}>{member.role}</Text>
                 </View>
               </View>
+              <Text style={[styles.viewProfileText, { color: colors.primary }]}>View →</Text>
             </View>
-          </View>
+          </TouchableOpacity>
         ))}
       </View>
 
@@ -606,6 +612,11 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#1e293b',
     marginBottom: 4,
+  },
+  viewProfileText: {
+    fontSize: 14,
+    fontWeight: '600',
+    marginLeft: 8,
   },
   roleTag: {
     alignSelf: 'flex-start',
