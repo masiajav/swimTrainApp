@@ -90,6 +90,11 @@ class ApiService {
     }
   }
 
+  // Helper to get current auth token
+  getAuthToken(): string | null {
+    return this.getStoredAuthToken();
+  }
+
   private authToken: string | null = null;
 
   private getAuthHeaders(): Record<string, string> {
@@ -171,6 +176,113 @@ class ApiService {
       },
     });
     return response;
+  }
+
+  // Team endpoints
+  async getTeam() {
+    const response = await this.request('/teams', {
+      method: 'GET',
+      headers: {
+        ...this.getAuthHeaders(),
+      },
+    });
+    return response;
+  }
+
+  async createTeam(teamData: {
+    name: string;
+    description?: string;
+    avatar?: string;
+  }) {
+    const response = await this.request('/teams', {
+      method: 'POST',
+      headers: {
+        ...this.getAuthHeaders(),
+      },
+      body: JSON.stringify(teamData),
+    });
+    return response;
+  }
+
+  async joinTeam(inviteCode: string) {
+    const response = await this.request('/teams/join', {
+      method: 'POST',
+      headers: {
+        ...this.getAuthHeaders(),
+      },
+      body: JSON.stringify({ inviteCode }),
+    });
+    return response;
+  }
+
+  async leaveTeam() {
+    const response = await this.request('/teams/leave', {
+      method: 'DELETE',
+      headers: {
+        ...this.getAuthHeaders(),
+      },
+    });
+    return response;
+  }
+
+  async getTeamStats() {
+    const response = await this.request('/teams/stats', {
+      method: 'GET',
+      headers: {
+        ...this.getAuthHeaders(),
+      },
+    });
+    return response;
+  }
+
+  // Profile endpoints
+  async getProfile() {
+    const response = await this.request('/auth/profile', {
+      method: 'GET',
+      headers: {
+        ...this.getAuthHeaders(),
+      },
+    });
+    return response;
+  }
+
+  async updateProfile(profileData: {
+    firstName?: string;
+    lastName?: string;
+    username: string;
+    avatar?: string;
+  }) {
+    const response = await this.request('/auth/profile', {
+      method: 'PUT',
+      headers: {
+        ...this.getAuthHeaders(),
+      },
+      body: JSON.stringify(profileData),
+    });
+    return response;
+  }
+
+  async changePassword(passwordData: {
+    currentPassword: string;
+    newPassword: string;
+  }) {
+    const response = await this.request('/auth/change-password', {
+      method: 'PUT',
+      headers: {
+        ...this.getAuthHeaders(),
+      },
+      body: JSON.stringify(passwordData),
+    });
+    return response;
+  }
+
+  async logout() {
+    // Clear stored token
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('auth_token');
+    }
+    // You could also call a logout endpoint if needed
+    return Promise.resolve();
   }
 }
 

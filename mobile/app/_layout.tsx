@@ -1,16 +1,23 @@
 import 'react-native-url-polyfill/auto';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
+import { ThemeProvider, useTheme } from '../contexts/ThemeContext';
+
+function ThemedStatusBar() {
+  const { isDarkMode } = useTheme();
+  return <StatusBar style={isDarkMode ? "light" : "dark"} />;
+}
 
 export default function RootLayout() {
   return (
-    <>
+    <ThemeProvider>
       <Stack>
         <Stack.Screen name="index" options={{ title: 'SwimTrainApp' }} />
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
         <Stack.Screen name="auth" options={{ headerShown: false }} />
+        <Stack.Screen name="settings" options={{ headerShown: false }} />
       </Stack>
-      <StatusBar style="auto" />
-    </>
+      <ThemedStatusBar />
+    </ThemeProvider>
   );
 }

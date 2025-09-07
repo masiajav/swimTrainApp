@@ -6,6 +6,7 @@ export interface User {
   lastName?: string;
   avatar?: string;
   teamId?: string;
+  role: UserRole;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -15,6 +16,7 @@ export interface Team {
   name: string;
   description?: string;
   avatar?: string;
+  inviteCode: string;
   createdAt: Date;
   updatedAt: Date;
   members: User[];
@@ -78,6 +80,13 @@ export enum Intensity {
   RACE_PACE = 'RACE_PACE',
 }
 
+export enum UserRole {
+  MEMBER = 'MEMBER',
+  COACH = 'COACH',
+  CAPTAIN = 'CAPTAIN',
+  ADMIN = 'ADMIN',
+}
+
 // API Request/Response types
 export interface LoginRequest {
   email: string;
@@ -101,4 +110,31 @@ export interface ApiResponse<T = any> {
   data?: T;
   error?: string;
   message?: string;
+}
+
+// Team-related types
+export interface CreateTeamRequest {
+  name: string;
+  description?: string;
+  avatar?: string;
+}
+
+export interface JoinTeamRequest {
+  inviteCode: string;
+}
+
+export interface TeamStats {
+  members: number;
+  totalSessions: number;
+  totalDistance: number;
+  weeklySessions: number;
+  weeklyDistance: number;
+}
+
+export interface TeamResponse {
+  team: Team | null;
+}
+
+export interface TeamStatsResponse {
+  stats: TeamStats;
 }

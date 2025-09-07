@@ -2,6 +2,7 @@ import { View, Text, ScrollView, TouchableOpacity, StyleSheet } from 'react-nati
 import React, { useState, useEffect } from 'react';
 import { router, useFocusEffect } from 'expo-router';
 import { apiService } from '../../services/api';
+import { useTheme } from '../../contexts/ThemeContext';
 
 interface Session {
   id: string;
@@ -16,6 +17,7 @@ interface Session {
 }
 
 export default function SessionsScreen() {
+  const { isDarkMode, colors } = useTheme();
   const [sessions, setSessions] = useState<Session[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -164,9 +166,9 @@ export default function SessionsScreen() {
 
   if (loading) {
     return (
-      <View style={styles.container}>
+      <View style={[styles.container, { backgroundColor: colors.background }]}>
         <View style={styles.loadingContainer}>
-          <Text style={styles.loadingText}>Loading sessions...</Text>
+          <Text style={[styles.loadingText, { color: colors.textSecondary }]}>Loading sessions...</Text>
         </View>
       </View>
     );
@@ -174,10 +176,10 @@ export default function SessionsScreen() {
 
   if (error) {
     return (
-      <View style={styles.container}>
+      <View style={[styles.container, { backgroundColor: colors.background }]}>
         <View style={styles.errorContainer}>
-          <Text style={styles.errorText}>{error}</Text>
-          <TouchableOpacity style={styles.retryButton} onPress={loadSessions}>
+          <Text style={[styles.errorText, { color: colors.text }]}>{error}</Text>
+          <TouchableOpacity style={[styles.retryButton, { backgroundColor: colors.primary }]} onPress={loadSessions}>
             <Text style={styles.retryButtonText}>Retry</Text>
           </TouchableOpacity>
         </View>
@@ -186,9 +188,9 @@ export default function SessionsScreen() {
   }
 
   return (
-    <ScrollView style={styles.container}>
+    <ScrollView style={[styles.container, { backgroundColor: colors.background }]}>
       {/* Header */}
-      <View style={styles.header}>
+      <View style={[styles.header, { backgroundColor: colors.primary }]}>
         <Text style={styles.headerTitle}>Swimming Sessions</Text>
         <Text style={styles.headerSubtitle}>Track and review your training progress</Text>
       </View>
@@ -196,16 +198,16 @@ export default function SessionsScreen() {
       {/* Filter/Add Section */}
       <View style={styles.actionSection}>
         <TouchableOpacity 
-          style={styles.addButton}
+          style={[styles.addButton, { backgroundColor: colors.primary }]}
           onPress={() => router.push('/session/create')}
         >
           <Text style={styles.addButtonIcon}>+</Text>
           <Text style={styles.addButtonText}>New Session</Text>
         </TouchableOpacity>
         
-        <TouchableOpacity style={styles.filterButton}>
+        <TouchableOpacity style={[styles.filterButton, { backgroundColor: colors.surface, borderColor: colors.border }]}>
           <Text style={styles.filterIcon}>⚙️</Text>
-          <Text style={styles.filterText}>Filter</Text>
+          <Text style={[styles.filterText, { color: colors.text }]}>Filter</Text>
         </TouchableOpacity>
       </View>
 
@@ -213,10 +215,10 @@ export default function SessionsScreen() {
       <View style={styles.sessionsContainer}>
         {sessions.length === 0 ? (
           <View style={styles.emptyState}>
-            <Text style={styles.emptyStateText}>No sessions yet</Text>
-            <Text style={styles.emptyStateSubtext}>Create your first swimming session to get started!</Text>
+            <Text style={[styles.emptyStateText, { color: colors.text }]}>No sessions yet</Text>
+            <Text style={[styles.emptyStateSubtext, { color: colors.textSecondary }]}>Create your first swimming session to get started!</Text>
             <TouchableOpacity 
-              style={styles.emptyStateButton}
+              style={[styles.emptyStateButton, { backgroundColor: colors.primary }]}
               onPress={() => router.push('/session/create')}
             >
               <Text style={styles.emptyStateButtonText}>Create Session</Text>
@@ -226,19 +228,19 @@ export default function SessionsScreen() {
           sessions.map((session) => (
             <TouchableOpacity 
               key={session.id} 
-              style={styles.sessionCard}
+              style={[styles.sessionCard, { backgroundColor: colors.surface, borderColor: colors.border }]}
               onPress={() => router.push(`/session/${session.id}`)}
             >
               <View style={styles.sessionHeader}>
                 <View style={styles.sessionTitleRow}>
-                  <Text style={styles.sessionTitle}>{session.title}</Text>
+                  <Text style={[styles.sessionTitle, { color: colors.text }]}>{session.title}</Text>
                   {session.workoutType && (
                     <View style={[styles.typeBadge, { backgroundColor: getTypeColor(session.workoutType) }]}>
                       <Text style={styles.typeBadgeText}>{session.workoutType.replace('_', ' ')}</Text>
                     </View>
                   )}
                 </View>
-                <Text style={styles.sessionDate}>{formatDate(session.date)}</Text>
+                <Text style={[styles.sessionDate, { color: colors.textSecondary }]}>{formatDate(session.date)}</Text>
               </View>
 
               <View style={styles.sessionStats}>
