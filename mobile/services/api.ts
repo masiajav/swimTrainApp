@@ -276,6 +276,17 @@ class ApiService {
     return response;
   }
 
+  // User profile endpoints
+  async getTeamMemberProfile(userId: string) {
+    const response = await this.request(`/users/${userId}/profile`, {
+      method: 'GET',
+      headers: {
+        ...this.getAuthHeaders(),
+      },
+    });
+    return response;
+  }
+
   async logout() {
     // Clear stored token
     if (typeof window !== 'undefined') {
