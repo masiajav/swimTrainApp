@@ -97,13 +97,16 @@ export default function SettingsScreen() {
         apiService.getSessions()
       ]);
       
-      setProfile(profileData);
-      setFirstName(profileData.firstName || '');
-      setLastName(profileData.lastName || '');
-      setUsername(profileData.username || '');
-      setAvatar(profileData.avatar || '');
+      const profile = profileData.data as UserProfile;
+      const sessions = sessionsData.data as any[];
+      
+      setProfile(profile);
+      setFirstName(profile.firstName || '');
+      setLastName(profile.lastName || '');
+      setUsername(profile.username || '');
+      setAvatar(profile.avatar || '');
 
-      const stats = calculateUserStats(sessionsData);
+      const stats = calculateUserStats(sessions || []);
       setUserStats(stats);
     } catch (error) {
       console.error('Error loading profile:', error);
@@ -121,6 +124,7 @@ export default function SettingsScreen() {
       await apiService.updateProfile({
         firstName,
         lastName,
+        username,
         avatar,
       });
       
@@ -152,7 +156,10 @@ export default function SettingsScreen() {
 
     try {
       setSaving(true);
-      await apiService.changePassword(currentPassword, newPassword);
+      await apiService.changePassword({
+        currentPassword,
+        newPassword,
+      });
       Alert.alert('Success', 'Password changed successfully!');
       setCurrentPassword('');
       setNewPassword('');

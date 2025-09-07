@@ -308,7 +308,7 @@ export default function CreateSession() {
             <Text style={styles.charCounter}>{formData.title.length}/50</Text>
           </View>
           <TextInput
-            style={[styles.input, errors.title && styles.inputError]}
+            style={[styles.input, errors.title ? styles.inputError : null]}
             value={formData.title}
             onChangeText={(value) => handleInputChange('title', value.slice(0, 50))}
             placeholder="e.g., Morning Freestyle Practice"
@@ -321,7 +321,7 @@ export default function CreateSession() {
         <View style={styles.inputGroup}>
           <Text style={styles.label}>Date *</Text>
           <TextInput
-            style={[styles.input, errors.date && styles.inputError]}
+            style={[styles.input, errors.date ? styles.inputError : null]}
             value={formData.date}
             onChangeText={(value) => handleInputChange('date', value)}
             placeholder="YYYY-MM-DD"
@@ -333,7 +333,7 @@ export default function CreateSession() {
         <View style={styles.inputGroup}>
           <Text style={styles.label}>Duration (minutes) *</Text>
           <TextInput
-            style={[styles.input, errors.duration && styles.inputError]}
+            style={[styles.input, errors.duration ? styles.inputError : null]}
             value={formData.duration}
             onChangeText={(value) => handleInputChange('duration', value)}
             placeholder="e.g., 60"
@@ -346,7 +346,7 @@ export default function CreateSession() {
         <View style={styles.inputGroup}>
           <Text style={styles.label}>Distance (meters)</Text>
           <TextInput
-            style={[styles.input, errors.distance && styles.inputError]}
+            style={[styles.input, errors.distance ? styles.inputError : null]}
             value={formData.distance}
             onChangeText={(value) => handleInputChange('distance', value)}
             placeholder="e.g., 2000"
