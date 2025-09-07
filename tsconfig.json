@@ -1,7 +1,11 @@
 {
   "compilerOptions": {
-    "moduleResolution": "bundler",
-    "ignoreDeprecations": "5.0"
+    "skipLibCheck": true
   },
-  "extends": "expo/tsconfig.base"
+  "exclude": [
+    "node_modules",
+    "backend",
+    "mobile",
+    "shared"
+  ]
 }

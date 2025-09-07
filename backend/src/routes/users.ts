@@ -52,24 +52,24 @@ router.get('/:userId/profile', authenticateToken, async (req: any, res) => {
     // Calculate user statistics
     const sessions = targetUser.sessions;
     const totalSessions = sessions.length;
-    const totalDistance = sessions.reduce((sum: number, session) => sum + (session.distance || 0), 0);
-    const totalDuration = sessions.reduce((sum: number, session) => sum + session.duration, 0);
+    const totalDistance = sessions.reduce((sum: number, session: any) => sum + (session.distance || 0), 0);
+    const totalDuration = sessions.reduce((sum: number, session: any) => sum + session.duration, 0);
     const avgDistance = totalSessions > 0 ? totalDistance / totalSessions : 0;
 
     // Calculate weekly stats (last 7 days)
     const oneWeekAgo = new Date();
     oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
     
-    const weeklySessions = sessions.filter((session) => 
+    const weeklySessions = sessions.filter((session: any) => 
       new Date(session.date) >= oneWeekAgo
     );
     
-    const weeklyDistance = weeklySessions.reduce((sum: number, session) => sum + (session.distance || 0), 0);
+    const weeklyDistance = weeklySessions.reduce((sum: number, session: any) => sum + (session.distance || 0), 0);
     const weeklySessionCount = weeklySessions.length;
 
     // Calculate workout type distribution
     const workoutTypes: { [key: string]: number } = {};
-    sessions.forEach((session) => {
+    sessions.forEach((session: any) => {
       if (session.workoutType) {
         workoutTypes[session.workoutType] = (workoutTypes[session.workoutType] || 0) + 1;
       }
@@ -93,7 +93,7 @@ router.get('/:userId/profile', authenticateToken, async (req: any, res) => {
         weeklySessionCount,
         workoutTypes
       },
-      recentSessions: sessions.slice(0, 10).map((session) => ({
+      recentSessions: sessions.slice(0, 10).map((session: any) => ({
         id: session.id,
         title: session.title,
         date: session.date,
