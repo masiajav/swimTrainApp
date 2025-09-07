@@ -234,7 +234,11 @@ export default function TeamMemberProfileScreen() {
           </Text>
         ) : (
           profile.recentSessions.map((session) => (
-            <View key={session.id} style={[styles.sessionItem, { borderBottomColor: colors.border }]}>
+            <TouchableOpacity 
+              key={session.id} 
+              style={[styles.sessionItem, { borderBottomColor: colors.border }]}
+              onPress={() => router.push(`/session/${session.id}`)}
+            >
               <View style={styles.sessionLeft}>
                 <Text style={[styles.sessionTitle, { color: colors.text }]}>
                   {session.title}
@@ -257,8 +261,9 @@ export default function TeamMemberProfileScreen() {
                     </Text>
                   </View>
                 )}
+                <Text style={[styles.arrowText, { color: colors.textSecondary }]}>→</Text>
               </View>
-            </View>
+            </TouchableOpacity>
           ))
         )}
       </View>
@@ -458,5 +463,9 @@ const styles = StyleSheet.create({
     fontSize: 10,
     fontWeight: 'bold',
     textTransform: 'uppercase',
+  },
+  arrowText: {
+    fontSize: 16,
+    marginLeft: 8,
   },
 });

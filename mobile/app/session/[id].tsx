@@ -1,45 +1,66 @@
-import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Alert } from 'react-native';
 import React, { useState, useEffect } from 'react';
+import { View, Text, ScrollView, StyleSheet, TouchableOpacity, Alert } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { apiService } from '../../services/api';
+import { useTheme } from '../../contexts/ThemeContext';
 
-interface Session {
+interface SessionWorkout {
+  id: string;
+  type: string;
+  distance?: number;
+  time?: number;
+  sets?: number;
+  reps?: number;
+  restTime?: number;
+  stroke?: string;
+  intensity?: string;
+  notes?: string;
+}
+
+interface SessionUser {
+  id: string;
+  firstName?: string;
+  lastName?: string;
+  username: string;
+}
+
+interface SessionDetails {
   id: string;
   title: string;
+  description?: string;
   date: string;
-  distance?: number;
   duration: number;
+  distance?: number;
   workoutType?: string;
   stroke?: string;
   intensity?: string;
-  description?: string;
-  createdAt: string;
-  updatedAt: string;
+  user: SessionUser;
+  workouts: SessionWorkout[];
 }
 
-export default function SessionDetailsScreen() {
+export default function SessionDetailScreen() {
+  const { isDarkMode, colors } = useTheme();
   const { id } = useLocalSearchParams<{ id: string }>();
-  const [session, setSession] = useState<Session | null>(null);
+  const [session, setSession] = useState<SessionDetails | null>(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (id) {
-      loadSession();
+      loadSessionDetails();
     }
   }, [id]);
 
-  const loadSession = async () => {
+  const loadSessionDetails = async () => {
     try {
       setLoading(true);
-      setError(null);
       const response = await apiService.getSession(id!);
       if (response.data) {
-        setSession(response.data as Session);
+        setSession(response.data as SessionDetails);
       }
-    } catch (err) {
-      console.error('Failed to load session:', err);
-      setError('Failed to load session details');
+    } catch (error: any) {
+      console.error('Error loading session details:', error);
+      Alert.alert('Error', error.message || 'Failed to load session details');
+      router.back();
     } finally {
       setLoading(false);
     }
@@ -114,22 +135,23 @@ export default function SessionDetailsScreen() {
 
   if (loading) {
     return (
-      <View style={styles.container}>
+      <View style={[styles.container, { backgroundColor: colors.background }]}>
         <View style={styles.loadingContainer}>
-          <Text style={styles.loadingText}>Loading session...</Text>
+          <Text style={[styles.loadingText, { color: colors.textSecondary }]}>
+            Loading session details...
+          </Text>
         </View>
       </View>
     );
   }
 
-  if (error || !session) {
+  if (!session) {
     return (
-      <View style={styles.container}>
+      <View style={[styles.container, { backgroundColor: colors.background }]}>
         <View style={styles.errorContainer}>
-          <Text style={styles.errorText}>{error || 'Session not found'}</Text>
-          <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
-            <Text style={styles.backButtonText}>Go Back</Text>
-          </TouchableOpacity>
+          <Text style={[styles.errorText, { color: colors.text }]}>
+            Session not found
+          </Text>
         </View>
       </View>
     );
@@ -206,37 +228,6 @@ export default function SessionDetailsScreen() {
         </View>
       )}
 
-      {/* Session Metadata */}
-      <View style={styles.card}>
-        <Text style={styles.cardTitle}>ℹ️ Session Info</Text>
-        <View style={styles.metadataContainer}>
-          <View style={styles.metadataRow}>
-            <Text style={styles.metadataLabel}>Created:</Text>
-            <Text style={styles.metadataValue}>
-              {formatDate(session.createdAt)} at {formatTime(session.createdAt)}
-            </Text>
-          </View>
-          {session.updatedAt !== session.createdAt && (
-            <View style={styles.metadataRow}>
-              <Text style={styles.metadataLabel}>Last Updated:</Text>
-              <Text style={styles.metadataValue}>
-                {formatDate(session.updatedAt)} at {formatTime(session.updatedAt)}
-              </Text>
-            </View>
-          )}
-        </View>
-      </View>
-
-      {/* Action Buttons */}
-      <View style={styles.actionButtons}>
-        <TouchableOpacity style={styles.editButton} onPress={handleEdit}>
-          <Text style={styles.editButtonText}>✏️ Edit Session</Text>
-        </TouchableOpacity>
-        
-        <TouchableOpacity style={styles.deleteButton} onPress={handleDelete}>
-          <Text style={styles.deleteButtonText}>🗑️ Delete Session</Text>
-        </TouchableOpacity>
-      </View>
     </ScrollView>
   );
 }
