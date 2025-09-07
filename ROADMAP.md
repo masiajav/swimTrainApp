@@ -8,7 +8,7 @@
 - [x] **Session Management** - Complete session tracking (distance, time, type, intensity)
 - [x] **Team Management** - Full team member management with role-based access
 - [x] **Team Member Interactivity** - Complete team member profile viewing and session access
-- [x] **Cross-platform App** - Fully functional iOS, Android, and Web applications
+- [ ] **Cross-platform App** - Fully functional iOS, Android, and Web applications (Web ✅, Mobile pending)
 - [x] **Responsive Design** - Complete dark/light theme support and responsive layouts
 - [x] **Settings Management** - Full user profile editing and app preferences
 - [x] **Session Editing** - Complete session editing and deletion capabilities
