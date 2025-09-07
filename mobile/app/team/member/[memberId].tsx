@@ -53,8 +53,8 @@ export default function TeamMemberProfileScreen() {
     try {
       setLoading(true);
       const response = await apiService.getTeamMemberProfile(memberId);
-      if (response.profile) {
-        setProfile(response.profile);
+      if (response.data) {
+        setProfile(response.data as TeamMemberProfile);
       }
     } catch (error) {
       console.error('Error loading member profile:', error);

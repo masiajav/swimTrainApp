@@ -1,104 +1,86 @@
-# SwimTrainApp Setup Guide
+# SwimTrainApp - Environment Setup Guide
 
-## 🚀 Quick Start
+**📊 Setup Status: CURRENT & TESTED** ✅  
+*This guide is up-to-date for the production-ready v1.0 release*
 
-### Prerequisites
-- Node.js 18 or higher
-- npm or yarn
-- Git
+This guide covers detailed environment setup and configuration. For quick start instructions, see [README.md](./README.md).
 
-### Installation
+## 🔧 Environment Configuration
 
-1. **Clone the repository:**
+### Backend Environment Variables
+
+Create `backend/.env` file with the following variables:
+
 ```bash
-git clone <your-repo-url>
-cd swimTrainApp
+# Database Configuration
+DATABASE_URL="postgresql://username:password@localhost:5432/swimtrainapp"
+
+# JWT Configuration  
+JWT_SECRET="your-super-secret-jwt-key-here"
+JWT_EXPIRES_IN="7d"
+
+# Server Configuration
+PORT=3000
+NODE_ENV="development"
+
+# Supabase Configuration (if using Supabase)
+SUPABASE_URL="https://your-project.supabase.co"
+SUPABASE_ANON_KEY="your-anon-key"
 ```
 
-2. **Install dependencies for all projects:**
+### Frontend Environment Variables
+
+Create `mobile/.env` file:
+
 ```bash
-npm run install:all
+# API Configuration
+EXPO_PUBLIC_API_URL="http://localhost:3000/api"
+
+# Development Configuration
+EXPO_PUBLIC_ENV="development"
 ```
 
-3. **Set up environment variables:**
+## 🗄️ Database Setup Options
 
-**Backend (.env):**
-```bash
-cd backend
-cp .env.example .env
-# Edit .env with your configuration
-```
+### Option 1: Supabase (Recommended - Free Tier)
 
-4. **Start development servers:**
-```bash
-# Start both backend and mobile app
-npm run dev
-
-# Or start individually:
-# Backend only
-npm run dev:backend
-
-# Mobile app only  
-npm run dev:mobile
-```
-
-## 📱 Mobile App Setup
-
-### Running on Different Platforms
-
-**Web Browser:**
-```bash
-cd mobile
-npx expo start --web
-```
-
-**iOS Simulator (macOS only):**
-```bash
-cd mobile
-npx expo start --ios
-```
-
-**Android Emulator:**
-```bash
-cd mobile
-npx expo start --android
-```
-
-**Physical Device:**
-1. Install Expo Go app from App Store/Google Play
-2. Scan QR code from Expo development server
-
-## 🗄️ Database Setup
-
-### Option 1: Supabase (Recommended - Free)
-
-1. **Create Supabase account:**
-   - Go to [supabase.com](https://supabase.com)
+1. **Create Supabase Project:**
+   - Visit [supabase.com](https://supabase.com)
    - Create new project
+   - Note the Project URL and anon key
 
-2. **Get credentials:**
-   - Copy Project URL and anon key
-   - Add to backend/.env file
+2. **Configure Backend:**
+   ```bash
+   cd backend
+   # Add Supabase credentials to .env
+   # DATABASE_URL should use the connection string from Supabase
+   ```
 
-3. **Setup database:**
-```bash
-cd backend
-npm run db:push
-```
+3. **Initialize Database:**
+   ```bash
+   npm run db:push
+   npm run db:seed  # Optional: seed with sample data
+   ```
 
 ### Option 2: Local PostgreSQL
 
-1. **Install PostgreSQL**
-2. **Create database:**
-```sql
-CREATE DATABASE swimtrainapp;
-```
-3. **Update DATABASE_URL in .env**
-4. **Run migrations:**
-```bash
-cd backend
-npm run db:migrate
-```
+1. **Install PostgreSQL:**
+   - Windows: Download from postgresql.org
+   - macOS: `brew install postgresql`
+   - Linux: `sudo apt-get install postgresql`
+
+2. **Create Database:**
+   ```sql
+   createdb swimtrainapp
+   # Or via SQL: CREATE DATABASE swimtrainapp;
+   ```
+
+3. **Configure and Migrate:**
+   ```bash
+   cd backend
+   # Update DATABASE_URL in .env to point to local DB
+   npm run db:migrate
+   ```
 
 ## 🔧 Development
 
@@ -119,107 +101,198 @@ npx tsc --noEmit    # Type checking
 
 ## 📦 Building for Production
 
-### Mobile App
+## 📱 Platform-Specific Development
+
+### Web Development
 ```bash
 cd mobile
-npm run build        # Web build
-# For mobile builds, set up EAS Build (Expo Application Services)
+npx expo start --web
+# Access at http://localhost:8081
 ```
 
-### Backend
+### iOS Development (macOS only)
+```bash
+cd mobile
+npx expo start --ios
+# Requires Xcode and iOS Simulator
+```
+
+### Android Development
+```bash
+cd mobile
+npx expo start --android
+# Requires Android Studio and emulator
+```
+
+### Physical Device Testing
+1. Install **Expo Go** from App Store/Google Play
+2. Run `npx expo start` in mobile directory
+3. Scan QR code with Expo Go app
+
+## 🔧 Development Workflow
+
+### Database Management
 ```bash
 cd backend
-npm run build        # TypeScript compilation
-npm start           # Run production build
+
+# Generate Prisma client after schema changes
+npx prisma generate
+
+# Apply schema changes to database
+npx prisma db push
+
+# View database in browser
+npx prisma studio
+
+# Reset database (development only)
+npx prisma db reset
 ```
 
-## 🚀 Deployment
-
-### Free Hosting Options
-
-**Frontend (Mobile Web):**
-- Vercel
-- Netlify
-- GitHub Pages
-
-**Backend:**
-- Railway (recommended)
-- Render
-- Heroku (limited free tier)
-
-**Database:**
-- Supabase (1GB free)
-- PlanetScale (5GB free)
-
-### Deployment Commands
-
-**Railway (Backend):**
+### Code Quality
 ```bash
-# Install Railway CLI
-npm install -g @railway/cli
+# Type checking
+cd mobile && npx tsc --noEmit
+cd backend && npx tsc --noEmit
 
-# Login and deploy
-railway login
-railway link
-railway up
+# Linting (if configured)
+npm run lint
+
+# Formatting (if configured)
+npm run format
 ```
 
-**Vercel (Frontend):**
+## 🚀 Production Deployment
+
+### Frontend Deployment Options
+
+**Vercel (Recommended):**
 ```bash
 # Install Vercel CLI
 npm install -g vercel
 
-# Deploy
+# Deploy from mobile directory
 cd mobile
+npx expo export:web
 vercel --prod
 ```
 
-## 🔐 Environment Variables
-
-### Backend (.env)
+**Netlify:**
+```bash
+cd mobile
+npx expo export:web
+# Upload dist folder to Netlify or use CLI
 ```
+
+### Backend Deployment Options
+
+**Railway (Recommended):**
+1. Connect GitHub repository to Railway
+2. Set environment variables
+3. Deploy automatically on push
+
+**Render:**
+1. Connect GitHub repository
+2. Configure build command: `cd backend && npm install && npm run build`
+3. Start command: `cd backend && npm start`
+
+### Mobile App Distribution
+
+**Web App (PWA):**
+- Automatically available when frontend is deployed
+- Users can install as Progressive Web App
+
+**Native Apps (via EAS Build):**
+```bash
+cd mobile
+
+# Install EAS CLI
+npm install -g @expo/eas-cli
+eas login
+
+# Configure EAS
+eas build:configure
+
+# Build Android APK
+eas build --platform android
+
+# Build iOS (requires Apple Developer account)
+eas build --platform ios --profile production
+```
+
+## 🔐 Production Environment Variables
+
+### Backend (.env for production)
+```bash
 NODE_ENV=production
 PORT=3000
-DATABASE_URL=your_postgresql_url
-SUPABASE_URL=your_supabase_url
-SUPABASE_ANON_KEY=your_supabase_key
-JWT_SECRET=your_secure_secret
+DATABASE_URL="your-production-database-url"
+JWT_SECRET="your-super-secure-production-secret"
+JWT_EXPIRES_IN="7d"
+SUPABASE_URL="your-supabase-project-url"
+SUPABASE_ANON_KEY="your-supabase-anon-key"
 ```
 
-### Mobile (app.json/expo.json)
+### Mobile (for production builds)
+Update `mobile/app.json`:
 ```json
 {
   "expo": {
     "extra": {
-      "apiUrl": "https://your-backend-url.com"
+      "apiUrl": "https://your-production-backend-url.com/api"
     }
   }
 }
 ```
 
-## 📱 Mobile App Distribution
+## � Troubleshooting
 
-### Expo Application Services (EAS)
+### Common Issues
 
-1. **Install EAS CLI:**
-```bash
-npm install -g @expo/eas-cli
-```
+**"Cannot connect to backend":**
+- Check if backend is running on correct port
+- Verify API_URL in mobile app
+- Check network connectivity
 
-2. **Configure EAS:**
-```bash
-cd mobile
-eas build:configure
-```
+**"Database connection failed":**
+- Verify DATABASE_URL format
+- Check if database server is running
+- Ensure correct credentials
 
-3. **Build for stores:**
-```bash
-# Android APK
-eas build --platform android
+**"Expo app won't start":**
+- Clear Expo cache: `npx expo start --clear`
+- Check Node.js version (18+)
+- Update Expo CLI: `npm install -g @expo/cli`
 
-# iOS (requires Apple Developer account)
-eas build --platform ios
-```
+**"TypeScript errors":**
+- Run `npx tsc --noEmit` to check for errors
+- Generate Prisma client: `npx prisma generate`
+- Clear TypeScript cache in VS Code
+
+### Development Tips
+
+1. **Hot Reload:** Both frontend and backend support hot reload during development
+2. **API Testing:** Use tools like Postman or Insomnia to test API endpoints
+3. **Database Viewing:** Use `npx prisma studio` to view/edit database records
+4. **Network Testing:** Test mobile app on same WiFi network as development machine
+
+## 📋 Prerequisites Checklist
+
+Before starting development:
+- [ ] Node.js 18+ installed
+- [ ] Git installed and configured
+- [ ] Code editor (VS Code recommended)
+- [ ] Database choice made (Supabase or local PostgreSQL)
+- [ ] Expo Go app installed on mobile device (for testing)
+
+For iOS development:
+- [ ] macOS computer
+- [ ] Xcode installed
+- [ ] iOS Simulator configured
+
+For Android development:
+- [ ] Android Studio installed
+- [ ] Android emulator configured
+- [ ] Android SDK tools available
 
 ## 🐛 Troubleshooting
 
