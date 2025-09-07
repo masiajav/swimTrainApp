@@ -41,6 +41,9 @@ router.get('/:userId/profile', authenticateToken, async (req: any, res) => {
       return res.status(404).json({ error: 'User not found' });
     }
 
+    // Type assertion to ensure TypeScript knows about the role field
+    const userWithRole = targetUser as typeof targetUser & { role: string };
+
     // Check if both users are in the same team
     if (!requester?.teamId || requester.teamId !== targetUser.teamId) {
       return res.status(403).json({ error: 'You can only view profiles of your team members' });
@@ -49,29 +52,30 @@ router.get('/:userId/profile', authenticateToken, async (req: any, res) => {
     // Calculate user statistics
     const sessions = targetUser.sessions;
     const totalSessions = sessions.length;
-    const totalDistance = sessions.reduce((sum, session) => sum + (session.distance || 0), 0);
-    const totalDuration = sessions.reduce((sum, session) => sum + session.duration, 0);
+    const totalDistance = sessions.reduce((sum: number, session) => sum + (session.distance || 0), 0);
+    const totalDuration = sessions.reduce((sum: number, session) => sum + session.duration, 0);
     const avgDistance = totalSessions > 0 ? totalDistance / totalSessions : 0;
 
     // Calculate weekly stats (last 7 days)
     const oneWeekAgo = new Date();
     oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
     
-    const weeklySessions = sessions.filter(session => 
+    const weeklySessions = sessions.filter((session) => 
       new Date(session.date) >= oneWeekAgo
     );
     
-    const weeklyDistance = weeklySessions.reduce((sum, session) => sum + (session.distance || 0), 0);
+    const weeklyDistance = weeklySessions.reduce((sum: number, session) => sum + (session.distance || 0), 0);
     const weeklySessionCount = weeklySessions.length;
 
     // Calculate workout type distribution
     const workoutTypes: { [key: string]: number } = {};
-    sessions.forEach(session => {
+    sessions.forEach((session) => {
       if (session.workoutType) {
         workoutTypes[session.workoutType] = (workoutTypes[session.workoutType] || 0) + 1;
       }
     });
 
+    console.log('Return public profile data')
     // Return public profile data
     const publicProfile = {
       id: targetUser.id,
@@ -79,7 +83,7 @@ router.get('/:userId/profile', authenticateToken, async (req: any, res) => {
       lastName: targetUser.lastName,
       username: targetUser.username,
       avatar: targetUser.avatar,
-      role: targetUser.role,
+      role: userWithRole.role,
       stats: {
         totalSessions,
         totalDistance,
@@ -89,7 +93,7 @@ router.get('/:userId/profile', authenticateToken, async (req: any, res) => {
         weeklySessionCount,
         workoutTypes
       },
-      recentSessions: sessions.slice(0, 10).map(session => ({
+      recentSessions: sessions.slice(0, 10).map((session) => ({
         id: session.id,
         title: session.title,
         date: session.date,

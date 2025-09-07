@@ -53,12 +53,12 @@ export default function TeamMemberProfileScreen() {
     try {
       setLoading(true);
       const response = await apiService.getTeamMemberProfile(memberId);
-      if (response.data) {
-        setProfile(response.data as TeamMemberProfile);
+      if (response && (response as any).profile) {
+        setProfile((response as any).profile as TeamMemberProfile);
       }
     } catch (error) {
       console.error('Error loading member profile:', error);
-      Alert.alert('Error', 'Failed to load team member profile');
+      Alert.alert('Error', `Failed to load team member profile: ${error instanceof Error ? error.message : 'Unknown error'}`);
       router.back();
     } finally {
       setLoading(false);

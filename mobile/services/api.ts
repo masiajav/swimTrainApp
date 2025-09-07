@@ -11,8 +11,10 @@ class ApiService {
       const defaultHeaders = {
         'Content-Type': 'application/json',
       };
-      
-      const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+
+      const url = `${API_BASE_URL}${endpoint}`;
+
+      const response = await fetch(url, {
         ...options,
         headers: {
           ...defaultHeaders,
