@@ -5,6 +5,7 @@
     "version": "1.0.0",
     "orientation": "portrait",
     "userInterfaceStyle": "light",
+    "sdkVersion": "53.0.0",
     "assetBundlePatterns": [
       "**/*"
     ],
@@ -13,14 +14,24 @@
       "bundleIdentifier": "com.swimteam.swimtrainapp"
     },
     "android": {
-      "package": "com.swimteam.swimtrainapp"
+      "package": "com.swimteam.swimtrainapp",
+      "adaptiveIcon": {
+        "backgroundColor": "#ffffff"
+      }
     },
     "web": {
-      "bundler": "metro"
+      "bundler": "metro",
+      "output": "static",
+      "favicon": "./assets/favicon.png"
     },
     "plugins": [
       "expo-router"
     ],
-    "scheme": "swim-train-app"
+    "scheme": "swim-train-app",
+    "platforms": [
+      "ios",
+      "android",
+      "web"
+    ]
   }
 }
