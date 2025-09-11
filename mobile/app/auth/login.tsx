@@ -1,12 +1,27 @@
-import { View, Text, TextInput, TouchableOpacity, Alert, StyleSheet } from 'react-native';
-import { useState } from 'react';
+import { View, Text, TextInput, TouchableOpacity, Alert, StyleSheet, Platform } from 'react-native';
+import React, { useState } from 'react';
 import { Link, router } from 'expo-router';
 import { apiService } from '../../services/api';
+import * as Linking from 'expo-linking';
 
 export default function LoginScreen() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+
+  const SUPABASE_URL = 'https://pkrtqzsudfeehwufyduy.supabase.co';
+
+  // Use the custom scheme redirect explicitly. We'll deep-link back to
+  // swimtrainapp://auth/callback which `AuthCallbackScreen` parses.
+
+  // Note: we previously attempted to use expo-auth-session (promptAsync) for an
+  // in-app browser flow. That approach was unreliable across Expo Go and
+  // emulator configurations for this project. Instead we'll use the provider
+  // authorize URL and open the system browser with a redirect_to that points
+  // to our app custom scheme. Supabase will redirect back to
+  // swimtrainapp://auth/callback#access_token=... which `AuthCallbackScreen`
+  // parses and exchanges with the backend.
+  // (keep the AuthSession import available if you later switch to a dev-client)
 
   const handleLogin = async () => {
     if (!email || !password) {
@@ -37,18 +52,49 @@ export default function LoginScreen() {
   const handleGoogleLogin = async () => {
     setIsLoading(true);
     try {
-      // For web, we'll use Supabase's built-in Google OAuth
-      const SUPABASE_URL = 'https://pkrtqzsudfeehwufyduy.supabase.co';
-      const redirectUrl = window.location.origin + '/auth/callback';
-      
-      // Redirect to Supabase Google OAuth
-      window.location.href = `${SUPABASE_URL}/auth/v1/authorize?provider=google&redirect_to=${encodeURIComponent(redirectUrl)}`;
+      // Web: navigate to callback route on same origin
+      if (Platform.OS === 'web') {
+  const redirectUrl = window.location.origin + '/auth/callback';
+  window.location.href = `${SUPABASE_URL}/auth/v1/authorize?provider=google&redirect_to=${encodeURIComponent(redirectUrl)}`;
+        return;
+      }
+
+      // Mobile: open external browser to Supabase authorize endpoint and let it
+      // redirect back to our custom scheme (swimtrainapp://auth/callback)
+      const fallback = 'swimtrainapp://auth/callback';
+  const authUrl = `${SUPABASE_URL}/auth/v1/authorize?provider=google&redirect_to=${encodeURIComponent(fallback)}`;
+
+      Alert.alert(
+        'Continue in browser',
+        'We will open your browser for Google sign-in. After consenting, return to the app to finish logging in.',
+        [
+          { text: 'Cancel', onPress: () => setIsLoading(false), style: 'cancel' },
+          {
+            text: 'Continue',
+            onPress: async () => {
+              try {
+                await Linking.openURL(authUrl);
+                // If the user doesn't return after 90s, clear loading state
+                setTimeout(() => setIsLoading(false), 90000);
+              } catch (err) {
+                console.error('Failed to open browser for Google sign-in', err);
+                setIsLoading(false);
+                Alert.alert('Error', 'Unable to open browser. Please try again.');
+              }
+            },
+          },
+        ]
+      );
     } catch (error: any) {
       console.error('Google login error:', error);
       Alert.alert('Error', 'Google sign-in failed. Please try again.');
       setIsLoading(false);
     }
   };
+
+  // Responses are handled by the deep-link callback screen which parses the
+  // access_token from the incoming URL fragment and exchanges it with the
+  // backend via `apiService.googleAuth`.
 
   return (
     <View style={styles.container}>

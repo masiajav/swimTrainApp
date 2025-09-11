@@ -1,6 +1,35 @@
 import { ApiResponse, LoginRequest, RegisterRequest, AuthResponse } from '../../shared/types';
+import { Platform } from 'react-native';
 
-const API_BASE_URL = 'http://localhost:3000/api';
+// Determine an API base the device can reach. On device, localhost won't work when using
+// the emulator or physical device; prefer a runtime override via process.env or Expo Constants.
+let API_BASE_URL = 'http://localhost:3000/api';
+try {
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  const Constants = require('expo-constants');
+  const manifest = Constants?.manifest ?? Constants?.expoConfig ?? {};
+  const debuggerHost = manifest?.debuggerHost as string | undefined;
+  if (debuggerHost) {
+    // debuggerHost often looks like '192.168.1.10:19000', take host part
+    const host = debuggerHost.split(':')[0];
+    API_BASE_URL = `http://${host}:3000/api`;
+  }
+} catch (e) {
+  // not running in expo environment; keep default
+}
+
+// If running on an Android emulator (Pixel, AVD) the host machine is available
+// at 10.0.2.2. Prefer that when we're on android and debuggerHost didn't set a LAN host.
+try {
+  if (Platform.OS === 'android') {
+    // If API_BASE_URL still points to localhost (not reachable from emulator), use loopback.
+    if (!API_BASE_URL || API_BASE_URL.includes('localhost')) {
+      API_BASE_URL = 'http://10.0.2.2:3000/api';
+    }
+  }
+} catch (e) {
+  // ignore if Platform is unavailable
+}
 
 class ApiService {
   private async request<T>(
@@ -53,10 +82,15 @@ class ApiService {
   }
 
   async googleAuth(token: string): Promise<AuthResponse> {
+    // Debug: log token being exchanged and response from backend
+    // eslint-disable-next-line no-console
+    console.log('[ApiService] googleAuth exchanging token:', token?.slice ? token.slice(0, 8) + '...' : token);
     const response = await this.request<AuthResponse>('/auth/google', {
       method: 'POST',
       body: JSON.stringify({ token }),
     });
+    // eslint-disable-next-line no-console
+    console.log('[ApiService] googleAuth response =', response);
     return response as AuthResponse;
   }
 
@@ -64,8 +98,12 @@ class ApiService {
   setAuthToken(token: string) {
     this.authToken = token;
     // Persist token to localStorage for web
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('authToken', token);
+    try {
+      if (typeof window !== 'undefined' && (window as any).localStorage) {
+        (window as any).localStorage.setItem('authToken', token);
+      }
+    } catch (e) {
+      // localStorage not available (React Native). Token stays in-memory.
     }
   }
 
@@ -73,13 +111,17 @@ class ApiService {
   getStoredAuthToken(): string | null {
     if (this.authToken) return this.authToken;
     
-    // Try to get from localStorage for web
-    if (typeof window !== 'undefined') {
-      const storedToken = localStorage.getItem('authToken');
-      if (storedToken) {
-        this.authToken = storedToken;
-        return storedToken;
+    // Try to get from localStorage for web (safe accessor)
+    try {
+      if (typeof window !== 'undefined' && (window as any).localStorage) {
+        const storedToken = (window as any).localStorage.getItem('authToken');
+        if (storedToken) {
+          this.authToken = storedToken;
+          return storedToken;
+        }
       }
+    } catch (e) {
+      // localStorage not available (React Native)
     }
     return null;
   }
@@ -87,8 +129,12 @@ class ApiService {
   // Helper to clear auth token
   clearAuthToken() {
     this.authToken = null;
-    if (typeof window !== 'undefined') {
-      localStorage.removeItem('authToken');
+    try {
+      if (typeof window !== 'undefined' && (window as any).localStorage) {
+        (window as any).localStorage.removeItem('authToken');
+      }
+    } catch (e) {
+      // localStorage not available
     }
   }
 
@@ -291,8 +337,12 @@ class ApiService {
 
   async logout() {
     // Clear stored token
-    if (typeof window !== 'undefined') {
-      localStorage.removeItem('auth_token');
+    try {
+      if (typeof window !== 'undefined' && (window as any).localStorage) {
+        (window as any).localStorage.removeItem('authToken');
+      }
+    } catch (e) {
+      // localStorage not available
     }
     // You could also call a logout endpoint if needed
     return Promise.resolve();
@@ -300,3 +350,9 @@ class ApiService {
 }
 
 export const apiService = new ApiService();
+
+// Debug: print resolved API base for emulator/dev-client visibility
+try {
+  // eslint-disable-next-line no-console
+  console.log('[ApiService] API_BASE_URL =', API_BASE_URL);
+} catch (e) {}

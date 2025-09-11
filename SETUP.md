@@ -129,6 +129,11 @@ npx expo start --android
 2. Run `npx expo start` in mobile directory
 3. Scan QR code with Expo Go app
 
+## ⚠️ Current Test Status
+
+- Android: Verified — the app can be started and run on Android emulators and devices using Expo (see `npx expo start --android`).
+- Google login on mobile: Known issue — OAuth redirect/callback is unreliable in some environments (the app may not receive the provider callback). A temporary backend redirect helper and `POST /api/auth/dev-login` endpoint are available for local testing.
+- iOS: Not tested in this branch; iOS behaviour is currently unverified.
 ## 🔧 Development Workflow
 
 ### Database Management

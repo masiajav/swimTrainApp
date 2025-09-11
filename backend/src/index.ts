@@ -32,6 +32,49 @@ app.get('/health', (req, res) => {
   res.json({ status: 'OK', message: 'SwimTrainApp API is running!' });
 });
 
+// Root redirect helper
+// When third-party providers redirect to the configured site URL (for example
+// http://localhost:3000) they may include the OAuth result in the fragment
+// (location.hash) which is not sent to the server. Serve a tiny HTML page that
+// forwards the fragment or query string to the app custom scheme so the mobile
+// app can complete authentication.
+app.get('/', (req, res) => {
+  const html = `<!doctype html>
+  <html>
+    <head>
+      <meta charset="utf-8" />
+      <meta name="viewport" content="width=device-width,initial-scale=1" />
+      <title>Completing sign in…</title>
+    </head>
+    <body>
+      <p>Completing sign in… If you are not redirected, <a id="open">open app</a>.</p>
+      <script>
+        (function(){
+          try {
+            // If the provider placed data in the fragment (#...), forward it.
+            var fragment = window.location.hash || '';
+            // If there is no fragment but query string contains data, convert it to a fragment
+            if (!fragment && window.location.search) {
+              fragment = '#' + window.location.search.replace(/^\?/, '');
+            }
+            var target = 'swimtrainapp://auth/callback' + fragment;
+            // Try to open the app by setting location.href
+            window.location.replace(target);
+            // Also set the anchor for manual fallback
+            var a = document.getElementById('open');
+            if (a) a.href = target;
+          } catch (e) {
+            console.error('Redirect helper error', e);
+          }
+        })();
+      </script>
+    </body>
+  </html>`;
+
+  res.setHeader('Content-Type', 'text/html');
+  res.send(html);
+});
+
 // API Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);

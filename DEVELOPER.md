@@ -2,13 +2,13 @@
 
 A comprehensive guide for developers working on the SwimTrainApp project.
 
-## 📊 **Current Project Status: PRODUCTION READY v1.0** ✅
+## 📊 **Current Project Status: v1.0 (dev-tested)**
 
-**🎯 Development Complete**: All MVP features implemented and tested
-**🔧 Code Quality**: TypeScript errors resolved, production-ready codebase  
-**📱 Platform Support**: iOS, Android, and Web fully functional
-**👥 Team Features**: Complete team member interactivity implemented
-**🚀 Ready For**: Production deployment and feature expansion
+Notes for developers:
+
+- Android: Verified — the app runs on Android emulators and physical devices via Expo.
+- Google OAuth (mobile): Known issue — redirect/callback behavior is currently unreliable in some dev environments. A server-side redirect helper and a `POST /api/auth/dev-login` endpoint have been added to assist local testing.
+- iOS: Not tested in this branch; please verify on macOS/Xcode if you need iOS validation.
 
 ---
 

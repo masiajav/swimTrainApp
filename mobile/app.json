@@ -1,10 +1,12 @@
 {
   "expo": {
+    "owner": "masiajav",
     "name": "SwimTrainApp",
-    "slug": "swim-train-app",
+    "slug": "swimtrainapp",
     "version": "1.0.0",
     "orientation": "portrait",
     "userInterfaceStyle": "light",
+    "sdkVersion": "53.0.0",
     "assetBundlePatterns": [
       "**/*"
     ],
@@ -13,14 +15,30 @@
       "bundleIdentifier": "com.swimteam.swimtrainapp"
     },
     "android": {
-      "package": "com.swimteam.swimtrainapp"
+      "package": "com.swimteam.swimtrainapp",
+      "adaptiveIcon": {
+        "backgroundColor": "#ffffff"
+      }
     },
     "web": {
-      "bundler": "metro"
+      "bundler": "metro",
+      "output": "static",
+      "favicon": "./assets/favicon.png"
     },
     "plugins": [
       "expo-router"
     ],
-    "scheme": "swim-train-app"
+    "scheme": "swimtrainapp",
+    "platforms": [
+      "ios",
+      "android",
+      "web"
+    ],
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "35a7df88-5281-49b4-b325-b46b91aec0e6"
+      }
+    }
   }
 }

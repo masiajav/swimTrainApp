@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, ScrollView, StyleSheet, TouchableOpacity, Alert } from 'react-native';
+import { View, Text, ScrollView, StyleSheet, TouchableOpacity, Alert, Platform } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { apiService } from '../../services/api';
 import { useTheme } from '../../contexts/ThemeContext';
@@ -115,20 +115,35 @@ export default function SessionDetailScreen() {
   };
 
   const handleDelete = async () => {
-    if (typeof window !== 'undefined') {
+    if (Platform.OS === 'web' && typeof window !== 'undefined' && typeof window.confirm === 'function') {
       const confirmed = window.confirm('Are you sure you want to delete this session? This action cannot be undone.');
-      if (confirmed) {
-        try {
-          await apiService.deleteSession(id!);
-          console.log('Session deleted successfully');
-          // Navigate back after deletion
-          router.replace('/sessions');
-        } catch (error) {
-          console.error('Failed to delete session:', error);
-          if (typeof window !== 'undefined') {
-            window.alert('Failed to delete session. Please try again.');
-          }
-        }
+      if (!confirmed) return;
+    } else {
+      // On native, show Alert and proceed only when confirmed
+      let confirmed = false;
+      await new Promise<void>((resolve) => {
+        Alert.alert(
+          'Delete session',
+          'Are you sure you want to delete this session? This action cannot be undone.',
+          [
+            { text: 'Cancel', style: 'cancel', onPress: () => resolve() },
+            { text: 'Delete', style: 'destructive', onPress: () => { confirmed = true; resolve(); } },
+          ]
+        );
+      });
+      if (!confirmed) return;
+    }
+    try {
+      await apiService.deleteSession(id!);
+      console.log('Session deleted successfully');
+      // Navigate back after deletion
+      router.replace('/sessions');
+    } catch (error) {
+      console.error('Failed to delete session:', error);
+      if (Platform.OS === 'web' && typeof window !== 'undefined') {
+        window.alert('Failed to delete session. Please try again.');
+      } else {
+        Alert.alert('Failed to delete session. Please try again.');
       }
     }
   };
