@@ -2,9 +2,15 @@
 
 A free and open-source swimming training tracker for mobile and web platforms.
 
-## 🚀 Current Status: **PRODUCTION READY v1.0** ✅
+## 🚀 Current Status: **PRODUCTION READY v1.0** (partial)
 
-SwimTrainApp is a fully functional swimming training application with complete MVP features implemented. All core functionality is working and production-ready.
+SwimTrainApp is functional and most core features are implemented. Current dev notes:
+
+- Android: app is executable and testable on Android emulators / devices (verified).
+- Google OAuth on mobile: still experiencing redirect/callback issues — sign-in may not complete on all environments.
+- iOS: not tested in this branch yet.
+
+Please see SETUP.md for details on testing on Android and the `dev-login` endpoint to bypass auth during development.
 
 ### ✅ **Completed Features (100% Functional)**
 - **User Authentication** - Complete login/register system with secure JWT tokens
