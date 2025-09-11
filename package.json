@@ -1,5 +1,5 @@
 {
-  "name": "swim-train-app",
+  "name": "swimtrainapp",
   "version": "1.0.0",
   "description": "A swimming training tracker for teams",
   "main": "index.js",

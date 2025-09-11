@@ -1,69 +1,98 @@
 import { useEffect } from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, Platform } from 'react-native';
 import { router } from 'expo-router';
 import { apiService } from '../../services/api';
+import * as Linking from 'expo-linking';
 
 export default function AuthCallbackScreen() {
   useEffect(() => {
-    const handleAuthCallback = async () => {
+    let isMounted = true;
+
+    const handleUrl = async (url: string | null) => {
+      if (!url) return;
       try {
-        // Get the hash from URL which contains the authentication tokens
-        const hash = window.location.hash;
-        console.log('Auth callback - Hash:', hash);
-        
-        if (hash) {
-          // Parse the hash to get access_token
-          const params = new URLSearchParams(hash.substring(1));
-          const accessToken = params.get('access_token');
-          const refreshToken = params.get('refresh_token');
-          
-          console.log('Access token found:', !!accessToken);
-          
-          if (accessToken) {
-            console.log('Sending token to backend...');
-            
-            // Send the token to our backend to complete authentication
-            const response = await fetch('http://localhost:3000/api/auth/google', {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-              },
-              body: JSON.stringify({ token: accessToken }),
-            });
-            
-            const data = await response.json();
-            console.log('Backend response:', data);
-            
-            if (response.ok && data.token) {
-              // Store the JWT token using our API service
-              apiService.setAuthToken(data.token);
-              console.log('Google authentication successful:', data.user);
-              
-              // Redirect to dashboard
-              router.replace('/(tabs)');
-            } else {
-              console.error('Authentication failed:', data.error);
-              alert(`Authentication failed: ${data.error}`);
-              router.replace('/auth/login');
-            }
-          } else {
-            console.error('No access token found in hash');
-            alert('No access token found');
-            router.replace('/auth/login');
-          }
-        } else {
-          console.error('No hash found in URL');
-          alert('No authentication data found');
+        // url may be like: swimtrainapp://auth/callback#access_token=... or ...?access_token=...
+        // Debug: log the raw incoming URL
+        // eslint-disable-next-line no-console
+        console.log('[AuthCallback] raw url =', url);
+
+        const parsed = Linking.parse(url);
+
+        // supabase often returns tokens in the fragment
+        const raw = url.includes('#') ? url.split('#')[1] : url.split('?')[1] ?? '';
+        const params = new URLSearchParams(raw);
+        // Debug: log parsed params
+        // eslint-disable-next-line no-console
+        console.log('[AuthCallback] parsed params =', Object.fromEntries(params.entries()));
+        const accessToken = params.get('access_token');
+
+        if (!accessToken) {
+          console.error('No access token found in callback URL');
           router.replace('/auth/login');
+          return;
         }
-      } catch (error) {
-        console.error('Auth callback error:', error);
-        alert(`Authentication error: ${error}`);
-        router.replace('/auth/login');
+
+        // Exchange with backend using apiService so API_BASE_URL logic is used
+        try {
+          const data = await apiService.googleAuth(accessToken);
+          if (data && (data as any).token) {
+            apiService.setAuthToken((data as any).token);
+            if (isMounted) router.replace('/(tabs)');
+          } else {
+            console.error('Token exchange failed', data);
+            if (isMounted) router.replace('/auth/login');
+          }
+        } catch (err) {
+          console.error('Token exchange error', err);
+          if (isMounted) router.replace('/auth/login');
+        }
+      } catch (err) {
+        console.error('Error handling callback URL', err);
+        if (isMounted) router.replace('/auth/login');
       }
     };
 
-    handleAuthCallback();
+    const run = async () => {
+      if (Platform.OS === 'web') {
+        const hash = typeof window !== 'undefined' ? window.location.hash : '';
+        const raw = hash ? hash.substring(1) : '';
+        const params = new URLSearchParams(raw);
+        const accessToken = params.get('access_token');
+        if (accessToken) {
+          await handleUrl(`${window.location.origin}${window.location.pathname}#${raw}`);
+          return;
+        }
+        router.replace('/auth/login');
+        return;
+      }
+
+      // Mobile: try initial URL (if opened by deep link)
+      const initial = await Linking.getInitialURL();
+      if (initial) {
+        await handleUrl(initial);
+        return;
+      }
+
+      // Also listen for incoming links if the app receives one
+      const sub = Linking.addEventListener('url', (ev) => {
+        handleUrl(ev.url);
+      });
+
+      // Cleanup
+      return () => {
+        isMounted = false;
+        try {
+          sub.remove();
+        } catch {}
+      };
+    };
+
+    const maybeCleanup = run();
+
+    return () => {
+      // ensure cleanup from run
+      if (maybeCleanup && typeof (maybeCleanup as any) === 'function') (maybeCleanup as any)();
+    };
   }, []);
 
   return (

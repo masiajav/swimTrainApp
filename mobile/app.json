@@ -1,7 +1,8 @@
 {
   "expo": {
+    "owner": "masiajav",
     "name": "SwimTrainApp",
-    "slug": "swim-train-app",
+    "slug": "swimtrainapp",
     "version": "1.0.0",
     "orientation": "portrait",
     "userInterfaceStyle": "light",
@@ -27,11 +28,17 @@
     "plugins": [
       "expo-router"
     ],
-    "scheme": "swim-train-app",
+    "scheme": "swimtrainapp",
     "platforms": [
       "ios",
       "android",
       "web"
-    ]
+    ],
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "35a7df88-5281-49b4-b325-b46b91aec0e6"
+      }
+    }
   }
 }
