@@ -98,8 +98,12 @@ class ApiService {
   setAuthToken(token: string) {
     this.authToken = token;
     // Persist token to localStorage for web
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('authToken', token);
+    try {
+      if (typeof window !== 'undefined' && (window as any).localStorage) {
+        (window as any).localStorage.setItem('authToken', token);
+      }
+    } catch (e) {
+      // localStorage not available (React Native). Token stays in-memory.
     }
   }
 
@@ -107,13 +111,17 @@ class ApiService {
   getStoredAuthToken(): string | null {
     if (this.authToken) return this.authToken;
     
-    // Try to get from localStorage for web
-    if (typeof window !== 'undefined') {
-      const storedToken = localStorage.getItem('authToken');
-      if (storedToken) {
-        this.authToken = storedToken;
-        return storedToken;
+    // Try to get from localStorage for web (safe accessor)
+    try {
+      if (typeof window !== 'undefined' && (window as any).localStorage) {
+        const storedToken = (window as any).localStorage.getItem('authToken');
+        if (storedToken) {
+          this.authToken = storedToken;
+          return storedToken;
+        }
       }
+    } catch (e) {
+      // localStorage not available (React Native)
     }
     return null;
   }
@@ -121,8 +129,12 @@ class ApiService {
   // Helper to clear auth token
   clearAuthToken() {
     this.authToken = null;
-    if (typeof window !== 'undefined') {
-      localStorage.removeItem('authToken');
+    try {
+      if (typeof window !== 'undefined' && (window as any).localStorage) {
+        (window as any).localStorage.removeItem('authToken');
+      }
+    } catch (e) {
+      // localStorage not available
     }
   }
 
@@ -325,8 +337,12 @@ class ApiService {
 
   async logout() {
     // Clear stored token
-    if (typeof window !== 'undefined') {
-      localStorage.removeItem('auth_token');
+    try {
+      if (typeof window !== 'undefined' && (window as any).localStorage) {
+        (window as any).localStorage.removeItem('authToken');
+      }
+    } catch (e) {
+      // localStorage not available
     }
     // You could also call a logout endpoint if needed
     return Promise.resolve();

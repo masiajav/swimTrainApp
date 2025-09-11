@@ -49,7 +49,7 @@ export default function RegisterScreen() {
       const redirectUrl = window.location.origin + '/auth/callback';
       
       // Redirect to Supabase Google OAuth
-  window.location.href = `${SUPABASE_URL}/auth/v1/authorize?provider=google&response_type=token&redirect_to=${encodeURIComponent(redirectUrl)}`;
+  window.location.href = `${SUPABASE_URL}/auth/v1/authorize?provider=google&redirect_to=${encodeURIComponent(redirectUrl)}`;
     } catch (error: any) {
       console.error('Google sign-up error:', error);
       Alert.alert('Error', 'Google sign-up failed. Please try again.');

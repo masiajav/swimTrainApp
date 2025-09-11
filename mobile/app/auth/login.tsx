@@ -55,14 +55,14 @@ export default function LoginScreen() {
       // Web: navigate to callback route on same origin
       if (Platform.OS === 'web') {
   const redirectUrl = window.location.origin + '/auth/callback';
-  window.location.href = `${SUPABASE_URL}/auth/v1/authorize?provider=google&response_type=token&redirect_to=${encodeURIComponent(redirectUrl)}`;
+  window.location.href = `${SUPABASE_URL}/auth/v1/authorize?provider=google&redirect_to=${encodeURIComponent(redirectUrl)}`;
         return;
       }
 
       // Mobile: open external browser to Supabase authorize endpoint and let it
       // redirect back to our custom scheme (swimtrainapp://auth/callback)
       const fallback = 'swimtrainapp://auth/callback';
-  const authUrl = `${SUPABASE_URL}/auth/v1/authorize?provider=google&response_type=token&redirect_to=${encodeURIComponent(fallback)}`;
+  const authUrl = `${SUPABASE_URL}/auth/v1/authorize?provider=google&redirect_to=${encodeURIComponent(fallback)}`;
 
       Alert.alert(
         'Continue in browser',

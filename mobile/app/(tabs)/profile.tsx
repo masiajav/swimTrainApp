@@ -1,4 +1,4 @@
-import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Alert, Image } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Alert, Image, Platform } from 'react-native';
 import { router, useFocusEffect } from 'expo-router';
 import React, { useState, useEffect } from 'react';
 import { apiService } from '../../services/api';
@@ -176,7 +176,7 @@ export default function ProfileScreen() {
     console.log('Logout button clicked!');
     
     // For web platform, use window.confirm instead of Alert
-    if (typeof window !== 'undefined') {
+    if (Platform.OS === 'web' && typeof window !== 'undefined' && typeof window.confirm === 'function') {
       const confirmed = window.confirm('Are you sure you want to logout?');
       if (confirmed) {
         console.log('Logout confirmed, clearing token and redirecting...');

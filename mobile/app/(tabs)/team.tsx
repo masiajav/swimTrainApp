@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, StyleSheet, TextInput, Alert, Image } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, StyleSheet, TextInput, Alert, Image, Platform } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { router } from 'expo-router';
 import { apiService } from '../../services/api';
@@ -101,22 +101,21 @@ export default function TeamScreen() {
   };
 
   const handleLeaveTeam = () => {
-    // For web compatibility, use window.confirm instead of Alert
-    if (typeof window !== 'undefined') {
+    // For web compatibility, prefer window.confirm if available
+    if (Platform.OS === 'web' && typeof window !== 'undefined' && typeof window.confirm === 'function') {
       const confirmed = window.confirm('Are you sure you want to leave this team?');
-      if (confirmed) {
-        leaveTeam();
-      }
-    } else {
-      Alert.alert(
-        'Leave Team',
-        'Are you sure you want to leave this team?',
-        [
-          { text: 'Cancel', style: 'cancel' },
-          { text: 'Leave', style: 'destructive', onPress: leaveTeam },
-        ]
-      );
+      if (confirmed) leaveTeam();
+      return;
     }
+
+    Alert.alert(
+      'Leave Team',
+      'Are you sure you want to leave this team?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        { text: 'Leave', style: 'destructive', onPress: leaveTeam },
+      ]
+    );
   };
 
   const leaveTeam = async () => {
