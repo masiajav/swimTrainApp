@@ -399,6 +399,80 @@ enum Intensity {
 
 This project uses Expo (dev-client) for development. Below are the practical steps and troubleshooting tips we use to test Google OAuth on Android emulators/devices.
 
+---
+
+## 🏁 Production release & low-cost hosting notes
+
+Keep this section as a quick reference for shipping to Google Play while minimizing recurring cost.
+
+Summary
+- Users install the app from Google Play. The app opens the system browser for Google sign-in. Google redirects to your publicly reachable HTTPS backend (or Supabase). The backend reads the fragment (access_token) and forwards it to the app via a deep-link. The app exchanges provider tokens for your application JWT and stores it securely.
+
+Minimal costs you'll encounter
+- Google Play developer account: $25 one-time.
+- Hosting/DB: Use free tiers where possible (Supabase free tier for Auth + Postgres; Vercel/Netlify free tier for small serverless functions or redirect helpers).
+- Builds: Build locally (free) or use free CI minutes; EAS cloud builds can be paid for advanced features but are not required.
+
+Production requirements (short)
+- Pick and lock an Android package name (applicationId).
+- Generate a release keystore and record SHA-1 for OAuth client registration.
+- If using Google Play App Signing, add Play signing SHA-1 in Google Cloud Console after uploading an app bundle.
+- Use HTTPS redirect URIs for OAuth (ngrok for dev; your domain or Vercel for prod).
+
+Minimal recommended stack
+- Auth + DB: Supabase (free tier) to minimize hosting and maintenance.
+- Backend: Optional small server on Vercel/Railway/Render (free tier) or serverless functions; you can also use Supabase Edge Functions for server-side logic.
+- Builds: Local Gradle builds via `expo prebuild` + `./gradlew bundleRelease` to produce an AAB for Play Console.
+
+Commands you'll need (local build & release)
+- Generate release keystore (one-time):
+```powershell
+# choose your own passwords and alias
+keytool -genkeypair -v -keystore swimtrainapp-release.jks -alias swimtrainapp -keyalg RSA -keysize 2048 -validity 10000
+```
+
+- Show SHA-1 for keystore (use when creating Android OAuth client):
+```powershell
+keytool -list -v -keystore swimtrainapp-release.jks -alias swimtrainapp
+```
+
+- Build release AAB locally (Windows):
+```powershell
+cd mobile
+npx expo prebuild --platform android
+cd android
+.\gradlew.bat bundleRelease
+# resulting AAB: android/app/build/outputs/bundle/release/app-release.aab
+```
+
+OAuth notes
+- Create an OAuth client in Google Cloud Console using the application package name and the release SHA-1 (and Play signing SHA-1 if using Play App Signing).
+- Add your production redirect URL (https://your-backend.example.com or https://<supabase>.supabase.co) in Supabase Auth settings.
+
+Testing on real devices (low friction)
+- Use ngrok in dev to expose local backend with HTTPS and add the ngrok URL to Supabase redirect URLs:
+```powershell
+ngrok http 3000
+# copy the https://... forwarding URL and add it to Supabase redirect URLs
+```
+- Install a dev-client or standalone APK on your phone. Expo Go is not reliable for deep-links/custom schemes in some cases — prefer a dev-client built for your project or a debug APK.
+
+Cost-saving tips
+- Use Supabase free tier for Auth & Postgres.
+- Host small redirect helper and any serverless endpoints on Vercel/Netlify free tier.
+- Build locally and upload release AAB manually to Play Console.
+
+Security reminders
+- Keep the release keystore secure and backed up.
+- Add only required redirect URIs to Supabase/Google and use HTTPS.
+- Exchange provider tokens server-side (already implemented) and never store provider secrets in the app.
+
+If you want, I can help with any of the following next steps:
+- Generate a release keystore and get the SHA-1 value.
+- Set up a public ngrok URL and test the flow on your phone.
+- Build a debug AAB/APK and give install instructions.
+
+
 Important: the app talks to the backend for user data and for exchanging provider tokens (Google). For reliable testing you need:
 - Metro (dev server) running when using the dev-client
 - Backend API reachable from the emulator/device (see loopback addresses)
