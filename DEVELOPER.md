@@ -395,6 +395,85 @@ enum Intensity {
 
 ## 🔌 API Documentation
 
+## 📱 Mobile dev workflow & OAuth debugging (Android)
+
+This project uses Expo (dev-client) for development. Below are the practical steps and troubleshooting tips we use to test Google OAuth on Android emulators/devices.
+
+Important: the app talks to the backend for user data and for exchanging provider tokens (Google). For reliable testing you need:
+- Metro (dev server) running when using the dev-client
+- Backend API reachable from the emulator/device (see loopback addresses)
+
+Quick checklist
+- Start backend: `backend` -> `npm run dev` (port 3000)
+- Start Metro (dev-client): `mobile` -> `npx expo start --dev-client --clear`
+- Install dev-client APK once (debug/dev-client) or rebuild when native code changes
+- Use `adb logcat` and Metro logs to debug callback handling
+
+Device ↔ host network notes
+- Android emulator host loopback: use `10.0.2.2` from the emulator to reach your machine's localhost:3000.
+- Ensure backend listens on 0.0.0.0 or localhost; for emulator testing we use `http://10.0.2.2:3000`.
+- If using a physical device use your machine's LAN IP (e.g. `http://192.168.1.34:3000`) or ngrok to expose the server.
+
+OAuth redirect helper
+- We added a tiny redirect helper at `GET /` in the backend that forwards fragments to the app scheme:
+  - Example: http://localhost:3000/#access_token=... will redirect to `swimtrainapp://auth/callback#access_token=...`
+- This helper must be reachable from the device. If not reachable, the app won't receive the provider token.
+
+Common failure modes and fixes
+- Error: "No access token found in callback URL" — Reason: dev-client or Expo wraps/decorates the original URL.
+  - Fix: ensure `mobile/app/auth/callback.tsx` can parse nested `url` query parameter (we added support for this).
+  - Reproduce: run Metro and `adb logcat`, perform Google sign-in, inspect logs for `[AuthCallback] raw url =` and parsed params.
+
+- Browser lands on `http://localhost:3000/#access_token=...` but emulator can't reach `localhost`:
+  - Fix: access backend via `http://10.0.2.2:3000` from emulator or use `ngrok http 3000` and set the public URL in Supabase site settings (for dev only).
+
+- Backend returns `Supabase auth error` or `Invalid token`:
+  - Fix: verify the token type (access_token vs id_token). Log `authData` and `authError` in `backend/src/routes/auth.ts` to see what Supabase returns.
+  - Ensure `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` env vars are correct in backend `.env`.
+
+Logging & debugging commands
+- Start backend (dev):
+```powershell
+Set-Location 'E:\SoftwareDevelopment\repos\swimTrainApp\backend'
+npm run dev
+```
+- Start Metro dev-client (mobile):
+```powershell
+Set-Location 'E:\SoftwareDevelopment\repos\swimTrainApp\mobile'
+npx expo start --dev-client --clear
+```
+- Tail device logs and filter for our tags:
+```powershell
+adb logcat | Select-String -Pattern "AuthCallback|ApiService|googleAuth|Supabase" -SimpleMatch
+```
+- Quick curl test from emulator to ensure backend reachable:
+```powershell
+curl.exe http://10.0.2.2:3000/ -UseBasicParsing
+```
+
+Dev-login bypass (dev-only)
+- For quick UI testing without completing OAuth, use the `POST /api/auth/dev-login` endpoint (development only). It returns a JWT you can paste into the app or use to call `apiService.setAuthToken(...)`.
+```powershell
+# from host (emulator reaches host as 10.0.2.2)
+Invoke-RestMethod -Method POST -Uri 'http://10.0.2.2:3000/api/auth/dev-login' -ContentType 'application/json' -Body '{}'
+```
+
+When you must rebuild the APK
+- You do NOT need to rebuild for pure JS/TS changes when using the dev-client; hot reload or a full JS reload served by Metro is sufficient.
+- You MUST rebuild the APK if you change native code (anything under `android/`), add native modules, or change `app.json` `android.package` or native gradle config.
+
+Google / SHA-1 notes
+- For native Google Sign-In you need the Android package name + SHA‑1 fingerprint registered in Google Cloud Console. For debug builds use debug keystore SHA‑1; for release builds use release keystore SHA‑1 or the SHA‑1 that EAS uses when managed.
+
+Recommended debug flow (fastest)
+1. Start backend and Metro (see commands above).
+2. Install the dev-client APK once (or use `npx expo run:android` to build+install) but you don't need to rebuild after JS edits.
+3. Reproduce sign-in and watch logs; if the browser lands on a `localhost` URL, use `10.0.2.2` or ngrok as described.
+4. If the app never receives the token, check the browser address bar on the emulator or capture it with `adb logcat` and post the raw URL here.
+
+If you'd like, I can add a small checklist of exact console strings to look for and an automated script you can run to gather logs and a screenshot of the browser URL.
+
+
 ### Authentication Endpoints
 ```typescript
 POST /api/auth/register    # User registration

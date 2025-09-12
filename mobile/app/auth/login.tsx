@@ -38,8 +38,7 @@ export default function LoginScreen() {
       
       // You might want to store this in secure storage
       console.log('Login successful:', response.user);
-      
-      Alert.alert('Success', `Welcome back, ${response.user.firstName || response.user.username}!`);
+
       router.replace('/(tabs)');
     } catch (error: any) {
       console.error('Login error:', error);
