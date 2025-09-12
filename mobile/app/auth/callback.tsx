@@ -19,12 +19,38 @@ export default function AuthCallbackScreen() {
         const parsed = Linking.parse(url);
 
         // supabase often returns tokens in the fragment
+        // Try to extract fragment/query from the incoming URL
         const raw = url.includes('#') ? url.split('#')[1] : url.split('?')[1] ?? '';
         const params = new URLSearchParams(raw);
         // Debug: log parsed params
         // eslint-disable-next-line no-console
         console.log('[AuthCallback] parsed params =', Object.fromEntries(params.entries()));
-        const accessToken = params.get('access_token');
+        let accessToken = params.get('access_token');
+
+        // Special handling: expo-dev-client sometimes wraps the original deep-lin
+        // and provides it as a `url` query parameter, e.g.
+        // exp+swimtrainapp://expo-development-client/?url=<encoded-original-url>
+        // In that case we need to decode and parse the nested URL for the token.
+        if (!accessToken) {
+          const nested = params.get('url') || (parsed && (parsed.queryParams as any)?.url);
+          if (nested) {
+            try {
+              const decoded = decodeURIComponent(nested);
+              // decoded may be like 'http://host/...#access_token=...'
+              // eslint-disable-next-line no-console
+              console.log('[AuthCallback] nested url detected =', decoded);
+              const nestedRaw = decoded.includes('#') ? decoded.split('#')[1] : decoded.split('?')[1] ?? '';
+              const nestedParams = new URLSearchParams(nestedRaw);
+              // eslint-disable-next-line no-console
+              console.log('[AuthCallback] parsed nested params =', Object.fromEntries(nestedParams.entries()));
+              accessToken = nestedParams.get('access_token');
+            } catch (e) {
+              // ignore and continue
+              // eslint-disable-next-line no-console
+              console.error('[AuthCallback] error parsing nested url', e);
+            }
+          }
+        }
 
         if (!accessToken) {
           console.error('No access token found in callback URL');
