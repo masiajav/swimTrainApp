@@ -3,6 +3,7 @@ import { router, useFocusEffect } from 'expo-router';
 import React, { useState, useEffect } from 'react';
 import { apiService } from '../../services/api';
 import { useTheme } from '../../contexts/ThemeContext';
+import { PrimaryButton, SecondaryButton } from '../_ui/Buttons';
 
 interface Session {
   id: string;
@@ -257,34 +258,11 @@ export default function DashboardScreen() {
         <View style={styles.actionsContainer}>
           <Text style={styles.sectionTitle}>Quick Actions</Text>
           
-          <TouchableOpacity 
-            style={styles.primaryAction}
-            onPress={() => router.push('/session/create')}
-          >
-            <View style={styles.actionContent}>
-              <View style={styles.actionIcon}>
-                <Text style={styles.actionIconText}>+</Text>
-              </View>
-              <View style={styles.actionTextContainer}>
-                <Text style={styles.actionTitle}>Start New Session</Text>
-                <Text style={styles.actionSubtitle}>Begin tracking your swim</Text>
-              </View>
-              <Text style={styles.actionArrow}>→</Text>
-            </View>
-          </TouchableOpacity>
+          <PrimaryButton onPress={() => router.push('/session/create')} accessibilityLabel="Start new session">
+            Start New Session
+          </PrimaryButton>
           
-          <TouchableOpacity style={styles.secondaryAction}>
-            <View style={styles.actionContent}>
-              <View style={styles.secondaryActionIcon}>
-                <Text style={styles.actionIconText}>👥</Text>
-              </View>
-              <View style={styles.actionTextContainer}>
-                <Text style={styles.secondaryActionTitle}>View Team Progress</Text>
-                <Text style={styles.secondaryActionSubtitle}>Check team leaderboard</Text>
-              </View>
-              <Text style={styles.secondaryActionArrow}>→</Text>
-            </View>
-          </TouchableOpacity>
+          <SecondaryButton accessibilityLabel="View team progress">View Team Progress</SecondaryButton>
         </View>
       </View>
     </ScrollView>

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, TextInput, Alert, Image, Switch } from 'react-native';
 import { router } from 'expo-router';
 import { apiService } from '../services/api';
+import BackButton from './_ui/BackButton';
 import * as ImagePicker from 'expo-image-picker';
 import { useTheme } from '../contexts/ThemeContext';
 
@@ -254,9 +255,7 @@ export default function SettingsScreen() {
     return (
       <View style={{ flex: 1, backgroundColor: colors.background }}>
         <View style={{ backgroundColor: colors.primary, paddingTop: 60, paddingBottom: 20, paddingHorizontal: 24, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-          <TouchableOpacity style={{ padding: 8 }} onPress={() => router.back()}>
-            <Text style={{ color: 'white', fontSize: 16, fontWeight: '600' }}>← Back</Text>
-          </TouchableOpacity>
+          <BackButton />
           <Text style={{ color: 'white', fontSize: 20, fontWeight: 'bold', flex: 1, textAlign: 'center' }}>Settings</Text>
         </View>
         <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: colors.background }}>
@@ -270,9 +269,7 @@ export default function SettingsScreen() {
     <View style={{ flex: 1, backgroundColor: colors.background }}>
       {/* Header */}
       <View style={{ backgroundColor: colors.primary, paddingTop: 60, paddingBottom: 20, paddingHorizontal: 24, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-        <TouchableOpacity style={{ padding: 8 }} onPress={() => router.back()}>
-          <Text style={{ color: 'white', fontSize: 16, fontWeight: '600' }}>← Back</Text>
-        </TouchableOpacity>
+        <BackButton />
         <Text style={{ color: 'white', fontSize: 20, fontWeight: 'bold', flex: 1, textAlign: 'center' }}>Settings</Text>
         <TouchableOpacity 
           style={{ backgroundColor: colors.success, paddingHorizontal: 16, paddingVertical: 8, borderRadius: 8, opacity: saving ? 0.5 : 1 }}

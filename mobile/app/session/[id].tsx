@@ -176,10 +176,8 @@ export default function SessionDetailScreen() {
     <ScrollView style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity style={styles.backButtonHeader} onPress={() => router.back()}>
-          <Text style={styles.backIcon}>←</Text>
-        </TouchableOpacity>
-        <View style={styles.headerContent}>
+        {/* rely on the router/native header back control — remove manual duplicate back button */}
+        <View style={styles.headerContentNoBack}>
           <Text style={styles.headerTitle}>{session.title}</Text>
           <Text style={styles.headerDate}>{formatDate(session.date)}</Text>
         </View>
@@ -274,17 +272,6 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginBottom: 20,
   },
-  backButton: {
-    backgroundColor: '#3b82f6',
-    paddingHorizontal: 20,
-    paddingVertical: 10,
-    borderRadius: 8,
-  },
-  backButtonText: {
-    color: 'white',
-    fontSize: 16,
-    fontWeight: '600',
-  },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -293,18 +280,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     backgroundColor: '#3b82f6',
   },
-  backButtonHeader: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: 'rgba(255,255,255,0.2)',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  backIcon: {
-    fontSize: 20,
-    color: 'white',
-    fontWeight: 'bold',
+  headerContentNoBack: {
+    flex: 1,
+    marginRight: 15,
   },
   headerContent: {
     flex: 1,

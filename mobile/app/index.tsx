@@ -1,5 +1,6 @@
 import { View, Text, TouchableOpacity, ScrollView, StyleSheet } from 'react-native';
 import { Link } from 'expo-router';
+import { PrimaryButton, SecondaryButton } from './_ui/Buttons';
 
 export default function WelcomeScreen() {
   return (
@@ -61,43 +62,14 @@ export default function WelcomeScreen() {
           <View style={styles.buttonContainer}>
             <View style={styles.buttonWrapper}>
               <Link href="/auth/login" asChild>
-                <TouchableOpacity style={styles.primaryButton} activeOpacity={0.8}>
-                  <View style={styles.buttonContent}>
-                    <View style={styles.buttonIcon}>
-                      <Text style={styles.buttonIconText}>→</Text>
-                    </View>
-                    <Text style={styles.primaryButtonText}>
-                      Sign In
-                    </Text>
-                  </View>
-                </TouchableOpacity>
+                <PrimaryButton accessibilityLabel="Sign in">Sign In</PrimaryButton>
               </Link>
               
               <Link href="/auth/register" asChild>
-                <TouchableOpacity style={styles.signUpButton} activeOpacity={0.8}>
-                  <View style={styles.buttonContent}>
-                    <View style={styles.signUpButtonIcon}>
-                      <Text style={styles.signUpButtonIconText}>+</Text>
-                    </View>
-                    <Text style={styles.signUpButtonText}>
-                      Sign Up
-                    </Text>
-                  </View>
-                </TouchableOpacity>
+                <SecondaryButton accessibilityLabel="Sign up">Sign Up</SecondaryButton>
               </Link>
               
-              <Link href="/(tabs)" asChild>
-                <TouchableOpacity style={styles.secondaryButton} activeOpacity={0.8}>
-                  <View style={styles.buttonContent}>
-                    <View style={styles.secondaryButtonIcon}>
-                      <Text style={styles.secondaryButtonIconText}>◉</Text>
-                    </View>
-                    <Text style={styles.secondaryButtonText}>
-                      Try Demo
-                    </Text>
-                  </View>
-                </TouchableOpacity>
-              </Link>
+              {/* Try Demo removed per request */}
             </View>
           </View>
           

@@ -10,6 +10,8 @@ import {
   Modal,
 } from 'react-native';
 import { router } from 'expo-router';
+import PickerModal from '../_ui/PickerModal';
+import BackButton from '../_ui/BackButton';
 import { Ionicons } from '@expo/vector-icons';
 import { apiService } from '../../services/api';
 import { WorkoutType, Stroke, Intensity } from '../../../shared/types';
@@ -231,63 +233,12 @@ export default function CreateSession() {
     }
   };
 
-  const PickerModal = ({ 
-    visible, 
-    onClose, 
-    title, 
-    options, 
-    onSelect, 
-    selectedValue 
-  }: {
-    visible: boolean;
-    onClose: () => void;
-    title: string;
-    options: string[];
-    onSelect: (value: string) => void;
-    selectedValue: string;
-  }) => (
-    <Modal visible={visible} transparent animationType="slide">
-      <View style={styles.modalOverlay}>
-        <View style={styles.modalContent}>
-          <View style={styles.modalHeader}>
-            <Text style={styles.modalTitle}>{title}</Text>
-            <TouchableOpacity onPress={onClose}>
-              <Ionicons name="close" size={24} color="#6b7280" />
-            </TouchableOpacity>
-          </View>
-          <ScrollView style={styles.optionsList}>
-            {options.map((option) => (
-              <TouchableOpacity
-                key={option}
-                style={[
-                  styles.optionItem,
-                  selectedValue === option && styles.selectedOption
-                ]}
-                onPress={() => {
-                  onSelect(option);
-                  onClose();
-                }}
-              >
-                <Text style={[
-                  styles.optionText,
-                  selectedValue === option && styles.selectedOptionText
-                ]}>
-                  {option.replace('_', ' ')}
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </ScrollView>
-        </View>
-      </View>
-    </Modal>
-  );
+  // Using shared PickerModal from app/_ui
 
   return (
     <ScrollView style={styles.container}>
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-          <Ionicons name="arrow-back" size={24} color="#0ea5e9" />
-        </TouchableOpacity>
+        <BackButton />
         <Text style={styles.headerTitle}>New Swimming Session</Text>
         <TouchableOpacity onPress={resetForm} style={styles.resetButton}>
           <Ionicons name="refresh" size={20} color="#6b7280" />

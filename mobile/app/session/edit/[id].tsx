@@ -1,6 +1,8 @@
 import { View, Text, TextInput, TouchableOpacity, ScrollView, StyleSheet, Alert } from 'react-native';
 import React, { useState, useEffect } from 'react';
 import { router, useLocalSearchParams } from 'expo-router';
+import BackButton from '../../_ui/BackButton';
+import PickerModal from '../../_ui/PickerModal';
 import { apiService } from '../../../services/api';
 
 // Define enums locally to avoid import issues
@@ -48,6 +50,9 @@ export default function EditSessionScreen() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [originalSession, setOriginalSession] = useState<Session | null>(null);
+  const [showWorkoutTypePicker, setShowWorkoutTypePicker] = useState(false);
+  const [showStrokePicker, setShowStrokePicker] = useState(false);
+  const [showIntensityPicker, setShowIntensityPicker] = useState(false);
   
   // Form fields
   const [title, setTitle] = useState('');
@@ -198,9 +203,7 @@ export default function EditSessionScreen() {
     <ScrollView style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity style={styles.backButton} onPress={handleCancel}>
-          <Text style={styles.backIcon}>←</Text>
-        </TouchableOpacity>
+        <BackButton />
         <View style={styles.headerContent}>
           <Text style={styles.headerTitle}>Edit Session</Text>
           <Text style={styles.headerSubtitle}>Update your training details</Text>
@@ -262,76 +265,31 @@ export default function EditSessionScreen() {
         {/* Workout Type */}
         <View style={styles.inputGroup}>
           <Text style={styles.label}>Workout Type</Text>
-          <TouchableOpacity style={styles.pickerButton}>
-            <Text style={styles.pickerText}>
-              {workoutType ? workoutTypes.find(t => t.value === workoutType)?.label : 'Select workout type...'}
-            </Text>
+          <Text style={styles.helperText}>Choose one option</Text>
+          <TouchableOpacity style={styles.pickerButton} onPress={() => setShowWorkoutTypePicker(true)}>
+            <Text style={styles.pickerText}>{workoutType ? workoutTypes.find(t => t.value === workoutType)?.label : 'Select workout type...'}</Text>
             <Text style={styles.pickerArrow}>▼</Text>
           </TouchableOpacity>
-          <Text style={styles.helperText}>Tap to cycle through options</Text>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.optionsScroll}>
-            {workoutTypes.slice(1).map((type) => (
-              <TouchableOpacity 
-                key={type.value} 
-                style={[styles.optionChip, workoutType === type.value && styles.selectedChip]}
-                onPress={() => setWorkoutType(type.value as WorkoutType)}
-              >
-                <Text style={[styles.optionText, workoutType === type.value && styles.selectedText]}>
-                  {type.label}
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </ScrollView>
         </View>
 
         {/* Stroke */}
         <View style={styles.inputGroup}>
           <Text style={styles.label}>Primary Stroke</Text>
-          <TouchableOpacity style={styles.pickerButton}>
-            <Text style={styles.pickerText}>
-              {stroke ? strokes.find(s => s.value === stroke)?.label : 'Select stroke...'}
-            </Text>
+          <Text style={styles.helperText}>Choose one option</Text>
+          <TouchableOpacity style={styles.pickerButton} onPress={() => setShowStrokePicker(true)}>
+            <Text style={styles.pickerText}>{stroke ? strokes.find(s => s.value === stroke)?.label : 'Select stroke...'}</Text>
             <Text style={styles.pickerArrow}>▼</Text>
           </TouchableOpacity>
-          <Text style={styles.helperText}>Tap to cycle through options</Text>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.optionsScroll}>
-            {strokes.slice(1).map((strokeOption) => (
-              <TouchableOpacity 
-                key={strokeOption.value} 
-                style={[styles.optionChip, stroke === strokeOption.value && styles.selectedChip]}
-                onPress={() => setStroke(strokeOption.value as Stroke)}
-              >
-                <Text style={[styles.optionText, stroke === strokeOption.value && styles.selectedText]}>
-                  {strokeOption.label}
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </ScrollView>
         </View>
 
         {/* Intensity */}
         <View style={styles.inputGroup}>
           <Text style={styles.label}>Intensity Level</Text>
-          <TouchableOpacity style={styles.pickerButton}>
-            <Text style={styles.pickerText}>
-              {intensity ? intensities.find(i => i.value === intensity)?.label : 'Select intensity...'}
-            </Text>
+          <Text style={styles.helperText}>Choose one option</Text>
+          <TouchableOpacity style={styles.pickerButton} onPress={() => setShowIntensityPicker(true)}>
+            <Text style={styles.pickerText}>{intensity ? intensities.find(i => i.value === intensity)?.label : 'Select intensity...'}</Text>
             <Text style={styles.pickerArrow}>▼</Text>
           </TouchableOpacity>
-          <Text style={styles.helperText}>Tap to cycle through options</Text>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.optionsScroll}>
-            {intensities.slice(1).map((intensityOption) => (
-              <TouchableOpacity 
-                key={intensityOption.value} 
-                style={[styles.optionChip, intensity === intensityOption.value && styles.selectedChip]}
-                onPress={() => setIntensity(intensityOption.value as Intensity)}
-              >
-                <Text style={[styles.optionText, intensity === intensityOption.value && styles.selectedText]}>
-                  {intensityOption.label}
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </ScrollView>
         </View>
 
         {/* Description */}
@@ -366,6 +324,32 @@ export default function EditSessionScreen() {
           </TouchableOpacity>
         </View>
       </View>
+      <PickerModal
+        visible={showWorkoutTypePicker}
+        onClose={() => setShowWorkoutTypePicker(false)}
+        title="Select Workout Type"
+        options={workoutTypes}
+        onSelect={(value) => setWorkoutType(value as WorkoutType)}
+        selectedValue={workoutType}
+      />
+
+      <PickerModal
+        visible={showStrokePicker}
+        onClose={() => setShowStrokePicker(false)}
+        title="Select Primary Stroke"
+        options={strokes}
+        onSelect={(value) => setStroke(value as Stroke)}
+        selectedValue={stroke}
+      />
+
+      <PickerModal
+        visible={showIntensityPicker}
+        onClose={() => setShowIntensityPicker(false)}
+        title="Select Intensity"
+        options={intensities}
+        onSelect={(value) => setIntensity(value as Intensity)}
+        selectedValue={intensity}
+      />
     </ScrollView>
   );
 }
@@ -535,6 +519,24 @@ const styles = StyleSheet.create({
     borderColor: '#e5e7eb',
   },
   selectedChip: {
+    backgroundColor: '#3b82f6',
+    borderColor: '#3b82f6',
+  },
+  optionList: {
+    marginTop: 8,
+    flexDirection: 'column',
+    gap: 8,
+  },
+  optionItem: {
+    backgroundColor: 'white',
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 10,
+    marginBottom: 8,
+  },
+  selectedItem: {
     backgroundColor: '#3b82f6',
     borderColor: '#3b82f6',
   },

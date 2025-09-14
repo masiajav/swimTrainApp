@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, ScrollView, StyleSheet, TouchableOpacity, Alert, Image } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { apiService } from '../../../services/api';
+import BackButton from '../../_ui/BackButton';
 import { useTheme } from '../../../contexts/ThemeContext';
 
 interface TeamMemberSession {
@@ -149,9 +150,7 @@ export default function TeamMemberProfileScreen() {
     <ScrollView style={[styles.container, { backgroundColor: colors.background }]}>
       {/* Header */}
       <View style={[styles.header, { backgroundColor: colors.primary }]}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-          <Text style={styles.backButtonText}>← Back</Text>
-        </TouchableOpacity>
+        <BackButton />
         <Text style={styles.headerTitle}>Team Member</Text>
       </View>
 

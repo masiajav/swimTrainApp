@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { Link, router } from 'expo-router';
 import { apiService } from '../../services/api';
 import * as Linking from 'expo-linking';
+import { PrimaryButton, SecondaryButton } from '../_ui/Buttons';
 
 export default function LoginScreen() {
   const [email, setEmail] = useState('');
@@ -138,17 +139,9 @@ export default function LoginScreen() {
           />
         </View>
         
-        <TouchableOpacity
-          onPress={handleLogin}
-          style={[styles.loginButton, isLoading && styles.loginButtonDisabled]}
-          disabled={isLoading}
-          accessibilityLabel="Sign in"
-          accessibilityRole="button"
-        >
-          <Text style={styles.loginButtonText}>
-            {isLoading ? '🏊‍♀️ Signing In...' : '🏊‍♀️ Sign In'}
-          </Text>
-        </TouchableOpacity>
+        <PrimaryButton onPress={handleLogin} style={isLoading ? styles.loginButtonDisabled : undefined} accessibilityLabel="Sign in">
+          {isLoading ? '🏊‍♀️ Signing In...' : '🏊‍♀️ Sign In'}
+        </PrimaryButton>
 
         {/* Divider */}
         <View style={styles.divider}>
@@ -158,20 +151,14 @@ export default function LoginScreen() {
         </View>
 
         {/* Google Sign In Button */}
-        <TouchableOpacity
-          onPress={handleGoogleLogin}
-          style={styles.googleButton}
-          disabled={isLoading}
-          accessibilityLabel="Continue with Google"
-          accessibilityRole="button"
-        >
+        <SecondaryButton onPress={handleGoogleLogin} style={styles.googleButton} accessibilityLabel="Continue with Google">
           <View style={styles.googleInner}>
             <View style={styles.googleMark} />
             <Text style={styles.googleButtonText}>
               Continue with Google
             </Text>
           </View>
-        </TouchableOpacity>
+        </SecondaryButton>
         
         <Link href="/auth/register" asChild>
           <TouchableOpacity style={styles.signUpLink}>

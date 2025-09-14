@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { router, useFocusEffect } from 'expo-router';
 import { apiService } from '../../services/api';
 import { useTheme } from '../../contexts/ThemeContext';
+import { PrimaryButton } from '../_ui/Buttons';
 
 interface Session {
   id: string;
@@ -197,13 +198,7 @@ export default function SessionsScreen() {
 
       {/* Filter/Add Section */}
       <View style={styles.actionSection}>
-        <TouchableOpacity 
-          style={[styles.addButton, { backgroundColor: colors.primary }]}
-          onPress={() => router.push('/session/create')}
-        >
-          <Text style={styles.addButtonIcon}>+</Text>
-          <Text style={styles.addButtonText}>New Session</Text>
-        </TouchableOpacity>
+  <PrimaryButton onPress={() => router.push('/session/create')} accessibilityLabel="New session">New Session</PrimaryButton>
         
         <TouchableOpacity style={[styles.filterButton, { backgroundColor: colors.surface, borderColor: colors.border }]}>
           <Text style={styles.filterIcon}>⚙️</Text>

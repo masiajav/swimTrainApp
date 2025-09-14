@@ -2,6 +2,7 @@ import { View, Text, TextInput, TouchableOpacity, Alert, StyleSheet, ScrollView 
 import { useState } from 'react';
 import { Link, router } from 'expo-router';
 import { apiService } from '../../services/api';
+import { PrimaryButton, SecondaryButton } from '../_ui/Buttons';
 
 export default function RegisterScreen() {
   const [email, setEmail] = useState('');
@@ -145,15 +146,9 @@ export default function RegisterScreen() {
             </View>
           </View>
           
-          <TouchableOpacity 
-            onPress={handleRegister}
-            style={[styles.registerButton, isLoading && styles.registerButtonDisabled]}
-            disabled={isLoading}
-          >
-            <Text style={styles.registerButtonText}>
-              {isLoading ? '🏊‍♀️ Creating Account...' : '🏊‍♀️ Create Account'}
-            </Text>
-          </TouchableOpacity>
+          <PrimaryButton onPress={handleRegister} style={isLoading ? styles.registerButtonDisabled : undefined}>
+            {isLoading ? '🏊‍♀️ Creating Account...' : '🏊‍♀️ Create Account'}
+          </PrimaryButton>
 
           {/* Divider */}
           <View style={styles.divider}>
@@ -163,15 +158,9 @@ export default function RegisterScreen() {
           </View>
 
           {/* Google Sign Up Button */}
-          <TouchableOpacity 
-            onPress={handleGoogleSignUp}
-            style={styles.googleButton}
-            disabled={isLoading}
-          >
-            <Text style={styles.googleButtonText}>
-              🔍 Sign up with Google
-            </Text>
-          </TouchableOpacity>
+          <SecondaryButton onPress={handleGoogleSignUp} style={styles.googleButton}>
+            🔍 Sign up with Google
+          </SecondaryButton>
           
           <Link href="/auth/login" asChild>
             <TouchableOpacity style={styles.loginLink}>
