@@ -1,4 +1,4 @@
-import { View, Text, TextInput, TouchableOpacity, Alert, StyleSheet, Platform } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, Alert, StyleSheet, Platform, ScrollView } from 'react-native';
 import React, { useState } from 'react';
 import { Link, router } from 'expo-router';
 import { apiService } from '../../services/api';
@@ -96,22 +96,22 @@ export default function LoginScreen() {
   // backend via `apiService.googleAuth`.
 
   return (
-    <View style={styles.container}>
+    <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
       {/* Header with Swimming Theme */}
-      <View style={styles.header}>
+      <View style={styles.header} accessibilityRole="header">
         <Text style={styles.headerEmoji}>🏊‍♀️</Text>
         <Text style={styles.headerTitle}>SwimTrainApp</Text>
         <Text style={styles.headerSubtitle}>Welcome back to your training</Text>
       </View>
 
       {/* Login Form Card */}
-      <View style={styles.formCard}>
+  <View style={styles.formCard}>
         <View style={styles.cardHeader}>
           <Text style={styles.welcomeText}>Welcome Back!</Text>
           <Text style={styles.welcomeSubtext}>Sign in to continue your training journey</Text>
         </View>
         
-        <View style={styles.inputContainer}>
+    <View style={styles.inputContainer}>
           <Text style={styles.inputLabel}>📧 Email</Text>
           <TextInput
             placeholder="Enter your email"
@@ -119,27 +119,31 @@ export default function LoginScreen() {
             onChangeText={setEmail}
             keyboardType="email-address"
             autoCapitalize="none"
-            style={styles.input}
+      style={styles.input}
             placeholderTextColor="#94a3b8"
+      accessibilityLabel="Email input"
           />
         </View>
         
-        <View style={styles.inputContainer}>
+    <View style={styles.inputContainer}>
           <Text style={styles.inputLabel}>🔒 Password</Text>
           <TextInput
             placeholder="Enter your password"
             value={password}
             onChangeText={setPassword}
             secureTextEntry
-            style={styles.input}
+      style={styles.input}
             placeholderTextColor="#94a3b8"
+      accessibilityLabel="Password input"
           />
         </View>
         
-        <TouchableOpacity 
+        <TouchableOpacity
           onPress={handleLogin}
           style={[styles.loginButton, isLoading && styles.loginButtonDisabled]}
           disabled={isLoading}
+          accessibilityLabel="Sign in"
+          accessibilityRole="button"
         >
           <Text style={styles.loginButtonText}>
             {isLoading ? '🏊‍♀️ Signing In...' : '🏊‍♀️ Sign In'}
@@ -154,14 +158,19 @@ export default function LoginScreen() {
         </View>
 
         {/* Google Sign In Button */}
-        <TouchableOpacity 
+        <TouchableOpacity
           onPress={handleGoogleLogin}
           style={styles.googleButton}
           disabled={isLoading}
+          accessibilityLabel="Continue with Google"
+          accessibilityRole="button"
         >
-          <Text style={styles.googleButtonText}>
-            🔍 Continue with Google
-          </Text>
+          <View style={styles.googleInner}>
+            <View style={styles.googleMark} />
+            <Text style={styles.googleButtonText}>
+              Continue with Google
+            </Text>
+          </View>
         </TouchableOpacity>
         
         <Link href="/auth/register" asChild>
@@ -174,10 +183,10 @@ export default function LoginScreen() {
       </View>
 
       {/* Bottom Wave Decoration */}
-      <View style={styles.waveContainer}>
+      <View style={styles.waveContainer} pointerEvents="none">
         <Text style={styles.waveText}>🌊 🌊 🌊</Text>
       </View>
-    </View>
+    </ScrollView>
   );
 }
 
@@ -187,8 +196,8 @@ const styles = StyleSheet.create({
     backgroundColor: '#f0f9ff',
   },
   header: {
-    paddingTop: 80,
-    paddingBottom: 40,
+  paddingTop: 56,
+  paddingBottom: 24,
     paddingHorizontal: 20,
     backgroundColor: '#3b82f6',
     alignItems: 'center',
@@ -252,10 +261,26 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: '#e2e8f0',
     borderRadius: 12,
-    padding: 16,
+    padding: 14,
     fontSize: 16,
     backgroundColor: '#f8fafc',
     color: '#1e293b',
+  },
+  googleInner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  googleMark: {
+    width: 28,
+    height: 28,
+    borderRadius: 6,
+    marginRight: 12,
+    backgroundColor: '#4285F4',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.15,
+    shadowRadius: 2,
   },
   loginButton: {
     backgroundColor: '#3b82f6',
