@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { Link, router } from 'expo-router';
 import { apiService } from '../../services/api';
 import * as Linking from 'expo-linking';
+import * as WebBrowser from 'expo-web-browser';
 
 export default function LoginScreen() {
   const [email, setEmail] = useState('');
@@ -58,32 +59,26 @@ export default function LoginScreen() {
         return;
       }
 
-      // Mobile: open external browser to Supabase authorize endpoint and let it
-      // redirect back to our custom scheme (swimtrainapp://auth/callback)
+      // Mobile (dev-client / standalone): open the Supabase authorize endpoint and
+      // allow it to redirect back to the app's custom scheme (swimtrainapp://auth/callback).
+      // Use Expo WebBrowser for a smoother flow in dev-client; fallback to Linking.
       const fallback = 'swimtrainapp://auth/callback';
-  const authUrl = `${SUPABASE_URL}/auth/v1/authorize?provider=google&redirect_to=${encodeURIComponent(fallback)}`;
+      const authUrl = `${SUPABASE_URL}/auth/v1/authorize?provider=google&redirect_to=${encodeURIComponent(fallback)}`;
 
-      Alert.alert(
-        'Continue in browser',
-        'We will open your browser for Google sign-in. After consenting, return to the app to finish logging in.',
-        [
-          { text: 'Cancel', onPress: () => setIsLoading(false), style: 'cancel' },
-          {
-            text: 'Continue',
-            onPress: async () => {
-              try {
-                await Linking.openURL(authUrl);
-                // If the user doesn't return after 90s, clear loading state
-                setTimeout(() => setIsLoading(false), 90000);
-              } catch (err) {
-                console.error('Failed to open browser for Google sign-in', err);
-                setIsLoading(false);
-                Alert.alert('Error', 'Unable to open browser. Please try again.');
-              }
-            },
-          },
-        ]
-      );
+      try {
+        // Open an in-app browser tab where the OAuth flow happens
+        if (WebBrowser && WebBrowser.openBrowserAsync) {
+          await WebBrowser.openBrowserAsync(authUrl);
+        } else {
+          await Linking.openURL(authUrl);
+        }
+        // If the user doesn't return after 90s, clear loading state as a safeguard
+        setTimeout(() => setIsLoading(false), 90000);
+      } catch (err) {
+        console.error('Failed to open browser for Google sign-in', err);
+        setIsLoading(false);
+        Alert.alert('Error', 'Unable to open browser. Please try again.');
+      }
     } catch (error: any) {
       console.error('Google login error:', error);
       Alert.alert('Error', 'Google sign-in failed. Please try again.');
