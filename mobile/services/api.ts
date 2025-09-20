@@ -3,32 +3,48 @@ import { Platform } from 'react-native';
 
 // Determine an API base the device can reach. On device, localhost won't work when using
 // the emulator or physical device; prefer a runtime override via process.env or Expo Constants.
+// Resolve API_BASE_URL with the following precedence:
+// 1. If running in production (not __DEV__), prefer a configured value from
+//    Expo Constants extra (app.json -> expo.extra.API_BASE_URL) or process.env.
+// 2. If running in dev, try the debugger host LAN address so the device can
+//    reach the backend on your machine.
+// 3. When on Android emulator fall back to 10.0.2.2.
 let API_BASE_URL = 'http://localhost:3000/api';
 try {
   // eslint-disable-next-line @typescript-eslint/no-var-requires
   const Constants = require('expo-constants');
   const manifest = Constants?.manifest ?? Constants?.expoConfig ?? {};
-  const debuggerHost = manifest?.debuggerHost as string | undefined;
-  if (debuggerHost) {
-    // debuggerHost often looks like '192.168.1.10:19000', take host part
-    const host = debuggerHost.split(':')[0];
-    API_BASE_URL = `http://${host}:3000/api`;
-  }
-} catch (e) {
-  // not running in expo environment; keep default
-}
+  const extra = manifest?.extra ?? {};
 
-// If running on an Android emulator (Pixel, AVD) the host machine is available
-// at 10.0.2.2. Prefer that when we're on android and debuggerHost didn't set a LAN host.
-try {
-  if (Platform.OS === 'android') {
-    // If API_BASE_URL still points to localhost (not reachable from emulator), use loopback.
-    if (!API_BASE_URL || API_BASE_URL.includes('localhost')) {
-      API_BASE_URL = 'http://10.0.2.2:3000/api';
+  // Production builds (disable dev-only loopbacks)
+  // NOTE: for production we prefer a public HTTPS host. If you plan to use
+  // Supabase Edge Functions for the token-exchange and user provisioning,
+  // point this at your Supabase project URL (we will call the function
+  // /functions/v1/google-auth from the mobile app).
+  const defaultProdUrl = 'https://pkrtqzsudfeehwufyduy.supabase.co';
+  if (typeof __DEV__ !== 'undefined' && !__DEV__) {
+    API_BASE_URL = extra?.API_BASE_URL || process.env?.API_BASE_URL || defaultProdUrl;
+  } else {
+    // Dev: prefer debuggerHost LAN address when present (so device uses machine IP)
+    const debuggerHost = manifest?.debuggerHost as string | undefined;
+    if (debuggerHost) {
+      const host = debuggerHost.split(':')[0];
+      API_BASE_URL = `http://${host}:3000/api`;
+    }
+
+    // Android emulator fallback
+    try {
+      if (Platform.OS === 'android') {
+        if (!API_BASE_URL || API_BASE_URL.includes('localhost')) {
+          API_BASE_URL = 'http://10.0.2.2:3000/api';
+        }
+      }
+    } catch (e) {
+      // ignore if Platform is unavailable
     }
   }
 } catch (e) {
-  // ignore if Platform is unavailable
+  // If anything goes wrong reading Constants, keep the default localhost dev URL
 }
 
 class ApiService {
@@ -85,6 +101,30 @@ class ApiService {
     // Debug: log token being exchanged and response from backend
     // eslint-disable-next-line no-console
     console.log('[ApiService] googleAuth exchanging token:', token?.slice ? token.slice(0, 8) + '...' : token);
+    // If we're targeting Supabase in production, prefer the Edge Function
+    // endpoint which lives under /functions/v1/google-auth
+    try {
+      if (API_BASE_URL.includes('supabase.co')) {
+        const fnUrl = `${API_BASE_URL.replace(/\/$/, '')}/functions/v1/google-auth`;
+        // Supabase Functions require the 'Content-Type' header and typically
+        // accept JSON bodies.
+        const res = await fetch(fnUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ token }),
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Function request failed');
+        // eslint-disable-next-line no-console
+        console.log('[ApiService] googleAuth response =', data);
+        return data as AuthResponse;
+      }
+    } catch (e) {
+      // Fall back to existing backend path if function call fails
+      // eslint-disable-next-line no-console
+      console.warn('[ApiService] Supabase function call failed, falling back to /auth/google', e);
+    }
+
     const response = await this.request<AuthResponse>('/auth/google', {
       method: 'POST',
       body: JSON.stringify({ token }),

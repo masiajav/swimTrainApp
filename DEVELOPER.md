@@ -7,7 +7,7 @@ A comprehensive guide for developers working on the SwimTrainApp project.
 Notes for developers:
 
 - Android: Verified — the app runs on Android emulators and physical devices via Expo.
-- Google OAuth (mobile): Known issue — redirect/callback behavior is currently unreliable in some dev environments. A server-side redirect helper and a `POST /api/auth/dev-login` endpoint have been added to assist local testing.
+-- Google OAuth (mobile): Deferred for MVP. The mobile Google OAuth flow was unstable across emulator/device environments (redirect/callback issues). For the MVP we removed the Google sign-in buttons from the mobile UI and will rely on email/password auth. The previously added redirect helper and test endpoints remain in the codebase for future work.
 - iOS: Not tested in this branch; please verify on macOS/Xcode if you need iOS validation.
 
 ---

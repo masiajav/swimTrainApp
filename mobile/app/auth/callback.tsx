@@ -4,6 +4,9 @@ import { router } from 'expo-router';
 import { apiService } from '../../services/api';
 import * as Linking from 'expo-linking';
 
+// NOTE: Google OAuth UI is currently disabled for the MVP.
+// The callback handler remains in the codebase so developers can re-enable
+// Google flows in future releases without re-implementing parsing logic.
 export default function AuthCallbackScreen() {
   useEffect(() => {
     let isMounted = true;
@@ -18,37 +21,65 @@ export default function AuthCallbackScreen() {
 
         const parsed = Linking.parse(url);
 
-        // supabase often returns tokens in the fragment
-        // Try to extract fragment/query from the incoming URL
-        const raw = url.includes('#') ? url.split('#')[1] : url.split('?')[1] ?? '';
-        const params = new URLSearchParams(raw);
+        // Try to extract tokens from anywhere in the incoming URL string.
+        // Some flows place tokens in the fragment, query, or inside a nested
+        // `url` parameter (expo-dev-client). We perform layered attempts:
+        // 1) parse fragment/query via URLSearchParams
+        // 2) if not found, look for nested `url` param and decode it (double-decode if needed)
+        // 3) as a last resort, run a regex across the raw URL to capture access_token or id_token
+        const rawFragmentOrQuery = url.includes('#') ? url.split('#')[1] : url.split('?')[1] ?? '';
+        const params = new URLSearchParams(rawFragmentOrQuery);
         // Debug: log parsed params
         // eslint-disable-next-line no-console
         console.log('[AuthCallback] parsed params =', Object.fromEntries(params.entries()));
-        let accessToken = params.get('access_token');
+        let accessToken = params.get('access_token') || params.get('id_token');
 
-        // Special handling: expo-dev-client sometimes wraps the original deep-lin
-        // and provides it as a `url` query parameter, e.g.
-        // exp+swimtrainapp://expo-development-client/?url=<encoded-original-url>
-        // In that case we need to decode and parse the nested URL for the token.
+        // If dev-client wrapped the original URL as a `url` param, try decoding it.
         if (!accessToken) {
-          const nested = params.get('url') || (parsed && (parsed.queryParams as any)?.url);
-          if (nested) {
+          const nestedRaw = params.get('url') || (parsed && (parsed.queryParams as any)?.url);
+          if (nestedRaw) {
             try {
-              const decoded = decodeURIComponent(nested);
-              // decoded may be like 'http://host/...#access_token=...'
+              // Try decoding multiple times to handle double-encoded values
+              let decoded = nestedRaw;
+              try {
+                decoded = decodeURIComponent(decoded);
+              } catch {}
+              try {
+                decoded = decodeURIComponent(decoded);
+              } catch {}
               // eslint-disable-next-line no-console
               console.log('[AuthCallback] nested url detected =', decoded);
-              const nestedRaw = decoded.includes('#') ? decoded.split('#')[1] : decoded.split('?')[1] ?? '';
-              const nestedParams = new URLSearchParams(nestedRaw);
+              const nestedFragmentOrQuery = decoded.includes('#') ? decoded.split('#')[1] : decoded.split('?')[1] ?? '';
+              const nestedParams = new URLSearchParams(nestedFragmentOrQuery);
               // eslint-disable-next-line no-console
               console.log('[AuthCallback] parsed nested params =', Object.fromEntries(nestedParams.entries()));
-              accessToken = nestedParams.get('access_token');
+              accessToken = nestedParams.get('access_token') || nestedParams.get('id_token');
             } catch (e) {
-              // ignore and continue
+              // ignore and continue to regex fallback
               // eslint-disable-next-line no-console
               console.error('[AuthCallback] error parsing nested url', e);
             }
+          }
+        }
+
+        // Regex fallback: scan the entire URL for access_token or id_token assignments
+        if (!accessToken) {
+          try {
+            // match access_token=... or id_token=... (stop at & or end)
+            const re = /(?:access_token|id_token)=([^&\s]+)/i;
+            const m = url.match(re);
+            if (m && m[1]) {
+              // values may be percent-encoded; decode safely
+              try {
+                accessToken = decodeURIComponent(m[1]);
+              } catch {
+                accessToken = m[1];
+              }
+              // eslint-disable-next-line no-console
+              console.log('[AuthCallback] token found via regex fallback');
+            }
+          } catch (e) {
+            // ignore
           }
         }
 
