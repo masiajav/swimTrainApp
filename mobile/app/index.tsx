@@ -86,18 +86,7 @@ export default function WelcomeScreen() {
                 </TouchableOpacity>
               </Link>
               
-              <Link href="/(tabs)" asChild>
-                <TouchableOpacity style={styles.secondaryButton} activeOpacity={0.8}>
-                  <View style={styles.buttonContent}>
-                    <View style={styles.secondaryButtonIcon}>
-                      <Text style={styles.secondaryButtonIconText}>◉</Text>
-                    </View>
-                    <Text style={styles.secondaryButtonText}>
-                      Try Demo
-                    </Text>
-                  </View>
-                </TouchableOpacity>
-              </Link>
+              {/* Try Demo removed for MVP (use Sign In / Sign Up only) */}
             </View>
           </View>
           
