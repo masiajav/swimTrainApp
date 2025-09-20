@@ -162,16 +162,8 @@ export default function RegisterScreen() {
             <View style={styles.dividerLine} />
           </View>
 
-          {/* Google Sign Up Button */}
-          <TouchableOpacity 
-            onPress={handleGoogleSignUp}
-            style={styles.googleButton}
-            disabled={isLoading}
-          >
-            <Text style={styles.googleButtonText}>
-              🔍 Sign up with Google
-            </Text>
-          </TouchableOpacity>
+          {/* Google Sign Up Button hidden for MVP (email/password only) */}
+          {/* Removed visual Google sign-up for MVP release. Re-enable by restoring the button and handler. */}
           
           <Link href="/auth/login" asChild>
             <TouchableOpacity style={styles.loginLink}>
