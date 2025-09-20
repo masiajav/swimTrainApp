@@ -132,7 +132,7 @@ npx expo start --android
 ## ⚠️ Current Test Status
 
 - Android: Verified — the app can be started and run on Android emulators and devices using Expo (see `npx expo start --android`).
-- Google login on mobile: Known issue — OAuth redirect/callback is unreliable in some environments (the app may not receive the provider callback). A temporary backend redirect helper and `POST /api/auth/dev-login` endpoint are available for local testing.
+-- Google login on mobile: Deferred for MVP. Due to inconsistent redirect/callback behavior on emulators and some devices, the mobile Google sign-in UI has been disabled for the MVP release. Use the email/password registration and login flows for development and testing. The `POST /api/auth/dev-login` endpoint and the redirect helper remain in the codebase for future re-enablement and troubleshooting.
 - iOS: Not tested in this branch; iOS behaviour is currently unverified.
 ## 🔧 Development Workflow
 

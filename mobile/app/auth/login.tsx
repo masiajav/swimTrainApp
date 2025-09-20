@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { Link, router } from 'expo-router';
 import { apiService } from '../../services/api';
 import * as Linking from 'expo-linking';
+import Constants from 'expo-constants';
 
 export default function LoginScreen() {
   const [email, setEmail] = useState('');
@@ -53,15 +54,26 @@ export default function LoginScreen() {
     try {
       // Web: navigate to callback route on same origin
       if (Platform.OS === 'web') {
-  const redirectUrl = window.location.origin + '/auth/callback';
-  window.location.href = `${SUPABASE_URL}/auth/v1/authorize?provider=google&redirect_to=${encodeURIComponent(redirectUrl)}`;
+        const redirectUrl = window.location.origin + '/auth/callback';
+        window.location.href = `${SUPABASE_URL}/auth/v1/authorize?provider=google&redirect_to=${encodeURIComponent(redirectUrl)}`;
         return;
       }
 
-      // Mobile: open external browser to Supabase authorize endpoint and let it
-      // redirect back to our custom scheme (swimtrainapp://auth/callback)
-      const fallback = 'swimtrainapp://auth/callback';
-  const authUrl = `${SUPABASE_URL}/auth/v1/authorize?provider=google&redirect_to=${encodeURIComponent(fallback)}`;
+    // Mobile: open external browser to Supabase authorize endpoint and let it
+    // redirect to our public redirect helper which will deep-link back to
+    // swimtrainapp://auth/callback with the fragment (access_token)...
+    // Using the public helper avoids provider redirects landing at local dev
+    // servers (which don't contain the fragment) when testing on device.
+    const redirectHelper = (Constants?.manifest?.extra as any)?.REDIRECT_HELPER_URL ||
+      'https://pkrtqzsudfeehwufyduy.functions.supabase.co/redirect-helper/';
+    const fallback = 'swimtrainapp://auth/callback';
+  const authUrl = `${SUPABASE_URL}/auth/v1/authorize?provider=google&redirect_to=${encodeURIComponent(redirectHelper)}`;
+  // Debug: log the URL we will open so we can confirm redirect target in logs
+  // eslint-disable-next-line no-console
+  console.log('[Auth] opening authUrl =', authUrl);
+  // Debug: print runtime manifest extras to confirm which REDIRECT_HELPER_URL we picked up
+  // eslint-disable-next-line no-console
+  console.log('[Auth] manifest.extra =', (Constants?.manifest as any)?.extra);
 
       Alert.alert(
         'Continue in browser',
@@ -153,16 +165,8 @@ export default function LoginScreen() {
           <View style={styles.dividerLine} />
         </View>
 
-        {/* Google Sign In Button */}
-        <TouchableOpacity 
-          onPress={handleGoogleLogin}
-          style={styles.googleButton}
-          disabled={isLoading}
-        >
-          <Text style={styles.googleButtonText}>
-            🔍 Continue with Google
-          </Text>
-        </TouchableOpacity>
+        {/* Google Sign In Button hidden for MVP (email/password only) */}
+        {/* Removed visual Google sign-in for MVP release. Re-enable by restoring the button and handler. */}
         
         <Link href="/auth/register" asChild>
           <TouchableOpacity style={styles.signUpLink}>
