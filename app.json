@@ -1,0 +1,12 @@
+{
+  "expo": {
+    "extra": {
+      "eas": {
+        "projectId": "35a7df88-5281-49b4-b325-b46b91aec0e6"
+      }
+    },
+    "android": {
+      "package": "com.masiajav.swimtrainapp"
+    }
+  }
+}

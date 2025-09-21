@@ -1,18 +1,36 @@
+import dotenv from 'dotenv';
+
+// Load environment variables VERY early so any imported modules that read process.env
+// (for example route modules that create a Supabase client at module import time)
+// have the variables available.
+dotenv.config();
+
 import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
-import dotenv from 'dotenv';
 import { PrismaClient } from '@prisma/client';
 
-// Import routes
+// Import routes (after dotenv.config())
 import authRoutes from './routes/auth';
 import userRoutes from './routes/users';
 import sessionRoutes from './routes/sessions';
 import workoutRoutes from './routes/workouts';
 import teamRoutes from './routes/teams';
 
-// Load environment variables
-dotenv.config();
+// Validate required environment variables early to provide clear errors in CI/deploy
+const requiredEnv = [
+  'DATABASE_URL',
+  'SUPABASE_URL',
+  'SUPABASE_SERVICE_ROLE_KEY',
+  'JWT_SECRET'
+];
+
+const missing = requiredEnv.filter((n) => !process.env[n]);
+if (missing.length > 0) {
+  console.error('Missing required environment variables:', missing.join(', '));
+  // Exit so the container will fail fast and Railway shows the reason
+  process.exit(1);
+}
 
 // Initialize Express app
 const app = express();
