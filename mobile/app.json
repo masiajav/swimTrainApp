@@ -39,7 +39,7 @@
       "eas": {
         "projectId": "35a7df88-5281-49b4-b325-b46b91aec0e6"
       },
-      "API_BASE_URL": "https://pkrtqzsudfeehwufyduy.supabase.co",
+      "API_BASE_URL": "https://swimtrainapp-production.up.railway.app/api",
       "REDIRECT_HELPER_URL": "https://pkrtqzsudfeehwufyduy.functions.supabase.co/redirect-helper/"
     }
   }
