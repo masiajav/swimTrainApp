@@ -3,10 +3,10 @@
 // It is intentionally small and logs helpful info if the target is missing.
 
 try {
-  console.log('Runtime shim: attempting to load backend/dist/index.js');
-  module.exports = require('./backend/dist/index.js');
+  console.log('Runtime shim: attempting to load /app/dist/index.js');
+  module.exports = require('/app/dist/index.js');
 } catch (e) {
-  console.error('Runtime shim error: failed to load ./backend/dist/index.js');
+  console.error('Runtime shim error: failed to load /app/dist/index.js');
   console.error(e && e.stack ? e.stack : e);
   // Re-throw so the process fails loudly if the backend entry is missing
   throw e;
