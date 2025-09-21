@@ -35,4 +35,6 @@ ENV PORT=3000
 
 EXPOSE 3000
 
-CMD ["node", "dist/index.js"]
+# Use an absolute path for the runtime entry to avoid ambiguity about the
+# working directory in different deploy environments.
+CMD ["node", "/app/dist/index.js"]
