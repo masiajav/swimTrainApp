@@ -12,10 +12,10 @@
     ],
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.swimteam.swimtrainapp"
+      "bundleIdentifier": "com.masiajav.swimtrainapp"
     },
     "android": {
-      "package": "com.swimteam.swimtrainapp",
+      "package": "com.masiajav.swimtrainapp",
       "adaptiveIcon": {
         "backgroundColor": "#ffffff"
       }
