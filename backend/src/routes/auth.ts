@@ -57,24 +57,89 @@ router.post('/register', async (req, res) => {
     });
 
     if (authError) {
-      return res.status(400).json({ error: authError.message });
+      console.error('Supabase createUser error:', authError);
+      // If the email already exists in Supabase, be friendly: try to sign in the user with provided password.
+      if ((authError as any)?.code === 'email_exists') {
+        // Try to sign in with the provided credentials; if successful, create local record if missing and return token.
+        try {
+          const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({ email, password });
+          if (signInError) {
+            // Password probably wrong; tell client to login or reset password
+            return res.status(409).json({ error: 'Email already registered. Please login or reset your password.' });
+          }
+
+          const supabaseUserId = signInData?.user?.id || signInData?.session?.user?.id;
+          if (!supabaseUserId) {
+            return res.status(500).json({ error: 'Auth provider returned no user id after sign-in' });
+          }
+
+          // Ensure local user exists
+          let existing = await prisma.user.findUnique({ where: { id: supabaseUserId } });
+          if (!existing) {
+            // If email already exists in our DB with different id, prefer finding by email
+            const byEmail = await prisma.user.findUnique({ where: { email } as any });
+            if (byEmail) {
+              existing = byEmail;
+            } else {
+              try {
+                existing = await prisma.user.create({ data: { id: supabaseUserId, email, username } });
+              } catch (e: any) {
+                if (e?.code === 'P2002') {
+                  // Unique constraint (likely email) - find the record by email and use it
+                  existing = await prisma.user.findUnique({ where: { email } as any });
+                } else {
+                  console.error('Failed to create local user after existing Supabase sign-in:', e);
+                  return res.status(500).json({ error: 'Failed to create local user record' });
+                }
+              }
+            }
+          }
+
+          // Ensure existing is available
+          if (!existing) {
+            console.error('Could not resolve existing user after sign-in flow');
+            return res.status(500).json({ error: 'Failed to resolve existing user' });
+          }
+
+          // Generate JWT and return as if registered/logged in
+          const token = generateToken(existing.id);
+          return res.status(200).json({ message: 'Existing user signed in', token, user: { id: existing.id, email: existing.email, username: existing.username } });
+        } catch (e) {
+          console.error('Error handling existing email during register:', e);
+          return res.status(500).json({ error: 'Failed to handle existing user registration' });
+        }
+      }
+
+      return res.status(400).json({ error: authError.message || 'Failed to create user in auth provider' });
     }
 
     // Create user record in our database
-    const user = await prisma.user.create({
-      data: {
-        id: authData.user!.id,
+    if (!authData || !authData.user || !authData.user.id) {
+      console.error('Supabase returned no user after createUser', authData);
+      return res.status(500).json({ error: 'Auth provider did not return user information' });
+    }
+
+    const user = await prisma.user.upsert({
+      where: { id: authData.user.id },
+      update: {
         email,
         username,
         firstName,
         lastName,
       },
+      create: {
+        id: authData.user.id,
+        email,
+        username,
+        firstName,
+        lastName,
+      }
     });
 
     // Generate JWT token
     const token = generateToken(user.id);
 
-    res.status(201).json({ 
+    res.status(201).json({
       message: 'User registered successfully',
       token,
       user: {
@@ -106,22 +171,80 @@ router.post('/login', async (req, res) => {
     });
 
     if (authError) {
-      return res.status(401).json({ error: 'Invalid email or password' });
+      console.error('Supabase signIn error:', authError);
+      return res.status(401).json({ error: authError.message || 'Invalid email or password' });
+    }
+
+    // authData may contain { session, user }
+    const supabaseUserId = authData?.user?.id || authData?.session?.user?.id;
+    if (!supabaseUserId) {
+      console.error('No user id returned from supabase on signIn', authData);
+      return res.status(500).json({ error: 'Authentication provider returned no user id' });
     }
 
     // Get user from our database
-    const user = await prisma.user.findUnique({
-      where: { id: authData.user!.id },
+    let user = await prisma.user.findUnique({
+      where: { id: supabaseUserId },
     });
 
     if (!user) {
-      return res.status(404).json({ error: 'User not found' });
+      // If the user exists in Supabase but not in our DB, create a local record.
+      // This can happen if the user was created directly in Supabase admin or via OAuth.
+      console.warn('User found in Supabase but not in prisma DB; creating local record for', supabaseUserId);
+      // Try to get email/username from supabase auth data if available
+      const emailFromSupabase = authData?.user?.email || authData?.session?.user?.email || email;
+      const usernameFromSupabase = emailFromSupabase ? emailFromSupabase.split('@')[0] : `user_${Date.now()}`;
+      try {
+        // First, try to find any local user by email to avoid unique constraint errors
+        if (emailFromSupabase) {
+          const byEmail = await prisma.user.findUnique({ where: { email: emailFromSupabase } as any });
+          if (byEmail) {
+            user = byEmail;
+          }
+        }
+
+        if (!user) {
+          const created = await prisma.user.upsert({
+            where: { id: supabaseUserId },
+            update: {
+              email: emailFromSupabase,
+              username: usernameFromSupabase || `user_${Date.now()}`,
+            },
+            create: {
+              id: supabaseUserId,
+              email: emailFromSupabase,
+              username: usernameFromSupabase || `user_${Date.now()}`,
+            }
+          });
+          // assign the upserted record to `user`
+          user = created;
+        }
+      } catch (createErr: any) {
+        console.error('Failed to create local user record:', createErr);
+        // If unique constraint failed, try to retrieve the record by email as a fallback
+        if (createErr?.code === 'P2002' && emailFromSupabase) {
+          const fallback = await prisma.user.findUnique({ where: { email: emailFromSupabase } as any });
+          if (fallback) {
+            user = fallback;
+          } else {
+            return res.status(500).json({ error: 'Unique constraint error and fallback lookup failed' });
+          }
+        } else {
+          return res.status(500).json({ error: 'Failed to create local user record' });
+        }
+      }
+    }
+
+    // Ensure user exists at this point
+    if (!user) {
+      console.error('User missing after attempted creation for supabase id', supabaseUserId);
+      return res.status(500).json({ error: 'User not available after authentication' });
     }
 
     // Generate JWT token
     const token = generateToken(user.id);
 
-    res.json({ 
+    res.json({
       message: 'Login successful',
       token,
       user: {
@@ -172,17 +295,25 @@ router.post('/google', async (req, res) => {
     });
 
     // Create user if doesn't exist (first-time Google login)
-    if (!user) {
-      console.log('Creating new user from Google OAuth:', authUser.email);
-      user = await prisma.user.create({
-        data: {
-          id: authUser.id,
+      if (!user) {
+      console.log('Creating new user from Google OAuth or upserting:', authUser.email);
+      user = await prisma.user.upsert({
+        where: { id: authUser.id },
+        update: {
           email: authUser.email!,
-          username: authUser.email!.split('@')[0], // Use email prefix as username
+          username: authUser.email!.split('@')[0],
           firstName: authUser.user_metadata?.full_name?.split(' ')[0] || '',
           lastName: authUser.user_metadata?.full_name?.split(' ').slice(1).join(' ') || '',
           avatar: authUser.user_metadata?.avatar_url,
         },
+        create: {
+          id: authUser.id,
+          email: authUser.email!,
+          username: authUser.email!.split('@')[0],
+          firstName: authUser.user_metadata?.full_name?.split(' ')[0] || '',
+          lastName: authUser.user_metadata?.full_name?.split(' ').slice(1).join(' ') || '',
+          avatar: authUser.user_metadata?.avatar_url,
+        }
       });
     } else {
       console.log('Existing user Google login:', user.email);

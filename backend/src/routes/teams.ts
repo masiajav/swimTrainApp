@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient, Prisma } from '@prisma/client';
 import { authenticateToken } from '../middleware/auth';
 
 const router = Router();
@@ -76,7 +76,7 @@ router.post('/', authenticateToken, async (req: any, res) => {
     }
 
     // Create team and update user
-    const team = await prisma.$transaction(async (tx) => {
+    const team = await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
       const newTeam = await tx.team.create({
         data: {
           name,
