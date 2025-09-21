@@ -26,7 +26,11 @@ export default function WelcomeScreen() {
           
           {/* App Title */}
           <View style={styles.titleContainer}>
-            <Text style={styles.appTitle}>
+            <Text
+              style={styles.appTitle}
+              numberOfLines={1}
+              allowFontScaling={false}
+            >
               SwimTrainApp
             </Text>
             <View style={styles.titleUnderline} />
@@ -191,6 +195,7 @@ const styles = StyleSheet.create({
   titleContainer: {
     alignItems: 'center',
     marginBottom: 32,
+    flexShrink: 0,
   },
   appTitle: {
     fontSize: 48,
@@ -199,6 +204,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginBottom: 12,
     letterSpacing: 1,
+    lineHeight: 52,
   },
   titleUnderline: {
     height: 4,

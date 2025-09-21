@@ -16,6 +16,7 @@
     },
     "android": {
       "package": "com.masiajav.swimtrainapp",
+      "permissions": [],
       "adaptiveIcon": {
         "backgroundColor": "#ffffff"
       }
