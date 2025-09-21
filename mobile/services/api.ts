@@ -9,7 +9,7 @@ import { Platform } from 'react-native';
 // 2. If running in dev, try the debugger host LAN address so the device can
 //    reach the backend on your machine.
 // 3. When on Android emulator fall back to 10.0.2.2.
-let API_BASE_URL = 'http://localhost:3000/api';
+let API_BASE_URL = 'https://swimtrainapp-production.up.railway.app/api';
 try {
   // eslint-disable-next-line @typescript-eslint/no-var-requires
   const Constants = require('expo-constants');
@@ -21,9 +21,17 @@ try {
   // Supabase Edge Functions for the token-exchange and user provisioning,
   // point this at your Supabase project URL (we will call the function
   // /functions/v1/google-auth from the mobile app).
-  const defaultProdUrl = 'https://pkrtqzsudfeehwufyduy.supabase.co';
-  if (typeof __DEV__ !== 'undefined' && !__DEV__) {
-    API_BASE_URL = extra?.API_BASE_URL || process.env?.API_BASE_URL || defaultProdUrl;
+  const defaultProdUrl = 'https://swimtrainapp-production.up.railway.app/api';
+
+  // Allow an explicit override coming from app.json (Expo Constants extra)
+  // or process.env to take precedence even when running in dev. This is
+  // useful for testing the published backend (Railway) while running the
+  // app locally with Expo/Metro.
+  const explicitApi = extra?.API_BASE_URL || process.env?.API_BASE_URL;
+  if (explicitApi) {
+    API_BASE_URL = explicitApi;
+  } else if (typeof __DEV__ !== 'undefined' && !__DEV__) {
+    API_BASE_URL = defaultProdUrl;
   } else {
     // Dev: prefer debuggerHost LAN address when present (so device uses machine IP)
     const debuggerHost = manifest?.debuggerHost as string | undefined;
