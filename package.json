@@ -9,7 +9,8 @@
     "dev:mobile": "cd mobile && npx expo start",
     "install:all": "npm install && cd backend && npm install && cd ../mobile && npm install",
     "build:mobile": "cd mobile && npx expo export",
-    "type-check": "cd backend && npm run type-check && cd ../mobile && npx tsc --noEmit"
+    "type-check": "cd backend && npm run type-check && cd ../mobile && npx tsc --noEmit",
+    "postinstall": "cd backend && npm ci && npm run db:generate || true && npm run build || true"
   },
   "keywords": [
     "swimming",
