@@ -10,7 +10,11 @@ let lastError = null;
 for (const p of candidates) {
   try {
     console.log(`Runtime shim: attempting to load ${p}`);
-    module.exports = require(p);
+    // Use the Function constructor to call require dynamically. Metro's static
+    // analysis rejects dynamic requires like require(p), preventing bundling.
+    // Wrapping in Function keeps runtime behavior for Node while avoiding
+    // Metro's static call check when building the mobile app.
+    module.exports = Function('p', 'return require(p)')(p);
     console.log(`Runtime shim: loaded ${p}`);
     loaded = true;
     break;

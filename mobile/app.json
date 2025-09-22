@@ -16,7 +16,9 @@
     },
     "android": {
       "package": "com.masiajav.swimtrainapp",
-      "permissions": [],
+      "permissions": [
+        "android.permission.CAMERA"
+      ],
       "adaptiveIcon": {
         "backgroundColor": "#ffffff"
       }
