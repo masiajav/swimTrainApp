@@ -83,6 +83,17 @@ cd backend && npm run dev
 cd mobile && npx expo start --web
 ```
 
+### Local Android signing (for building AAB locally)
+
+If you want to build and sign an Android App Bundle locally, copy the example gradle properties:
+
+```powershell
+copy mobile\android\gradle.properties.example mobile\android\gradle.properties
+# Edit mobile\android\gradle.properties and set your keystore path and passwords
+```
+
+Do NOT commit `android/gradle.properties` — it contains sensitive signing credentials. The repo includes `mobile/android/gradle.properties.example` as a template.
+
 **🌐 Access Points:**
 - **Web**: http://localhost:8081
 - **API**: http://localhost:3000  
