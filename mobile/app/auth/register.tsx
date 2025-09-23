@@ -2,11 +2,13 @@ import { View, Text, TextInput, TouchableOpacity, Alert, StyleSheet, ScrollView 
 import { useState } from 'react';
 import { Link, router } from 'expo-router';
 import { apiService } from '../../services/api';
+import { Ionicons } from '@expo/vector-icons';
 
 export default function RegisterScreen() {
   const [email, setEmail] = useState('');
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -134,14 +136,23 @@ export default function RegisterScreen() {
             
             <View style={styles.inputContainer}>
               <Text style={styles.inputLabel}>🔒 Password *</Text>
-              <TextInput
-                placeholder="Create a strong password"
-                value={password}
-                onChangeText={setPassword}
-                secureTextEntry
-                style={styles.input}
-                placeholderTextColor="#94a3b8"
-              />
+              <View style={styles.inputOverlayContainer}>
+                <TextInput
+                  placeholder="Create a strong password"
+                  value={password}
+                  onChangeText={setPassword}
+                  secureTextEntry={!showPassword}
+                  style={[styles.input, styles.inputWithIcon]}
+                  placeholderTextColor="#94a3b8"
+                />
+                <TouchableOpacity
+                  onPress={() => setShowPassword((s) => !s)}
+                  style={styles.inputIcon}
+                  accessibilityLabel={showPassword ? 'Hide password' : 'Show password'}
+                >
+                  <Ionicons name={showPassword ? 'eye-off' : 'eye'} size={20} color="#059669" />
+                </TouchableOpacity>
+              </View>
             </View>
           </View>
           
@@ -365,5 +376,37 @@ const styles = StyleSheet.create({
   waveText: {
     fontSize: 24,
     opacity: 0.3,
+  },
+  passwordRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  passwordInput: {
+    flex: 1,
+  },
+  eyeButton: {
+    marginLeft: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    borderRadius: 8,
+    backgroundColor: 'transparent',
+  },
+  eyeText: {
+    color: '#059669',
+    fontWeight: '600',
+  },
+  inputOverlayContainer: {
+    position: 'relative',
+    justifyContent: 'center',
+  },
+  inputWithIcon: {
+    paddingRight: 44,
+  },
+  inputIcon: {
+    position: 'absolute',
+    right: 12,
+    height: '100%',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 });
