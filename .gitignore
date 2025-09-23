@@ -133,6 +133,9 @@ captures/
 # Keystore files
 *.jks
 
+# Local gradle properties which contain signing secrets - keep them out of git
+mobile/android/gradle.properties
+
 # External native build folder generated in Android Studio 2.2 and later
 .externalNativeBuild
 
