@@ -4,6 +4,7 @@ import { Link, router } from 'expo-router';
 import { apiService } from '../../services/api';
 import * as Linking from 'expo-linking';
 import Constants from 'expo-constants';
+import { Ionicons } from '@expo/vector-icons';
 
 export default function LoginScreen() {
   const [email, setEmail] = useState('');
@@ -175,21 +176,21 @@ export default function LoginScreen() {
         
         <View style={styles.inputContainer}>
           <Text style={styles.inputLabel}>🔒 Password</Text>
-          <View style={styles.passwordRow}>
+          <View style={styles.inputOverlayContainer}>
             <TextInput
               placeholder="Enter your password"
               value={password}
               onChangeText={setPassword}
               secureTextEntry={!showPassword}
-              style={[styles.input, styles.passwordInput]}
+              style={[styles.input, styles.inputWithIcon]}
               placeholderTextColor="#94a3b8"
             />
             <TouchableOpacity
               onPress={() => setShowPassword((s) => !s)}
-              style={styles.eyeButton}
+              style={styles.inputIcon}
               accessibilityLabel={showPassword ? 'Hide password' : 'Show password'}
             >
-              <Text style={styles.eyeText}>{showPassword ? 'Hide' : 'Show'}</Text>
+              <Ionicons name={showPassword ? 'eye-off' : 'eye'} size={20} color="#3b82f6" />
             </TouchableOpacity>
           </View>
         </View>
@@ -309,6 +310,20 @@ const styles = StyleSheet.create({
     fontSize: 16,
     backgroundColor: '#f8fafc',
     color: '#1e293b',
+  },
+  inputOverlayContainer: {
+    position: 'relative',
+    justifyContent: 'center',
+  },
+  inputWithIcon: {
+    paddingRight: 44, // room for the icon
+  },
+  inputIcon: {
+    position: 'absolute',
+    right: 12,
+    height: '100%',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   loginButton: {
     backgroundColor: '#3b82f6',
