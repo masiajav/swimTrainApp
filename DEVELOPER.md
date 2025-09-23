@@ -399,6 +399,25 @@ enum Intensity {
 
 This project uses Expo (dev-client) for development. Below are the practical steps and troubleshooting tips we use to test Google OAuth on Android emulators/devices.
 
+## 🔐 Auto-login behavior (mobile)
+
+Recent change: the mobile client implements an optional "Enable Auto-login" preference that controls whether the authentication token (JWT) is persisted between app launches. Summary:
+
+- Storage keys used by the mobile app (in `mobile/services/api.ts`):
+  - `AUTH_TOKEN_KEY` = 'authToken' (persisted JWT when auto-login is enabled)
+  - `AUTO_LOGIN_KEY` = 'autoLoginEnabled' (user preference)
+  - `DID_LOGOUT_KEY` = 'didLogout' (explicit logout marker — prevents auto-login)
+
+- Behavior rules:
+  - If the user enables "Enable Auto-login", the token will be saved to persistent storage (AsyncStorage on native, localStorage on web) and reloaded on app startup to perform an automatic login.
+  - If the user does not enable auto-login, the token is kept in memory only and is not persisted. Restarting the app will require re-authentication as before.
+  - If the user explicitly logs out, the app sets `DID_LOGOUT_KEY` to true and clears any persisted token; this prevents auto-login until a new login occurs.
+
+- Implementation notes:
+  - The mobile app initializes `apiService` at app startup and will load a persisted token only when auto-login is enabled and `didLogout` is not set. A `BootWrapper` component now waits for this initialization before rendering application navigation to avoid flicker between auth states.
+  - For production, consider using secure platform storage (Keychain / EncryptedSharedPreferences) instead of AsyncStorage/localStorage for token persistence.
+
+
 Important: the app talks to the backend for user data and for exchanging provider tokens (Google). For reliable testing you need:
 - Metro (dev server) running when using the dev-client
 - Backend API reachable from the emulator/device (see loopback addresses)

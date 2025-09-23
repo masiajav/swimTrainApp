@@ -41,9 +41,18 @@ export default function SettingsScreen() {
   const [notifications, setNotifications] = useState(true);
   const [units, setUnits] = useState<'metric' | 'imperial'>('metric');
   const [privacy, setPrivacy] = useState<'public' | 'friends' | 'private'>('public');
+  const [autoLoginEnabled, setAutoLoginEnabled] = useState(false);
 
   useEffect(() => {
     loadProfile();
+    (async () => {
+      try {
+        const enabled = await apiService.getAutoLoginEnabled();
+        setAutoLoginEnabled(enabled);
+      } catch (e) {
+        // ignore
+      }
+    })();
   }, []);
 
   const calculateUserStats = (sessions: any[]): UserStats => {
@@ -298,6 +307,25 @@ export default function SettingsScreen() {
               onValueChange={setNotifications}
               trackColor={{ false: "#767577", true: colors.primary }}
               thumbColor={notifications ? "#ffffff" : "#f4f3f4"}
+            />
+          </View>
+          <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 16 }}>
+            <View style={{ flex: 1, marginRight: 16 }}>
+              <Text style={{ fontSize: 16, fontWeight: '600', color: colors.text, marginBottom: 4 }}>Enable Auto-login</Text>
+              <Text style={{ fontSize: 14, color: colors.textSecondary, lineHeight: 20 }}>If enabled, the app will automatically sign you in when reopened</Text>
+            </View>
+            <Switch
+              value={autoLoginEnabled}
+              onValueChange={async (v) => {
+                setAutoLoginEnabled(v);
+                try {
+                  await apiService.setAutoLoginEnabled(v);
+                } catch (e) {
+                  // ignore
+                }
+              }}
+              trackColor={{ false: "#767577", true: colors.primary }}
+              thumbColor={autoLoginEnabled ? "#ffffff" : "#f4f3f4"}
             />
           </View>
 
