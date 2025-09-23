@@ -8,6 +8,7 @@ import Constants from 'expo-constants';
 export default function LoginScreen() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [autoLogin, setAutoLogin] = useState(false);
 
@@ -174,14 +175,23 @@ export default function LoginScreen() {
         
         <View style={styles.inputContainer}>
           <Text style={styles.inputLabel}>🔒 Password</Text>
-          <TextInput
-            placeholder="Enter your password"
-            value={password}
-            onChangeText={setPassword}
-            secureTextEntry
-            style={styles.input}
-            placeholderTextColor="#94a3b8"
-          />
+          <View style={styles.passwordRow}>
+            <TextInput
+              placeholder="Enter your password"
+              value={password}
+              onChangeText={setPassword}
+              secureTextEntry={!showPassword}
+              style={[styles.input, styles.passwordInput]}
+              placeholderTextColor="#94a3b8"
+            />
+            <TouchableOpacity
+              onPress={() => setShowPassword((s) => !s)}
+              style={styles.eyeButton}
+              accessibilityLabel={showPassword ? 'Hide password' : 'Show password'}
+            >
+              <Text style={styles.eyeText}>{showPassword ? 'Hide' : 'Show'}</Text>
+            </TouchableOpacity>
+          </View>
         </View>
         <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 12 }}>
           <Text style={{ marginRight: 12, color: '#374151', fontWeight: '600' }}>Enable Auto-login</Text>
@@ -362,6 +372,24 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#64748b',
     fontWeight: '500',
+  },
+  passwordRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  passwordInput: {
+    flex: 1,
+  },
+  eyeButton: {
+    marginLeft: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    borderRadius: 8,
+    backgroundColor: 'transparent',
+  },
+  eyeText: {
+    color: '#3b82f6',
+    fontWeight: '600',
   },
   googleButton: {
     backgroundColor: 'white',
