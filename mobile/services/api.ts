@@ -1,5 +1,6 @@
 import { ApiResponse, LoginRequest, RegisterRequest, AuthResponse } from '../../shared/types';
 import { Platform } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 // Determine an API base the device can reach. On device, localhost won't work when using
 // the emulator or physical device; prefer a runtime override via process.env or Expo Constants.
@@ -9,7 +10,7 @@ import { Platform } from 'react-native';
 // 2. If running in dev, try the debugger host LAN address so the device can
 //    reach the backend on your machine.
 // 3. When on Android emulator fall back to 10.0.2.2.
-let API_BASE_URL = 'https://swimtrainapp-production.up.railway.app/api';
+let API_BASE_URL = 'http://10.0.2.2:3000/api';
 try {
   // eslint-disable-next-line @typescript-eslint/no-var-requires
   const Constants = require('expo-constants');
@@ -55,6 +56,10 @@ try {
   // If anything goes wrong reading Constants, keep the default localhost dev URL
 }
 
+const AUTH_TOKEN_KEY = 'authToken';
+const AUTO_LOGIN_KEY = 'autoLoginEnabled';
+const DID_LOGOUT_KEY = 'didLogout';
+
 class ApiService {
   private async request<T>(
     endpoint: string,
@@ -65,9 +70,11 @@ class ApiService {
         'Content-Type': 'application/json',
       };
 
-      const url = `${API_BASE_URL}${endpoint}`;
+  const url = `${API_BASE_URL}${endpoint}`;
+  // eslint-disable-next-line no-console
+  console.log('[ApiService] request ->', options.method || 'GET', url);
 
-      const response = await fetch(url, {
+  const response = await fetch(url, {
         ...options,
         headers: {
           ...defaultHeaders,
@@ -145,32 +152,75 @@ class ApiService {
   // Helper to set auth token for authenticated requests
   setAuthToken(token: string) {
     this.authToken = token;
-    // Persist token to localStorage for web
+    // Debug: token set
+    // eslint-disable-next-line no-console
+    console.log('[ApiService] setAuthToken called, token present:', !!token);
+    // Clear the "did logout" flag when the user explicitly logs in
     try {
       if (typeof window !== 'undefined' && (window as any).localStorage) {
-        (window as any).localStorage.setItem('authToken', token);
+        (window as any).localStorage.removeItem(DID_LOGOUT_KEY);
       }
+      // Persist token only if auto-login is enabled
+      (async () => {
+        try {
+          if (Platform.OS === 'web') {
+            const auto = (typeof window !== 'undefined' && (window as any).localStorage)
+              ? (window as any).localStorage.getItem(AUTO_LOGIN_KEY) === 'true'
+              : false;
+            if (auto) {
+              (window as any).localStorage.setItem(AUTH_TOKEN_KEY, token);
+              // eslint-disable-next-line no-console
+              console.log('[ApiService] persisted auth token to localStorage (web)');
+            }
+          } else {
+            const auto = await AsyncStorage.getItem(AUTO_LOGIN_KEY);
+            if (auto === 'true') {
+              await AsyncStorage.setItem(AUTH_TOKEN_KEY, token);
+              // eslint-disable-next-line no-console
+              console.log('[ApiService] persisted auth token to AsyncStorage (native)');
+            }
+            // Clear didLogout flag
+            await AsyncStorage.removeItem(DID_LOGOUT_KEY);
+            // eslint-disable-next-line no-console
+            console.log('[ApiService] cleared DID_LOGOUT flag in AsyncStorage');
+          }
+        } catch (e) {
+          // ignore persistence errors
+        }
+      })();
     } catch (e) {
-      // localStorage not available (React Native). Token stays in-memory.
+      // ignore
     }
   }
 
   // Helper to get auth token from storage
   getStoredAuthToken(): string | null {
+    // Prefer in-memory token
     if (this.authToken) return this.authToken;
-    
-    // Try to get from localStorage for web (safe accessor)
+
+    // For web, only return stored token if auto-login is enabled and user did not explicitly logout
     try {
       if (typeof window !== 'undefined' && (window as any).localStorage) {
-        const storedToken = (window as any).localStorage.getItem('authToken');
-        if (storedToken) {
-          this.authToken = storedToken;
-          return storedToken;
+        const didLogout = (window as any).localStorage.getItem(DID_LOGOUT_KEY) === 'true';
+        const auto = (window as any).localStorage.getItem(AUTO_LOGIN_KEY) === 'true';
+        // eslint-disable-next-line no-console
+        console.log('[ApiService] getStoredAuthToken (web) didLogout=', didLogout, 'auto=', auto);
+        if (!didLogout && auto) {
+          const storedToken = (window as any).localStorage.getItem(AUTH_TOKEN_KEY);
+          if (storedToken) {
+            this.authToken = storedToken;
+            // eslint-disable-next-line no-console
+            console.log('[ApiService] loaded token from localStorage (web)');
+            return storedToken;
+          }
         }
       }
     } catch (e) {
       // localStorage not available (React Native)
     }
+
+    // On native platforms we rely on explicit initialization that loads
+    // the token into memory at app startup (apiService.initialize()).
     return null;
   }
 
@@ -179,11 +229,19 @@ class ApiService {
     this.authToken = null;
     try {
       if (typeof window !== 'undefined' && (window as any).localStorage) {
-        (window as any).localStorage.removeItem('authToken');
+        (window as any).localStorage.removeItem(AUTH_TOKEN_KEY);
       }
     } catch (e) {
-      // localStorage not available
+      // ignore
     }
+    // Also remove from AsyncStorage (native)
+    (async () => {
+      try {
+        await AsyncStorage.removeItem(AUTH_TOKEN_KEY);
+      } catch (e) {
+        // ignore
+      }
+    })();
   }
 
   // Helper to get current auth token
@@ -195,6 +253,8 @@ class ApiService {
 
   private getAuthHeaders(): Record<string, string> {
     const token = this.getStoredAuthToken();
+    // eslint-disable-next-line no-console
+    console.log('[ApiService] getAuthHeaders — token present:', !!token);
     return token ? { Authorization: `Bearer ${token}` } : {};
   }
 
@@ -384,16 +444,115 @@ class ApiService {
   }
 
   async logout() {
-    // Clear stored token
+    // When the user explicitly logs out we must:
+    // - clear any stored token
+    // - remember that the user explicitly logged out (so auto-login won't re-auth)
+  this.authToken = null;
+  // eslint-disable-next-line no-console
+  console.log('[ApiService] logout called — cleared in-memory token and will mark DID_LOGOUT');
     try {
       if (typeof window !== 'undefined' && (window as any).localStorage) {
-        (window as any).localStorage.removeItem('authToken');
+        (window as any).localStorage.removeItem(AUTH_TOKEN_KEY);
+        (window as any).localStorage.setItem(DID_LOGOUT_KEY, 'true');
       }
     } catch (e) {
-      // localStorage not available
+      // ignore
     }
-    // You could also call a logout endpoint if needed
+    try {
+      await AsyncStorage.removeItem(AUTH_TOKEN_KEY);
+      await AsyncStorage.setItem(DID_LOGOUT_KEY, 'true');
+      // eslint-disable-next-line no-console
+      console.log('[ApiService] logout: removed token and set DID_LOGOUT in AsyncStorage');
+    } catch (e) {
+      // ignore
+    }
+
     return Promise.resolve();
+  }
+
+  // Initialize apiService on app startup: load persisted token into memory
+  async initialize() {
+    try {
+      // eslint-disable-next-line no-console
+      console.log('[ApiService] initialize: starting');
+      if (Platform.OS === 'web') {
+        const didLogout = (typeof window !== 'undefined' && (window as any).localStorage)
+          ? (window as any).localStorage.getItem(DID_LOGOUT_KEY) === 'true'
+          : true;
+        const auto = (typeof window !== 'undefined' && (window as any).localStorage)
+          ? (window as any).localStorage.getItem(AUTO_LOGIN_KEY) === 'true'
+          : false;
+        // eslint-disable-next-line no-console
+        console.log('[ApiService] initialize (web): didLogout=', didLogout, 'auto=', auto);
+        if (!didLogout && auto) {
+          const stored = (window as any).localStorage.getItem(AUTH_TOKEN_KEY);
+          if (stored) {
+            this.authToken = stored;
+            // eslint-disable-next-line no-console
+            console.log('[ApiService] initialize: loaded token from localStorage (web)');
+          }
+        }
+      } else {
+        const [didLogout, auto, stored] = await Promise.all([
+          AsyncStorage.getItem(DID_LOGOUT_KEY),
+          AsyncStorage.getItem(AUTO_LOGIN_KEY),
+          AsyncStorage.getItem(AUTH_TOKEN_KEY),
+        ]);
+        // eslint-disable-next-line no-console
+        console.log('[ApiService] initialize (native): didLogout=', didLogout, 'auto=', auto, 'stored present=', !!stored);
+        if (auto === 'true' && didLogout !== 'true' && stored) {
+          this.authToken = stored;
+          // eslint-disable-next-line no-console
+          console.log('[ApiService] initialize: loaded token from AsyncStorage (native)');
+        }
+      }
+      // eslint-disable-next-line no-console
+      console.log('[ApiService] initialize: complete. in-memory token present=', !!this.authToken);
+    } catch (e) {
+      // ignore
+    }
+  }
+
+  async setAutoLoginEnabled(enabled: boolean) {
+    try {
+      if (Platform.OS === 'web') {
+        if (typeof window !== 'undefined' && (window as any).localStorage) {
+          (window as any).localStorage.setItem(AUTO_LOGIN_KEY, enabled ? 'true' : 'false');
+          if (enabled && this.authToken) {
+            (window as any).localStorage.setItem(AUTH_TOKEN_KEY, this.authToken);
+          }
+          if (!enabled) {
+            (window as any).localStorage.removeItem(AUTH_TOKEN_KEY);
+          }
+        }
+      } else {
+        await AsyncStorage.setItem(AUTO_LOGIN_KEY, enabled ? 'true' : 'false');
+        if (enabled && this.authToken) {
+          await AsyncStorage.setItem(AUTH_TOKEN_KEY, this.authToken);
+        }
+        if (!enabled) {
+          await AsyncStorage.removeItem(AUTH_TOKEN_KEY);
+        }
+      }
+    } catch (e) {
+      // ignore
+    }
+  }
+
+  async getAutoLoginEnabled(): Promise<boolean> {
+    try {
+      if (Platform.OS === 'web') {
+        if (typeof window !== 'undefined' && (window as any).localStorage) {
+          return (window as any).localStorage.getItem(AUTO_LOGIN_KEY) === 'true';
+        }
+        return false;
+      } else {
+        const v = await AsyncStorage.getItem(AUTO_LOGIN_KEY);
+        return v === 'true';
+      }
+    } catch (e) {
+      return false;
+    }
   }
 }
 

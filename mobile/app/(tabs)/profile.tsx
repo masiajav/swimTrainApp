@@ -172,19 +172,17 @@ export default function ProfileScreen() {
     return achievements.slice(0, 3); // Show max 3 achievements
   };
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
     console.log('Logout button clicked!');
     
     // For web platform, use window.confirm instead of Alert
     if (Platform.OS === 'web' && typeof window !== 'undefined' && typeof window.confirm === 'function') {
       const confirmed = window.confirm('Are you sure you want to logout?');
-      if (confirmed) {
-        console.log('Logout confirmed, clearing token and redirecting...');
-        // Clear the auth token
-        apiService.clearAuthToken();
-        console.log('Token cleared, redirecting to login...');
-        
-        // Redirect to login screen
+        if (confirmed) {
+        console.log('Logout confirmed, calling logout and redirecting...');
+        // Ensure logout sets did-logout flag and clears stored tokens
+        await apiService.logout();
+        console.log('Logout complete, redirecting to login...');
         router.replace('/auth/login');
       } else {
         console.log('Logout cancelled');
@@ -203,13 +201,10 @@ export default function ProfileScreen() {
           {
             text: 'Logout',
             style: 'destructive',
-            onPress: () => {
-              console.log('Logout confirmed, clearing token and redirecting...');
-              // Clear the auth token
-              apiService.clearAuthToken();
-              console.log('Token cleared, redirecting to login...');
-              
-              // Redirect to login screen
+            onPress: async () => {
+              console.log('Logout confirmed, calling logout and redirecting...');
+              await apiService.logout();
+              console.log('Logout complete, redirecting to login...');
               router.replace('/auth/login');
             },
           },

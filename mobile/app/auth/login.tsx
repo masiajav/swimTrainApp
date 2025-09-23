@@ -1,5 +1,5 @@
-import { View, Text, TextInput, TouchableOpacity, Alert, StyleSheet, Platform } from 'react-native';
-import React, { useState } from 'react';
+import { View, Text, TextInput, TouchableOpacity, Alert, StyleSheet, Platform, Switch } from 'react-native';
+import React, { useState, useEffect } from 'react';
 import { Link, router } from 'expo-router';
 import { apiService } from '../../services/api';
 import * as Linking from 'expo-linking';
@@ -9,6 +9,7 @@ export default function LoginScreen() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [autoLogin, setAutoLogin] = useState(false);
 
   const SUPABASE_URL = 'https://pkrtqzsudfeehwufyduy.supabase.co';
 
@@ -31,14 +32,24 @@ export default function LoginScreen() {
     }
 
     setIsLoading(true);
+    // eslint-disable-next-line no-console
+    console.log('[Login] handleLogin start for', email);
     try {
       const response = await apiService.login({ email, password });
-      
       // Store the token for future requests
       apiService.setAuthToken(response.token);
-      
+      // Persist auto-login preference
+      try {
+        await apiService.setAutoLoginEnabled(autoLogin);
+        // eslint-disable-next-line no-console
+        console.log('[Login] autoLogin preference saved =', autoLogin);
+      } catch (e) {
+        // eslint-disable-next-line no-console
+        console.warn('[Login] failed to persist autoLogin preference', e);
+      }
       // You might want to store this in secure storage
-      console.log('Login successful:', response.user);
+      // eslint-disable-next-line no-console
+      console.log('[Login] Login successful, user id =', (response as any)?.user?.id);
 
       router.replace('/(tabs)');
     } catch (error: any) {
@@ -64,7 +75,9 @@ export default function LoginScreen() {
     // swimtrainapp://auth/callback with the fragment (access_token)...
     // Using the public helper avoids provider redirects landing at local dev
     // servers (which don't contain the fragment) when testing on device.
-    const redirectHelper = (Constants?.manifest?.extra as any)?.REDIRECT_HELPER_URL ||
+    // Safely read manifest or expoConfig and then extra to satisfy TypeScript types
+    const _manifest: any = (Constants as any)?.manifest ?? (Constants as any)?.expoConfig ?? {};
+    const redirectHelper = (_manifest?.extra as any)?.REDIRECT_HELPER_URL ||
       'https://pkrtqzsudfeehwufyduy.functions.supabase.co/redirect-helper/';
     const fallback = 'swimtrainapp://auth/callback';
   const authUrl = `${SUPABASE_URL}/auth/v1/authorize?provider=google&redirect_to=${encodeURIComponent(redirectHelper)}`;
@@ -102,6 +115,29 @@ export default function LoginScreen() {
       setIsLoading(false);
     }
   };
+
+  // On mount, ensure apiService is initialized and redirect if a token is present
+  useEffect(() => {
+    // eslint-disable-next-line no-console
+    console.log('[Login] mount: checking stored token for auto-login');
+    apiService.initialize().then(() => {
+      try {
+        const token = apiService.getStoredAuthToken();
+        // eslint-disable-next-line no-console
+        console.log('[Login] mount: stored token present=', !!token);
+        if (token) {
+          // If a token exists, go straight to main tabs
+          router.replace('/(tabs)');
+        }
+      } catch (e) {
+        // eslint-disable-next-line no-console
+        console.warn('[Login] mount: token check failed', e);
+      }
+    }).catch((err) => {
+      // eslint-disable-next-line no-console
+      console.warn('[Login] apiService.initialize() failed on mount', err);
+    });
+  }, []);
 
   // Responses are handled by the deep-link callback screen which parses the
   // access_token from the incoming URL fragment and exchanges it with the
@@ -147,7 +183,10 @@ export default function LoginScreen() {
             placeholderTextColor="#94a3b8"
           />
         </View>
-        
+        <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 12 }}>
+          <Text style={{ marginRight: 12, color: '#374151', fontWeight: '600' }}>Enable Auto-login</Text>
+          <Switch value={autoLogin} onValueChange={setAutoLogin} trackColor={{ false: '#767577', true: '#3b82f6' }} thumbColor={autoLogin ? '#ffffff' : '#f4f3f4'} />
+        </View>
         <TouchableOpacity 
           onPress={handleLogin}
           style={[styles.loginButton, isLoading && styles.loginButtonDisabled]}
