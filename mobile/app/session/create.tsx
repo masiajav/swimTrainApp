@@ -122,10 +122,8 @@ export default function CreateSession() {
         const today = new Date();
         const oneYearAgo = new Date();
         oneYearAgo.setFullYear(today.getFullYear() - 1);
-        
-        if (selectedDate > today) {
-          error = 'Date cannot be in the future';
-        } else if (selectedDate < oneYearAgo) {
+        // Allow future dates (scheduling). Only enforce reasonable lower bound.
+        if (selectedDate < oneYearAgo) {
           error = 'Date cannot be more than a year ago';
         }
         break;
@@ -159,8 +157,11 @@ export default function CreateSession() {
     
     const selectedDate = new Date(formData.date);
     const today = new Date();
-    if (selectedDate > today) {
-      newErrors.date = 'Date cannot be in the future';
+    // Allow future dates for scheduling purposes. Only enforce reasonable lower bound.
+    const oneYearAgo = new Date();
+    oneYearAgo.setFullYear(today.getFullYear() - 1);
+    if (selectedDate < oneYearAgo) {
+      newErrors.date = 'Date cannot be more than a year ago';
     }
     
     setErrors(newErrors);
