@@ -1,4 +1,4 @@
-import { View, Text, ScrollView, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Modal, Pressable, TextInput } from 'react-native';
 import React, { useState, useEffect } from 'react';
 import { router, useFocusEffect } from 'expo-router';
 import { apiService } from '../../services/api';
@@ -19,8 +19,14 @@ interface Session {
 export default function SessionsScreen() {
   const { isDarkMode, colors } = useTheme();
   const [sessions, setSessions] = useState<Session[]>([]);
+  const [filteredSessions, setFilteredSessions] = useState<Session[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [filterModalVisible, setFilterModalVisible] = useState(false);
+  const [filterType, setFilterType] = useState<string | null>(null);
+  const [filterStroke, setFilterStroke] = useState<string | null>(null);
+  const [filterIntensity, setFilterIntensity] = useState<string | null>(null);
+  const [filterText, setFilterText] = useState<string>('');
 
   const loadSessions = async () => {
     try {
@@ -164,6 +170,19 @@ export default function SessionsScreen() {
     }
   };
 
+  useEffect(() => {
+    // Apply client-side filters
+    let out = sessions.slice();
+    if (filterType) out = out.filter(s => s.workoutType === filterType);
+    if (filterStroke) out = out.filter(s => s.stroke === filterStroke);
+    if (filterIntensity) out = out.filter(s => s.intensity === filterIntensity);
+    if (filterText && filterText.trim().length > 0) {
+      const q = filterText.trim().toLowerCase();
+      out = out.filter(s => (s.title || '').toLowerCase().includes(q) || (s.description || '').toLowerCase().includes(q));
+    }
+    setFilteredSessions(out);
+  }, [sessions, filterType, filterStroke, filterIntensity, filterText]);
+
   if (loading) {
     return (
       <View style={[styles.container, { backgroundColor: colors.background }]}>
@@ -205,7 +224,7 @@ export default function SessionsScreen() {
           <Text style={styles.addButtonText}>New Session</Text>
         </TouchableOpacity>
         
-        <TouchableOpacity style={[styles.filterButton, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+        <TouchableOpacity style={[styles.filterButton, { backgroundColor: colors.surface, borderColor: colors.border }]} onPress={() => setFilterModalVisible(true)}>
           <Text style={styles.filterIcon}>⚙️</Text>
           <Text style={[styles.filterText, { color: colors.text }]}>Filter</Text>
         </TouchableOpacity>
@@ -213,7 +232,7 @@ export default function SessionsScreen() {
 
       {/* Sessions List */}
       <View style={styles.sessionsContainer}>
-        {sessions.length === 0 ? (
+        {filteredSessions.length === 0 ? (
           <View style={styles.emptyState}>
             <Text style={[styles.emptyStateText, { color: colors.text }]}>No sessions yet</Text>
             <Text style={[styles.emptyStateSubtext, { color: colors.textSecondary }]}>Create your first swimming session to get started!</Text>
@@ -225,7 +244,7 @@ export default function SessionsScreen() {
             </TouchableOpacity>
           </View>
         ) : (
-          sessions.map((session) => (
+          filteredSessions.map((session) => (
             <TouchableOpacity 
               key={session.id} 
               style={[styles.sessionCard, { backgroundColor: colors.surface, borderColor: colors.border }]}
@@ -312,6 +331,54 @@ export default function SessionsScreen() {
       </View>
 
       {/* Weekly Summary */}
+
+      {/* Filter Modal */}
+      <Modal
+        visible={filterModalVisible}
+        animationType="slide"
+        transparent={true}
+        onRequestClose={() => setFilterModalVisible(false)}
+      >
+        <View style={{ flex:1, justifyContent:'center', alignItems:'center', backgroundColor:'rgba(0,0,0,0.4)' }}>
+          <View style={{ width:'92%', backgroundColor:colors.surface, padding:16, borderRadius:12 }}>
+            <Text style={{ fontSize:18, fontWeight:'700', marginBottom:8, color: colors.text }}>Filter sessions</Text>
+            <TextInput placeholder="Search title/description" value={filterText} onChangeText={setFilterText} style={{ borderWidth:1, borderColor:colors.border, borderRadius:8, padding:8, marginBottom:8, color: colors.text }} />
+            <Text style={{ marginBottom:6, color: colors.text }}>Workout type</Text>
+            <View style={{ flexDirection:'row', marginBottom:8, flexWrap:'wrap' }}>
+              {['SPRINT','ENDURANCE','TECHNIQUE','WARMUP','COOLDOWN','MAIN_SET','KICK','PULL'].map(t => (
+                <Pressable key={t} onPress={() => setFilterType(filterType === t ? null : t)} style={{ paddingHorizontal:10, paddingVertical:6, borderRadius:8, borderWidth:1, borderColor: filterType === t ? colors.primary : colors.border, backgroundColor: filterType === t ? colors.primary : 'transparent', marginRight:8, marginBottom:8 }}>
+                  <Text style={{ color: filterType === t ? (isDarkMode ? '#000' : '#fff') : colors.text, fontWeight: filterType === t ? '700' : '600' }}>{t.replace('_',' ')}</Text>
+                </Pressable>
+              ))}
+            </View>
+            <Text style={{ marginBottom:6, color: colors.text }}>Stroke</Text>
+            <View style={{ flexDirection:'row', marginBottom:8, flexWrap:'wrap' }}>
+              {['FREESTYLE','BACKSTROKE','BREASTSTROKE','BUTTERFLY'].map(s => (
+                <Pressable key={s} onPress={() => setFilterStroke(filterStroke === s ? null : s)} style={{ paddingHorizontal:10, paddingVertical:6, borderRadius:8, borderWidth:1, borderColor: filterStroke === s ? colors.primary : colors.border, backgroundColor: filterStroke === s ? colors.primary : 'transparent', marginRight:8, marginBottom:8 }}>
+                  <Text style={{ color: filterStroke === s ? (isDarkMode ? '#000' : '#fff') : colors.text, fontWeight: filterStroke === s ? '700' : '600' }}>{s}</Text>
+                </Pressable>
+              ))}
+            </View>
+            <Text style={{ marginBottom:6, color: colors.text }}>Intensity</Text>
+            <View style={{ flexDirection:'row', marginBottom:8, flexWrap:'wrap' }}>
+              {['EASY','MODERATE','HARD','RACE_PACE'].map(i => (
+                <Pressable key={i} onPress={() => setFilterIntensity(filterIntensity === i ? null : i)} style={{ paddingHorizontal:10, paddingVertical:6, borderRadius:8, borderWidth:1, borderColor: filterIntensity === i ? colors.primary : colors.border, backgroundColor: filterIntensity === i ? colors.primary : 'transparent', marginRight:8, marginBottom:8 }}>
+                  <Text style={{ color: filterIntensity === i ? (isDarkMode ? '#000' : '#fff') : colors.text, fontWeight: filterIntensity === i ? '700' : '600' }}>{i.replace('_',' ')}</Text>
+                </Pressable>
+              ))}
+            </View>
+            <View style={{ flexDirection:'row', justifyContent:'flex-end', marginTop:8 }}>
+              <TouchableOpacity onPress={() => { setFilterType(null); setFilterStroke(null); setFilterIntensity(null); setFilterText(''); }} style={{ marginRight:12 }}>
+                <Text style={{ color: colors.textSecondary }}>Clear</Text>
+              </TouchableOpacity>
+              <TouchableOpacity onPress={() => setFilterModalVisible(false)}>
+                <Text style={{ color: colors.primary, fontWeight:'700' }}>Apply</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
       <View style={styles.summaryCard}>
         <Text style={styles.summaryTitle}>📊 This Week Summary</Text>
         <View style={styles.summaryStats}>
