@@ -1,5 +1,6 @@
 import { View, Text, TextInput, TouchableOpacity, Alert, StyleSheet, Platform, Switch } from 'react-native';
 import React, { useState, useEffect } from 'react';
+import { Modal } from 'react-native';
 import { Link, router } from 'expo-router';
 import { apiService } from '../../services/api';
 import * as Linking from 'expo-linking';
@@ -12,6 +13,8 @@ export default function LoginScreen() {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [autoLogin, setAutoLogin] = useState(false);
+  const [forgotModalVisible, setForgotModalVisible] = useState(false);
+  const [forgotEmail, setForgotEmail] = useState('');
 
   const SUPABASE_URL = 'https://pkrtqzsudfeehwufyduy.supabase.co';
 
@@ -194,6 +197,9 @@ export default function LoginScreen() {
             </TouchableOpacity>
           </View>
         </View>
+        <TouchableOpacity onPress={() => setForgotModalVisible(true)} style={{ marginBottom: 12 }}>
+          <Text style={{ color: '#2563eb', textAlign: 'right', fontWeight: '600' }}>Forgot password?</Text>
+        </TouchableOpacity>
         <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 12 }}>
           <Text style={{ marginRight: 12, color: '#374151', fontWeight: '600' }}>Enable Auto-login</Text>
           <Switch value={autoLogin} onValueChange={setAutoLogin} trackColor={{ false: '#767577', true: '#3b82f6' }} thumbColor={autoLogin ? '#ffffff' : '#f4f3f4'} />
@@ -231,6 +237,54 @@ export default function LoginScreen() {
       <View style={styles.waveContainer}>
         <Text style={styles.waveText}>🌊 🌊 🌊</Text>
       </View>
+    
+    {/* Forgot Password Modal */}
+    <Modal
+      visible={forgotModalVisible}
+      animationType="slide"
+      transparent={true}
+      onRequestClose={() => setForgotModalVisible(false)}
+    >
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: 'rgba(0,0,0,0.4)' }}>
+        <View style={{ width: '90%', backgroundColor: 'white', padding: 20, borderRadius: 12 }}>
+          <Text style={{ fontSize: 18, fontWeight: '700', marginBottom: 8 }}>Reset your password</Text>
+          <Text style={{ color: '#64748b', marginBottom: 12 }}>Enter the email address for your account and we'll send a reset link.</Text>
+          <TextInput
+            placeholder="Email"
+            value={forgotEmail}
+            onChangeText={setForgotEmail}
+            keyboardType="email-address"
+            autoCapitalize="none"
+            style={[styles.input, { marginBottom: 12 }]}
+            placeholderTextColor="#94a3b8"
+          />
+          <View style={{ flexDirection: 'row', justifyContent: 'flex-end' }}>
+            <TouchableOpacity onPress={() => setForgotModalVisible(false)} style={{ marginRight: 12 }}>
+              <Text style={{ color: '#64748b' }}>Cancel</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={async () => {
+                if (!forgotEmail) { Alert.alert('Error', 'Please enter an email address'); return; }
+                try {
+                  setIsLoading(true);
+                  await apiService.requestPasswordReset(forgotEmail);
+                  Alert.alert('Success', 'If an account exists for that email, a reset link has been sent.');
+                  setForgotModalVisible(false);
+                  setForgotEmail('');
+                } catch (err: any) {
+                  console.error('Forgot password error', err);
+                  Alert.alert('Error', err?.message || 'Failed to request password reset');
+                } finally {
+                  setIsLoading(false);
+                }
+              }}
+            >
+              <Text style={{ color: '#3b82f6', fontWeight: '700' }}>{isLoading ? 'Sending...' : 'Send email'}</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </View>
+    </Modal>
     </View>
   );
 }
