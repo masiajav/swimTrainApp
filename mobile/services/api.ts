@@ -432,6 +432,16 @@ class ApiService {
     return response;
   }
 
+  // Request a password reset email (backend will call Supabase)
+  async requestPasswordReset(email: string) {
+    if (!email) throw new Error('Email is required');
+    const response = await this.request('/auth/forgot-password', {
+      method: 'POST',
+      body: JSON.stringify({ email }),
+    });
+    return response;
+  }
+
   // User profile endpoints
   async getTeamMemberProfile(userId: string) {
     const response = await this.request(`/users/${userId}/profile`, {

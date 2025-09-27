@@ -266,6 +266,29 @@ router.post('/logout', (req, res) => {
   res.json({ message: 'Logout successful' });
 });
 
+// POST /api/auth/forgot-password
+router.post('/forgot-password', async (req, res) => {
+  try {
+    const { email } = req.body;
+    if (!email) return res.status(400).json({ error: 'Email is required' });
+
+    // Allow an override redirect target via env var; fall back to SITE_URL or localhost dev
+    const redirectTo = process.env.PASSWORD_RESET_REDIRECT || process.env.SITE_URL || 'http://localhost:3000/';
+
+    // Use Supabase server-side API to send the recovery email
+    const { data, error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo });
+    if (error) {
+      console.error('Supabase resetPasswordForEmail error:', error);
+      return res.status(500).json({ error: error.message || 'Failed to send reset email' });
+    }
+
+    res.json({ message: 'Reset email sent if the account exists' });
+  } catch (err) {
+    console.error('Forgot password error:', err);
+    res.status(500).json({ error: 'Failed to process forgot password request' });
+  }
+});
+
 // POST /api/auth/google
 router.post('/google', async (req, res) => {
   try {
