@@ -410,6 +410,60 @@ router.put('/profile', authenticateToken, async (req: any, res) => {
       return res.status(400).json({ error: 'Username is already taken' });
     }
 
+    let avatarUrl: string | undefined = avatar;
+
+    // If avatar is a base64 data URL, upload it to Supabase Storage
+    if (avatar && typeof avatar === 'string' && avatar.startsWith('data:')) {
+      try {
+        // More flexible parser to accept common data URL variants and extra params
+        // e.g. data:image/jpeg;base64,/9j/..., or data:image/png;name=foo.png;base64,iVBORw0KG...
+        const matches = avatar.match(/^data:([^;]+)(?:;[^,]+)*;base64,(.*)$/i);
+        if (!matches || !matches[1] || !matches[2]) {
+          throw new Error('Invalid image data URL');
+        }
+
+        const mime = matches[1].toLowerCase();
+        const base64Data = matches[2];
+
+        // Only allow image/* mime types
+        if (!mime.startsWith('image/')) {
+          throw new Error('Unsupported mime type for avatar');
+        }
+
+        // Derive extension from mime (fallback to jpg)
+        let extension = 'jpg';
+        if (mime.includes('png')) extension = 'png';
+        else if (mime.includes('jpeg')) extension = 'jpg';
+        else if (mime.includes('gif')) extension = 'gif';
+
+        // Generate a filename under avatars/ with userId and timestamp
+        const filename = `avatars/${userId}_${Date.now()}.${extension}`;
+
+        // Upload to Supabase Storage (public)
+        const { data: uploadData, error: uploadError } = await supabase.storage
+          .from('avatars')
+          .upload(filename, Buffer.from(base64Data, 'base64'), {
+            contentType: mime,
+            cacheControl: '3600',
+            upsert: false,
+          });
+
+        if (uploadError) {
+          console.error('Supabase storage upload error:', uploadError);
+          throw uploadError;
+        }
+
+        // Build public URL - depends on Supabase project URL
+        // Supabase Storage public url format: `${SUPABASE_URL}/storage/v1/object/public/${bucket}/${path}`
+        const bucket = 'avatars';
+        const projectUrl = process.env.SUPABASE_URL?.replace(/\/$/, '') || '';
+        avatarUrl = `${projectUrl}/storage/v1/object/public/${bucket}/${encodeURIComponent(filename)}`;
+      } catch (e) {
+        console.error('Failed to process avatar upload:', e);
+        return res.status(400).json({ error: 'Invalid avatar image' });
+      }
+    }
+
     // Update user profile
     const updatedUser = await prisma.user.update({
       where: { id: userId },
@@ -417,7 +471,7 @@ router.put('/profile', authenticateToken, async (req: any, res) => {
         firstName,
         lastName,
         username,
-        avatar,
+        avatar: avatarUrl,
       },
       select: {
         id: true,

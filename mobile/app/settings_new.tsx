@@ -96,15 +96,38 @@ export default function SettingsScreen() {
         apiService.getProfile(),
         apiService.getSessions()
       ]);
+      // Debug: log raw responses to help diagnose server/client shape mismatches
+      // eslint-disable-next-line no-console
+      console.log('[settings_new] loadProfile raw profileData =', profileData);
+      // eslint-disable-next-line no-console
+      console.log('[settings_new] loadProfile raw sessionsData =', sessionsData);
+
+      // Normalize possible response shapes: { user }, { data: { ... } }, or direct user object
+      let profile: UserProfile | undefined;
+      if (!profileData) {
+        profile = undefined;
+      } else if ((profileData as any).user) {
+        profile = (profileData as any).user as UserProfile;
+      } else if ((profileData as any).data && ((profileData as any).data.user || (typeof (profileData as any).data.firstName !== 'undefined'))) {
+        profile = (profileData as any).data.user || (profileData as any).data;
+      } else if (typeof (profileData as any).firstName !== 'undefined' || (profileData as any).username) {
+        // response may already be the user object
+        profile = profileData as unknown as UserProfile;
+      }
+
+      const sessions = (sessionsData && (sessionsData as any).data) ? (sessionsData as any).data as any[] : (sessionsData as any).sessions || [];
       
-      const profile = profileData.data as UserProfile;
-      const sessions = sessionsData.data as any[];
-      
-      setProfile(profile);
-      setFirstName(profile.firstName || '');
-      setLastName(profile.lastName || '');
-      setUsername(profile.username || '');
-      setAvatar(profile.avatar || '');
+      if (!profile) {
+        console.error('[settings_new] loadProfile - profile is undefined after parsing profileData', profileData);
+        Alert.alert('Error', 'Failed to load profile data (unexpected response shape). Check server logs.');
+        setProfile(null);
+      } else {
+        setProfile(profile);
+        setFirstName(profile.firstName || '');
+        setLastName(profile.lastName || '');
+        setUsername(profile.username || '');
+        setAvatar(profile.avatar || '');
+      }
 
       const stats = calculateUserStats(sessions || []);
       setUserStats(stats);
@@ -117,22 +140,53 @@ export default function SettingsScreen() {
   };
 
   const handleSave = async () => {
-    if (!profile) return;
+    if (!profile) {
+      console.warn('[settings_new] handleSave called but profile is null - aborting save');
+      Alert.alert('Profile not loaded', 'Your profile failed to load. Please try again or re-open Settings.');
+      return;
+    }
+    // Prevent saving remote URLs as avatar - enforce direct upload from device
+    if (avatar && typeof avatar === 'string' && avatar.startsWith('http')) {
+      Alert.alert('Use Upload Image', 'Please upload an image from your device using the Upload Image button instead of pasting a URL.');
+      return;
+    }
+
+    if (!username || username.trim().length < 3) {
+      Alert.alert('Invalid username', 'Username is required and must be at least 3 characters');
+      return;
+    }
 
     try {
       setSaving(true);
-      await apiService.updateProfile({
-        firstName,
-        lastName,
-        username,
-        avatar,
-      });
-      
-      Alert.alert('Success', 'Profile updated successfully!');
-      await loadProfile();
+      const payload = { firstName, lastName, username, avatar };
+      // Debug: log payload size/type
+      // eslint-disable-next-line no-console
+      console.log('[settings_new] updateProfile payload (avatar length) =', typeof avatar === 'string' ? avatar.length : 0);
+      // Call API and capture response
+      const res = await apiService.updateProfile(payload as any);
+      // eslint-disable-next-line no-console
+      console.log('[settings_new] updateProfile response =', res);
+
+      if (res && (res as any).user) {
+        Alert.alert('Success', 'Profile updated successfully!');
+        // Update local profile state with returned user
+        const returned = (res as any).user;
+        setProfile(returned);
+        setFirstName(returned.firstName || '');
+        setLastName(returned.lastName || '');
+        setUsername(returned.username || '');
+        setAvatar(returned.avatar || '');
+      } else if (res && (res as any).message) {
+        // Server returned a message but no user object
+        Alert.alert('Update result', (res as any).message || 'Profile updated');
+        await loadProfile();
+      } else {
+        Alert.alert('Error', 'Unexpected response from server when updating profile');
+        await loadProfile();
+      }
     } catch (error) {
       console.error('Error updating profile:', error);
-      Alert.alert('Error', 'Failed to update profile');
+      Alert.alert('Error', (error as any)?.message || 'Failed to update profile');
     } finally {
       setSaving(false);
     }
@@ -193,7 +247,8 @@ export default function SettingsScreen() {
     }
 
     const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+  // Use MediaTypeOptions.Images when available, otherwise fall back to the string 'Images'
+  mediaTypes: (ImagePicker as any).MediaTypeOptions?.Images || 'Images',
       allowsEditing: true,
       aspect: [1, 1],
       quality: 0.5,
@@ -235,7 +290,7 @@ export default function SettingsScreen() {
   };
 
   const renderAvatarPreview = () => {
-    if (avatar && avatar.startsWith('http')) {
+    if (avatar && typeof avatar === 'string' && (avatar.startsWith('http') || avatar.startsWith('data:'))) {
       return (
         <Image
           source={{ uri: avatar }}
@@ -244,7 +299,9 @@ export default function SettingsScreen() {
         />
       );
     } else if (avatar) {
-      return <Text style={{ fontSize: 24 }}>{avatar}</Text>;
+      // Avoid rendering extremely long base64 text; show truncated representation
+      const preview = typeof avatar === 'string' ? `${avatar.slice(0, 24)}...` : String(avatar);
+      return <Text style={{ fontSize: 12 }}>{preview}</Text>;
     } else {
       return <Text style={{ fontSize: 24 }}>👤</Text>;
     }
@@ -390,10 +447,17 @@ export default function SettingsScreen() {
               <View style={{ flex: 1 }}>
                 <TextInput
                   style={{ backgroundColor: colors.background, borderRadius: 12, padding: 16, fontSize: 16, borderWidth: 1, borderColor: colors.border, color: colors.text }}
-                  placeholder="Enter emoji (🏊‍♂️) or image URL"
+                  placeholder="Enter emoji (🏊‍♂️)"
                   placeholderTextColor={colors.textSecondary}
                   value={avatar}
-                  onChangeText={setAvatar}
+                  onChangeText={(v) => {
+                    // Block pasting remote URLs and encourage using the Upload Image flow
+                    if (typeof v === 'string' && (v.startsWith('http://') || v.startsWith('https://') || v.includes('://'))) {
+                      Alert.alert('Use Upload Image', 'Please use the Upload Image button to select or take a photo from your device. Pasting external URLs is not supported.');
+                      return;
+                    }
+                    setAvatar(v);
+                  }}
                 />
                 <TouchableOpacity 
                   style={{ backgroundColor: colors.primary, borderRadius: 8, paddingVertical: 12, alignItems: 'center', marginTop: 10 }}
