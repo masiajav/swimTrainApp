@@ -232,11 +232,6 @@ export default function LoginScreen() {
           </TouchableOpacity>
         </Link>
       </View>
-
-      {/* Bottom Wave Decoration */}
-      <View style={styles.waveContainer}>
-        <Text style={styles.waveText}>🌊 🌊 🌊</Text>
-      </View>
     
     {/* Forgot Password Modal */}
     <Modal

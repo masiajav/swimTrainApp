@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, StyleSheet, TextInput, Alert, Image, Platform } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, StyleSheet, TextInput, Alert, Image, Platform, Share } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { router } from 'expo-router';
 import { apiService } from '../../services/api';
@@ -294,12 +294,56 @@ export default function TeamScreen() {
       {/* Header */}
       <View style={[styles.header, { backgroundColor: colors.primary }]}>
         <Text style={styles.headerTitle}>{team.name}</Text>
-        <Text style={styles.headerSubtitle}>
-          {team.members.length} members • Invite Code: {team.inviteCode}
-        </Text>
-        {team.description && (
-          <Text style={styles.teamDescription}>{team.description}</Text>
-        )}
+
+        <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 8, justifyContent: 'space-between' }}>
+          <View style={{ flex: 1, marginRight: 12 }}>
+            {team.description ? <Text style={styles.teamDescription}>{team.description}</Text> : null}
+
+            <View style={styles.inviteRow}>
+              <View style={styles.invitePill}>
+                <Text style={styles.inviteLabel}>Invite</Text>
+                <Text style={styles.inviteCode} numberOfLines={1} ellipsizeMode="middle">{team.inviteCode}</Text>
+              </View>
+            </View>
+          </View>
+
+          <TouchableOpacity
+            onPress={async () => {
+              const code = team.inviteCode || '';
+              try {
+                // Web clipboard
+                if (Platform.OS === 'web' && typeof navigator !== 'undefined' && (navigator as any).clipboard && (navigator as any).clipboard.writeText) {
+                  await (navigator as any).clipboard.writeText(code);
+                  Alert.alert('Copied', 'Invite code copied to clipboard');
+                  return;
+                }
+
+                // Try dynamic import of expo-clipboard for native
+                try {
+                  // Use require in try/catch so TypeScript doesn't fail if expo-clipboard isn't installed
+                  // eslint-disable-next-line @typescript-eslint/no-var-requires
+                  const ClipboardModule: any = require('expo-clipboard');
+                  if (ClipboardModule && ClipboardModule.setStringAsync) {
+                    await ClipboardModule.setStringAsync(code);
+                    Alert.alert('Copied', 'Invite code copied to clipboard');
+                    return;
+                  }
+                } catch (e) {
+                  // ignore and fallback to Share below
+                }
+
+                // Fallback: open native share sheet so user can paste or share
+                await Share.share({ message: code });
+              } catch (err) {
+                console.error('Failed to copy invite code', err);
+                Alert.alert('Error', 'Could not copy invite code');
+              }
+            }}
+            style={styles.copyButton}
+          >
+            <Text style={styles.copyButtonText}>📋 Copy</Text>
+          </TouchableOpacity>
+        </View>
       </View>
 
       {/* Team Stats */}
@@ -640,6 +684,49 @@ const styles = StyleSheet.create({
     color: 'white',
     fontSize: 12,
     fontWeight: '600',
+  },
+  inviteCodeText: {
+    fontSize: 14,
+    color: '#e0f2fe',
+    marginRight: 8,
+    maxWidth: '80%'
+  },
+  inviteRow: {
+    marginTop: 8,
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  invitePill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(255,255,255,0.12)',
+    paddingVertical: 6,
+    paddingHorizontal: 10,
+    borderRadius: 18,
+    maxWidth: '100%'
+  },
+  inviteLabel: {
+    color: '#e0f2fe',
+    fontSize: 12,
+    fontWeight: '700',
+    marginRight: 8,
+  },
+  inviteCode: {
+    color: '#e0f2fe',
+    fontSize: 14,
+    maxWidth: 180,
+  },
+  copyButton: {
+    backgroundColor: 'rgba(255,255,255,0.12)',
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  copyButtonText: {
+    color: '#ffffff',
+    fontWeight: '700',
   },
   teamActions: {
     padding: 24,
