@@ -227,9 +227,6 @@ export default function ProfileScreen() {
             onPress={() => router.push('/settings')}
           >
             {renderUserAvatar()}
-            <View style={styles.editBadge}>
-              <Text style={styles.editIcon}>✏️</Text>
-            </View>
           </TouchableOpacity>
           <Text style={[styles.userName, { color: colors.text }]}>
             {profile ? `${profile.firstName || ''} ${profile.lastName || ''}`.trim() || 'Swimming Enthusiast' : 'Loading...'}
