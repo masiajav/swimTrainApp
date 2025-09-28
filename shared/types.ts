@@ -129,6 +129,7 @@ export interface TeamStats {
   totalDistance: number;
   weeklySessions: number;
   weeklyDistance: number;
+  mostCommonStroke?: Stroke | null;
 }
 
 export interface TeamResponse {
