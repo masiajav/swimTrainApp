@@ -1,4 +1,4 @@
-import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Modal, Pressable, TextInput } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Modal, Pressable, TextInput, Alert, Platform } from 'react-native';
 import React, { useState, useEffect } from 'react';
 import { router, useFocusEffect } from 'expo-router';
 import { apiService } from '../../services/api';
@@ -324,6 +324,45 @@ export default function SessionsScreen() {
                 >
                   <Text style={styles.editButtonText}>Edit</Text>
                 </TouchableOpacity>
+                <TouchableOpacity
+                  style={styles.deleteButton}
+                  onPress={() => {
+                    const confirmDelete = async () => {
+                      try {
+                        setLoading(true);
+                        await apiService.deleteSession(session.id);
+                        setSessions(prev => prev.filter(s => s.id !== session.id));
+                        setFilteredSessions(prev => prev.filter(s => s.id !== session.id));
+                      } catch (e) {
+                        console.error('Failed to delete session', e);
+                        if (Platform.OS === 'web') {
+                          // eslint-disable-next-line no-alert
+                          alert('Failed to delete session');
+                        } else {
+                          Alert.alert('Error', 'Failed to delete session');
+                        }
+                      } finally {
+                        setLoading(false);
+                      }
+                    };
+
+                    if (Platform.OS === 'web' && typeof window !== 'undefined' && (window as any).confirm) {
+                      const ok = (window as any).confirm('Are you sure you want to delete this session? This cannot be undone.');
+                      if (ok) confirmDelete();
+                    } else {
+                      Alert.alert(
+                        'Delete session',
+                        'Are you sure you want to delete this session? This cannot be undone.',
+                        [
+                          { text: 'Cancel', style: 'cancel' },
+                          { text: 'Delete', style: 'destructive', onPress: confirmDelete }
+                        ]
+                      );
+                    }
+                  }}
+                >
+                  <Text style={styles.deleteButtonText}>Delete</Text>
+                </TouchableOpacity>
               </View>
             </TouchableOpacity>
           ))
@@ -646,6 +685,18 @@ const styles = StyleSheet.create({
   },
   editButtonText: {
     color: '#3b82f6',
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  deleteButton: {
+    backgroundColor: '#fee2e2',
+    borderRadius: 12,
+    padding: 12,
+    paddingHorizontal: 20,
+    alignItems: 'center',
+  },
+  deleteButtonText: {
+    color: '#ef4444',
     fontSize: 14,
     fontWeight: '600',
   },
