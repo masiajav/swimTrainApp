@@ -224,38 +224,45 @@ router.get('/stats', authenticateToken, async (req: any, res) => {
       return res.status(400).json({ error: 'You are not a member of any team' });
     }
 
-    // Get team statistics
+    // Get team statistics. Count sessions/distance for sessions created by any team member
+    // OR explicitly assigned to the team (teamId). This ensures individual member sessions
+    // are included even if teamId wasn't set on the session record.
+    const memberCountPromise = prisma.user.count({ where: { teamId: user.teamId } });
+
+    const sessionWhereForMembersOrTeam = {
+      OR: [
+        { teamId: user.teamId },
+        { user: { teamId: user.teamId } }
+      ]
+    } as any;
+
+    const sessionCountPromise = prisma.session.count({ where: sessionWhereForMembersOrTeam });
+
+    const totalDistancePromise = prisma.session.aggregate({
+      where: sessionWhereForMembersOrTeam,
+      _sum: { distance: true }
+    });
+
     const [memberCount, sessionCount, totalDistance] = await Promise.all([
-      prisma.user.count({
-        where: { teamId: user.teamId }
-      }),
-      prisma.session.count({
-        where: { teamId: user.teamId }
-      }),
-      prisma.session.aggregate({
-        where: { teamId: user.teamId },
-        _sum: { distance: true }
-      })
+      memberCountPromise,
+      sessionCountPromise,
+      totalDistancePromise,
     ]);
 
     // Get this week's statistics
     const oneWeekAgo = new Date();
     oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
 
+    const sessionWhereWeekly = {
+      AND: [
+        { createdAt: { gte: oneWeekAgo } },
+        sessionWhereForMembersOrTeam,
+      ]
+    } as any;
+
     const [weeklySessionCount, weeklyDistance] = await Promise.all([
-      prisma.session.count({
-        where: { 
-          teamId: user.teamId,
-          createdAt: { gte: oneWeekAgo }
-        }
-      }),
-      prisma.session.aggregate({
-        where: { 
-          teamId: user.teamId,
-          createdAt: { gte: oneWeekAgo }
-        },
-        _sum: { distance: true }
-      })
+      prisma.session.count({ where: sessionWhereWeekly }),
+      prisma.session.aggregate({ where: sessionWhereWeekly, _sum: { distance: true } }),
     ]);
 
     const stats = {
@@ -265,6 +272,31 @@ router.get('/stats', authenticateToken, async (req: any, res) => {
       weeklySessions: weeklySessionCount,
       weeklyDistance: weeklyDistance._sum.distance || 0,
     };
+
+    // Compute most common stroke for the team (by session count)
+    try {
+      const strokeGroups = await prisma.session.groupBy({
+        by: ['stroke'],
+        where: sessionWhereForMembersOrTeam,
+        _count: { stroke: true },
+      });
+
+      if (strokeGroups && strokeGroups.length > 0) {
+        // Find the group with the highest count where stroke is not null
+        const filtered = strokeGroups.filter(sg => sg.stroke !== null);
+        if (filtered.length > 0) {
+          filtered.sort((a, b) => (b._count.stroke || 0) - (a._count.stroke || 0));
+          (stats as any).mostCommonStroke = filtered[0].stroke;
+        } else {
+          (stats as any).mostCommonStroke = null;
+        }
+      } else {
+        (stats as any).mostCommonStroke = null;
+      }
+    } catch (e) {
+      console.warn('Failed to compute mostCommonStroke', e);
+      (stats as any).mostCommonStroke = null;
+    }
 
     res.json({ stats });
   } catch (error) {

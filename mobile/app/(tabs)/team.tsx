@@ -149,6 +149,19 @@ export default function TeamScreen() {
     return `${meters}m`;
   };
 
+  const prettifyStroke = (s: string | null | undefined) => {
+    if (!s) return '';
+    switch (s.toUpperCase()) {
+      case 'FREESTYLE': return 'Freestyle';
+      case 'BACKSTROKE': return 'Backstroke';
+      case 'BREASTSTROKE': return 'Breaststroke';
+      case 'BUTTERFLY': return 'Butterfly';
+      case 'INDIVIDUAL_MEDLEY': return 'IM';
+      case 'MIXED': return 'Mixed';
+      default: return s;
+    }
+  };
+
   const renderMemberAvatar = (member: any) => {
     // Check multiple possible avatar sources
     const avatarUrl = member.avatar || member.profile_image;
@@ -317,10 +330,10 @@ export default function TeamScreen() {
             </View>
             <View style={[styles.statCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
               <View style={[styles.statIcon, { backgroundColor: '#f59e0b' }]}>
-                <Text style={styles.statIconText}>📊</Text>
+                <Text style={styles.statIconText}>🏊‍♂️</Text>
               </View>
-              <Text style={[styles.statValue, { color: colors.text }]}>{teamStats.weeklySessions}</Text>
-              <Text style={[styles.statTitle, { color: colors.textSecondary }]}>This Week</Text>
+              <Text style={[styles.statValue, { color: colors.text }]}>{teamStats.mostCommonStroke ? prettifyStroke(teamStats.mostCommonStroke) : '—'}</Text>
+              <Text style={[styles.statTitle, { color: colors.textSecondary }]}>Top Stroke</Text>
             </View>
           </View>
         </View>
