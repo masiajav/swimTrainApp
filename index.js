@@ -4,7 +4,7 @@
 // robust in both CommonJS and ESM runtimes: it will try `require()` first and
 // fall back to dynamic `import()` when `require` is unavailable.
 
-const candidates = ['/backend/dist/index.js', '/dist/index.js'];
+const candidates = ['/app/backend/dist/index.js', '/app/dist/index.js'];
 
 (async () => {
   let loaded = false;
