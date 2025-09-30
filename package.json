@@ -9,6 +9,8 @@
     "dev:mobile": "cd mobile && npx expo start",
     "install:all": "npm install && cd backend && npm install && cd ../mobile && npm install",
     "build:mobile": "cd mobile && npx expo export",
+    "build:backend": "cd backend && npm run build",
+    "start:backend": "cd backend && npm run start",
     "type-check": "cd backend && npm run type-check && cd ../mobile && npx tsc --noEmit",
   "postinstall": "cd backend && npm run db:generate || true && npm run build || true"
   },
@@ -19,7 +21,7 @@
     "react-native",
     "expo"
   ],
-  "author": "Swimming Team",
+  "author": "masiajav",
   "license": "MIT",
   "devDependencies": {
     "concurrently": "^8.2.2"

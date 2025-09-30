@@ -1,8 +1,8 @@
 // Runtime shim for Railway: different builders place the backend build in
 // either /app/backend/dist (monorepo/workspace) or /app/dist (single-package).
 // Try the workspace path first (more common for this repo). This loader is
-// robust in both CommonJS and ESM runtimes: it will try `require()` first and
-// fall back to dynamic `import()` when `require` is unavailable.
+// resilient in CommonJS and ESM Node runtimes: it will try direct require,
+// then Node's createRequire (works from ESM), and finally dynamic import().
 
 const candidates = ['/app/backend/dist/index.js', '/app/dist/index.js'];
 
@@ -13,23 +13,44 @@ const candidates = ['/app/backend/dist/index.js', '/app/dist/index.js'];
   for (const p of candidates) {
     try {
       console.log(`Runtime shim: attempting to load ${p}`);
-      // Prefer CommonJS require when available.
-      if (typeof require === 'function') {
-        // Use Function to avoid static analysis bundlers that may rewrite require
-        // calls in the mobile bundle.
-        module.exports = Function('p', 'return require(p)')(p);
+
+      // 1) If we're running in a Classic CommonJS context, prefer a direct require.
+      if (typeof require === 'function' && typeof module !== 'undefined' && module && module.exports) {
+        module.exports = require(p);
         console.log(`Runtime shim: loaded ${p} via require`);
         loaded = true;
         break;
       }
 
-      // Fallback for ESM environments: use dynamic import().
-      const mod = await import(p);
-      // Prefer default export when present, otherwise export the module itself
-      module.exports = mod && mod.default ? mod.default : mod;
-      console.log(`Runtime shim: loaded ${p} via dynamic import`);
-      loaded = true;
-      break;
+      // 2) Try using Node's createRequire which is available in ESM contexts.
+      //    Use dynamic import('module') to avoid top-level 'require' usage and
+      //    to keep this file safe for bundlers that parse static requires.
+      try {
+        const modNS = await import('module');
+        const createRequire = modNS && modNS.createRequire;
+        if (typeof createRequire === 'function') {
+          // createRequire expects a filename; package.json in cwd is a safe anchor
+          const crequire = createRequire(`${process.cwd()}/package.json`);
+          module.exports = crequire(p);
+          console.log(`Runtime shim: loaded ${p} via createRequire`);
+          loaded = true;
+          break;
+        }
+      } catch (e1) {
+        // ignore and try dynamic import below
+        lastError = e1;
+      }
+
+      // 3) Fallback: dynamic import() (works in ESM). Prefer default export if present.
+      try {
+        const imported = await import(p);
+        module.exports = imported && imported.default ? imported.default : imported;
+        console.log(`Runtime shim: loaded ${p} via dynamic import`);
+        loaded = true;
+        break;
+      } catch (e2) {
+        lastError = e2;
+      }
     } catch (e) {
       lastError = e;
     }
