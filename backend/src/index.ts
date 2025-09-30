@@ -369,6 +369,16 @@ const server = app.listen(PORT, () => {
   console.log(`🏊‍♀️ SwimTrainApp API running on port ${PORT}`);
 });
 
+// Handle server 'error' events (for example EADDRINUSE when the port is already taken)
+server.on('error', (err: any) => {
+  if (err && err.code === 'EADDRINUSE') {
+    console.error(`Port ${PORT} is already in use. Another process may be running.`);
+    console.error('If you started the server previously, stop it or change PORT. Exiting.');
+    process.exit(1);
+  }
+  console.error('Server error', err);
+});
+
 // Graceful shutdown
 process.on('SIGTERM', async () => {
   console.log('SIGTERM received, shutting down gracefully');
