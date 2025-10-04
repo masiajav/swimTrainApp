@@ -42,6 +42,7 @@ export default function SessionDetailScreen() {
   const { isDarkMode, colors } = useTheme();
   const { id } = useLocalSearchParams<{ id: string }>();
   const [session, setSession] = useState<SessionDetails | null>(null);
+  const [isOwner, setIsOwner] = useState<boolean>(false);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -53,9 +54,22 @@ export default function SessionDetailScreen() {
   const loadSessionDetails = async () => {
     try {
       setLoading(true);
-      const response = await apiService.getSession(id!);
-      if (response.data) {
-        setSession(response.data as SessionDetails);
+      // Load session and current user profile in parallel to determine ownership
+      const [sessionResp, profileResp] = await Promise.all([
+        apiService.getSession(id!),
+        apiService.getProfile().catch(() => null),
+      ]);
+
+      if (sessionResp?.data) {
+        const s = sessionResp.data as SessionDetails;
+        setSession(s);
+        // Resolve current user id from profile response (several shapes supported)
+        const currentUser = profileResp && (profileResp as any).user ? (profileResp as any).user : (profileResp as any).data || null;
+        if (currentUser && currentUser.id) {
+          setIsOwner(currentUser.id === s.user.id);
+        } else {
+          setIsOwner(false);
+        }
       }
     } catch (error: any) {
       console.error('Error loading session details:', error);
@@ -183,9 +197,11 @@ export default function SessionDetailScreen() {
           <Text style={styles.headerTitle}>{session.title}</Text>
           <Text style={styles.headerDate}>{formatDate(session.date)}</Text>
         </View>
-        <TouchableOpacity style={styles.editButtonHeader} onPress={handleEdit}>
-          <Text style={styles.editIcon}>✏️</Text>
-        </TouchableOpacity>
+        {isOwner ? (
+          <TouchableOpacity style={styles.editButtonHeader} onPress={handleEdit}>
+            <Text style={styles.editIcon}>✏️</Text>
+          </TouchableOpacity>
+        ) : null}
       </View>
 
       {/* Main Details Card */}
@@ -223,7 +239,7 @@ export default function SessionDetailScreen() {
         </View>
       </View>
 
-      {/* Stroke Information */}
+  {/* Stroke Information */}
       {session.stroke && (
         <View style={styles.card}>
           <Text style={styles.cardTitle}>🏊 Swimming Stroke</Text>
@@ -235,11 +251,23 @@ export default function SessionDetailScreen() {
         </View>
       )}
 
-      {/* Description */}
+  {/* Description */}
       {session.description && (
         <View style={styles.card}>
           <Text style={styles.cardTitle}>📝 Description</Text>
           <Text style={styles.descriptionText}>{session.description}</Text>
+        </View>
+      )}
+
+      {/* Action Buttons (only visible to owner) */}
+      {isOwner && (
+        <View style={styles.actionButtons}>
+          <TouchableOpacity style={styles.editButton} onPress={handleEdit}>
+            <Text style={styles.editButtonText}>Edit Session</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.deleteButton} onPress={handleDelete}>
+            <Text style={styles.deleteButtonText}>Delete Session</Text>
+          </TouchableOpacity>
         </View>
       )}
 

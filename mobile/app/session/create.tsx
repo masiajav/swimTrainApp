@@ -10,11 +10,23 @@ import {
   Modal,
 } from 'react-native';
 import { router } from 'expo-router';
+import { useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { apiService } from '../../services/api';
 import { WorkoutType, Stroke, Intensity } from '../../../shared/types';
 
 export default function CreateSession() {
+  const navigation = useNavigation();
+  React.useEffect(() => {
+    // Hide the small back label (e.g. 'session/create') shown next to the back arrow
+    // so only the arrow is visible. This keeps the header clean.
+    try {
+      // navigation may not expose setOptions in some environments; guard it.
+      (navigation as any).setOptions && (navigation as any).setOptions({ headerBackTitleVisible: false, headerTitle: '' });
+    } catch (e) {
+      // ignore
+    }
+  }, [navigation]);
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<{[key: string]: string}>({});
   const [successMessage, setSuccessMessage] = useState('');
@@ -286,9 +298,6 @@ export default function CreateSession() {
   return (
     <ScrollView style={styles.container}>
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-          <Ionicons name="arrow-back" size={24} color="#0ea5e9" />
-        </TouchableOpacity>
         <Text style={styles.headerTitle}>New Swimming Session</Text>
         <TouchableOpacity onPress={resetForm} style={styles.resetButton}>
           <Ionicons name="refresh" size={20} color="#6b7280" />
@@ -399,18 +408,18 @@ export default function CreateSession() {
         <View style={styles.inputGroup}>
           <View style={styles.labelRow}>
             <Text style={styles.label}>Description</Text>
-            <Text style={styles.charCounter}>{formData.description.length}/200</Text>
+            <Text style={styles.charCounter}>{formData.description.length}/500</Text>
           </View>
           <TextInput
             style={[styles.input, styles.textArea]}
             value={formData.description}
-            onChangeText={(value) => handleInputChange('description', value.slice(0, 200))}
+              onChangeText={(value) => handleInputChange('description', value.slice(0, 500))}
             placeholder="Additional notes about your session..."
             placeholderTextColor="#9ca3af"
             multiline
             numberOfLines={4}
             textAlignVertical="top"
-            maxLength={200}
+            maxLength={500}
           />
         </View>
 
@@ -468,10 +477,7 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: '#e5e7eb',
   },
-  backButton: {
-    marginRight: 12,
-    padding: 8,
-  },
+  /* backButton removed: header now relies on navigation header back control */
   headerTitle: {
     fontSize: 20,
     fontWeight: 'bold',

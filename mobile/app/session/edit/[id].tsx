@@ -48,6 +48,7 @@ export default function EditSessionScreen() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [originalSession, setOriginalSession] = useState<Session | null>(null);
+  const [isOwner, setIsOwner] = useState<boolean>(false);
   
   // Form fields
   const [title, setTitle] = useState('');
@@ -99,11 +100,42 @@ export default function EditSessionScreen() {
   const loadSession = async () => {
     try {
       setLoading(true);
-      const response = await apiService.getSession(id!);
-      if (response.data) {
-        const session = response.data as Session;
+      // Fetch session and profile together to check ownership
+      const [sessionResp, profileResp] = await Promise.all([
+        apiService.getSession(id!),
+        apiService.getProfile().catch(() => null),
+      ]);
+
+      if (sessionResp?.data) {
+        const session = sessionResp.data as Session;
         setOriginalSession(session);
-        
+
+        // Resolve current user id
+        const currentUser = profileResp && (profileResp as any).user ? (profileResp as any).user : (profileResp as any).data || null;
+        if (currentUser && currentUser.id) {
+          const owner = currentUser.id === (session as any).user?.id || false;
+          setIsOwner(owner);
+          if (!owner) {
+            // Not allowed to edit other users' sessions
+            if (typeof window !== 'undefined') {
+              window.alert('You do not have permission to edit this session.');
+            } else {
+              Alert.alert('Permission denied', 'You do not have permission to edit this session.');
+            }
+            router.back();
+            return;
+          }
+        } else {
+          // If we can't determine current user, be conservative and block editing
+          if (typeof window !== 'undefined') {
+            window.alert('Unable to verify permissions for editing this session.');
+          } else {
+            Alert.alert('Permission', 'Unable to verify permissions for editing this session.');
+          }
+          router.back();
+          return;
+        }
+
         // Populate form fields
         setTitle(session.title);
         setDescription(session.description || '');
@@ -144,6 +176,15 @@ export default function EditSessionScreen() {
     if (!duration || isNaN(Number(duration)) || Number(duration) <= 0) {
       if (typeof window !== 'undefined') {
         window.alert('Please enter a valid duration');
+      }
+      return;
+    }
+
+    if (!isOwner) {
+      if (typeof window !== 'undefined') {
+        window.alert('You do not have permission to edit this session.');
+      } else {
+        Alert.alert('Permission denied', 'You do not have permission to edit this session.');
       }
       return;
     }
