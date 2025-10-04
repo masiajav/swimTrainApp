@@ -1,9 +1,25 @@
 # SwimTrainApp - Environment Setup Guide
 
 **📊 Setup Status: CURRENT & TESTED** ✅  
-*This guide is up-to-date for the production-ready v1.0 release*
+*This guide is up-to-date for the production-ready MVP v1.0*
 
 This guide covers detailed environment setup and configuration. For quick start instructions, see [README.md](./README.md).
+
+---
+
+## 📋 Prerequisites
+
+Before starting, ensure you have the following installed:
+
+- **Node.js** 20+ (LTS recommended)
+- **npm** or **yarn** (comes with Node.js)
+- **Git** for version control
+- **PostgreSQL** (if using local database) or **Supabase** account
+- **Android Studio** (for Android development)
+- **Xcode** (for iOS development - macOS only)
+- **Expo Go** app (for physical device testing)
+
+---
 
 ## 🔧 Environment Configuration
 
@@ -12,21 +28,26 @@ This guide covers detailed environment setup and configuration. For quick start 
 Create `backend/.env` file with the following variables:
 
 ```bash
-# Database Configuration
-DATABASE_URL="postgresql://username:password@localhost:5432/swimtrainapp"
+# Database Configuration (Supabase recommended)
+DATABASE_URL="postgresql://username:password@host:5432/swimtrainapp"
 
 # JWT Configuration  
-JWT_SECRET="your-super-secret-jwt-key-here"
-JWT_EXPIRES_IN="7d"
+JWT_SECRET="your-super-secret-jwt-key-here-minimum-32-chars"
 
 # Server Configuration
 PORT=3000
 NODE_ENV="development"
 
-# Supabase Configuration (if using Supabase)
-SUPABASE_URL="https://your-project.supabase.co"
-SUPABASE_ANON_KEY="your-anon-key"
+# Supabase Configuration (REQUIRED)
+SUPABASE_URL="https://your-project-id.supabase.co"
+SUPABASE_ANON_KEY="your-supabase-anon-key"
+SUPABASE_SERVICE_ROLE_KEY="your-supabase-service-role-key"
 ```
+
+**Important**: 
+- Get your `DATABASE_URL` from Supabase project settings → Database → Connection string
+- Get Supabase keys from Project Settings → API
+- Generate a secure JWT secret: `node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"`
 
 ### Frontend Environment Variables
 
@@ -36,118 +57,163 @@ Create `mobile/.env` file:
 # API Configuration
 EXPO_PUBLIC_API_URL="http://localhost:3000/api"
 
+# For production deployment, update to your Railway backend URL:
+# EXPO_PUBLIC_API_URL="https://your-app.railway.app/api"
+
 # Development Configuration
 EXPO_PUBLIC_ENV="development"
 ```
 
+---
+
 ## 🗄️ Database Setup Options
 
-### Option 1: Supabase (Recommended - Free Tier)
+### Option 1: Supabase (Recommended - Free Tier Available)
+
+**Why Supabase?**
+- Free PostgreSQL database with 500MB storage
+- Built-in authentication
+- Real-time subscriptions
+- Automatic backups
+- Easy Railway integration
+
+**Setup Steps:**
 
 1. **Create Supabase Project:**
-   - Visit [supabase.com](https://supabase.com)
-   - Create new project
-   - Note the Project URL and anon key
+   - Visit [supabase.com](https://supabase.com) and sign up
+   - Click "New Project"
+   - Choose organization and set project name
+   - Set a strong database password
+   - Select region closest to your users
+   - Wait for project provisioning (~2 minutes)
 
-2. **Configure Backend:**
+2. **Get Connection Details:**
+   - Go to Project Settings → Database
+   - Copy the **Connection string** (URI format)
+   - Go to Project Settings → API
+   - Copy **Project URL**, **anon public** key, and **service_role** key
+
+3. **Configure Backend:**
    ```bash
    cd backend
-   # Add Supabase credentials to .env
-   # DATABASE_URL should use the connection string from Supabase
+   # Create .env file with your Supabase credentials
+   # Use the connection string as DATABASE_URL
    ```
 
-3. **Initialize Database:**
+4. **Initialize Database:**
    ```bash
-   npm run db:push
-   npm run db:seed  # Optional: seed with sample data
+   cd backend
+   npx prisma generate      # Generate Prisma client
+   npx prisma db push       # Push schema to Supabase
+   npx prisma studio        # Verify database (optional)
    ```
 
 ### Option 2: Local PostgreSQL
 
-1. **Install PostgreSQL:**
-   - Windows: Download from postgresql.org
-   - macOS: `brew install postgresql`
-   - Linux: `sudo apt-get install postgresql`
+**For Development Only** - not recommended for production.
 
-2. **Create Database:**
-   ```sql
-   createdb swimtrainapp
-   # Or via SQL: CREATE DATABASE swimtrainapp;
+1. **Install PostgreSQL:**
+   - **Windows**: Download installer from [postgresql.org](https://www.postgresql.org/download/windows/)
+   - **macOS**: `brew install postgresql@15`
+   - **Linux**: `sudo apt-get install postgresql postgresql-contrib`
+
+2. **Start PostgreSQL Service:**
+   ```bash
+   # macOS
+   brew services start postgresql@15
+   
+   # Windows - runs automatically after install
+   
+   # Linux
+   sudo systemctl start postgresql
    ```
 
-3. **Configure and Migrate:**
+3. **Create Database:**
+   ```bash
+   # Connect to PostgreSQL
+   psql postgres
+   
+   # Create database and user
+   CREATE DATABASE swimtrainapp;
+   CREATE USER swimtrainuser WITH PASSWORD 'yourpassword';
+   GRANT ALL PRIVILEGES ON DATABASE swimtrainapp TO swimtrainuser;
+   \q
+   ```
+
+4. **Configure and Migrate:**
    ```bash
    cd backend
-   # Update DATABASE_URL in .env to point to local DB
-   npm run db:migrate
+   # Update DATABASE_URL in .env:
+   # DATABASE_URL="postgresql://swimtrainuser:yourpassword@localhost:5432/swimtrainapp"
+   
+   npx prisma generate
+   npx prisma db push
    ```
 
-## 🔧 Development
+---
 
-### Backend Development
+## � Installation & Setup
+
+### 1. Clone Repository
+
+```bash
+git clone https://github.com/yourusername/swimTrainApp.git
+cd swimTrainApp
+```
+
+### 2. Install Dependencies
+
+```bash
+# Install root dependencies
+npm install
+
+# Dependencies will auto-install in workspaces (backend, mobile, shared)
+# Or install manually:
+cd backend && npm install
+cd ../mobile && npm install
+cd ../shared && npm install
+```
+
+### 3. Set Up Environment Variables
+
+```bash
+# Backend
+cd backend
+cp .env.example .env  # If example exists, or create manually
+# Edit .env with your database and Supabase credentials
+
+# Mobile
+cd mobile
+cp .env.example .env  # If example exists, or create manually
+# Edit .env with your API URL
+```
+
+### 4. Initialize Database
+
 ```bash
 cd backend
-npm run dev          # Start with hot reload
-npm run type-check   # Type checking
-npm run db:studio    # Database GUI
+npx prisma generate      # Generate Prisma client
+npx prisma db push       # Apply schema to database
+# npx prisma db seed     # Optional: Add sample data (if seed script exists)
 ```
 
-### Mobile Development
+### 5. Start Development Servers
+
 ```bash
-cd mobile
-npx expo start       # Start Expo dev server
-npx tsc --noEmit    # Type checking
-```
+# Option 1: Start everything from root
+npm run dev
 
-## 📦 Building for Production
+# Option 2: Start services individually
+# Terminal 1 - Backend
+cd backend
+npm run dev
 
-## 📱 Platform-Specific Development
-
-### Web Development
-```bash
+# Terminal 2 - Mobile/Web
 cd mobile
 npx expo start --web
-# Access at http://localhost:8081
 ```
 
-### iOS Development (macOS only)
-```bash
-cd mobile
-npx expo start --ios
-# Requires Xcode and iOS Simulator
-```
-
-### Android Development
-```bash
-cd mobile
-npx expo start --android
-# Requires Android Studio and emulator
-```
-
-### Physical Device Testing
-1. Install **Expo Go** from App Store/Google Play
-2. Run `npx expo start` in mobile directory
-3. Scan QR code with Expo Go app
-
-## ⚠️ Current Test Status
-
-- Android: Verified — the app can be started and run on Android emulators and devices using Expo (see `npx expo start --android`).
--- Google login on mobile: Deferred for MVP. Due to inconsistent redirect/callback behavior on emulators and some devices, the mobile Google sign-in UI has been disabled for the MVP release. Use the email/password registration and login flows for development and testing. The `POST /api/auth/dev-login` endpoint and the redirect helper remain in the codebase for future re-enablement and troubleshooting.
-- iOS: Not tested in this branch; iOS behaviour is currently unverified.
-## 🔧 Development Workflow
-
-### Database Management
-```bash
-cd backend
-
-# Generate Prisma client after schema changes
-npx prisma generate
-
-# Apply schema changes to database
-npx prisma db push
-
-# View database in browser
-npx prisma studio
+---
 
 # Reset database (development only)
 npx prisma db reset

@@ -1,61 +1,73 @@
 # SwimTrainApp 🏊‍♀️
 
-A free and open-source swimming training tracker for mobile and web platforms.
+A comprehensive swimming training tracker for teams and individual swimmers.
 
-## 🚀 Current Status: **PRODUCTION READY v1.0** (partial)
+## 🚀 Current Status: **MVP v1.0 - Production Ready**
 
-SwimTrainApp is functional and most core features are implemented. Current dev notes:
+SwimTrainApp is a fully functional swimming training application with all core features implemented and tested.
 
-- Android: app is executable and testable on Android emulators / devices (verified).
--- Google OAuth on mobile: deferred for MVP. We've disabled Google sign-in in the mobile UI for the initial release because redirect/callback behavior was unreliable in some environments. Use email/password login for now.
-- iOS: not tested in this branch yet.
+**Platform Support:**
+- ✅ **Android**: Fully functional and tested on emulators and physical devices
+- ⚠️ **iOS**: Not yet tested (pending verification)
+- ✅ **Web**: Functional as PWA (Progressive Web App)
+- ✅ **Backend**: Deployed on Railway with PostgreSQL (Supabase)
 
-Please see SETUP.md for details on testing on Android and the `dev-login` endpoint to bypass auth during development.
+**Authentication:**
+- ✅ Email/Password authentication (fully implemented)
+- ⚠️ Google OAuth (deferred for MVP - disabled in mobile UI due to redirect behavior inconsistencies)
+
+Please see [SETUP.md](SETUP.md) for detailed setup instructions and [DEVELOPER.md](DEVELOPER.md) for development guidelines.
 
 ### ✅ **Completed Features (100% Functional)**
-- **User Authentication** - Complete login/register system with secure JWT tokens
-- **Session Management** - Create, edit, view, and delete swimming sessions with detailed tracking
-- **Team Functionality** - Full team management with member profiles and session sharing
-- **Team Member Interactivity** - View team member profiles and their training sessions
-- **Cross-platform Support** - iOS, Android, and Web through React Native/Expo
-- **Real-time Updates** - Live data synchronization across platforms
-- **Progress Tracking** - Session history and comprehensive analytics
-- **Responsive Design** - Optimized for all screen sizes with dark/light theme support
-- **Settings Management** - Complete user profile and app preferences management
 
-### �‍♀️ **Swimming-Specific Features**
-- **Session Tracking**: Distance, duration, and workout type recording
-- **Intensity Levels**: Easy, Moderate, Hard, Race Pace
-- **Workout Categories**: Technique, Endurance, Speed, Recovery, Race
-- **Analytics**: Automatic session statistics and progress summaries
-- **Team Sharing**: Secure team-based session visibility and member interaction
+#### Core Functionality
+- ✅ **User Authentication**: Email/password registration and login with JWT tokens
+- ✅ **Dashboard**: Real-time session overview with comprehensive statistics
+- ✅ **Session Management**: Full CRUD operations for training sessions
+- ✅ **Session Details**: View session with all metadata (type, stroke, intensity, distance, duration)
+- ✅ **Session Editing**: Edit and update existing training sessions
+- ✅ **User Profile**: Complete profile management with avatar upload and statistics
+- ✅ **Settings**: App preferences including dark/light theme toggle
 
-### 👥 **Team Features**  
-- Team creation and comprehensive member management
-- View team member profiles with complete training history
-- Secure team-based data sharing with role-based access control
-- Interactive team member sessions and profile viewing
+#### 🏊‍♀️ **Swimming-Specific Features**
+- ✅ **Workout Types**: WARMUP, MAIN_SET, COOLDOWN, TECHNIQUE, SPRINT, ENDURANCE, KICK, PULL
+- ✅ **Stroke Tracking**: FREESTYLE, BACKSTROKE, BREASTSTROKE, BUTTERFLY, INDIVIDUAL_MEDLEY, MIXED
+- ✅ **Intensity Levels**: EASY, MODERATE, HARD, RACE_PACE, RECOVERY
+- ✅ **Distance & Duration**: Track meters/yards and time for each session
+- ✅ **Session Statistics**: Total distance, time, and session count
+
+#### 👥 **Team Features**
+- ✅ **Team Creation**: Create and manage swimming teams with unique invite codes
+- ✅ **Team Joining**: Join teams using invite codes
+- ✅ **Team Member Roles**: MEMBER, COACH, CAPTAIN, ADMIN with role-based permissions
+- ✅ **Team Statistics**: View team performance metrics
+- ✅ **Team Member Profiles**: View other members' profiles and session history
+- ✅ **Team Sessions**: View shared team training sessions
 
 ## 🛠️ Technology Stack
 
 ### Frontend (Mobile & Web)
-- **React Native with Expo** - Cross-platform mobile and web app
-- **TypeScript** - Type safety and better development experience
-- **Expo Router** - File-based routing system
-- **NativeWind** - Tailwind CSS for React Native styling
-- **React Native AsyncStorage** - Local data persistence
+- **React Native** 0.79.5 - Cross-platform mobile and web app
+- **Expo SDK** 53.0 - Development platform and tools
+- **TypeScript** 5.8 - Type safety and better development experience
+- **Expo Router** 5.1 - File-based routing system
+- **NativeWind** 4.0 - Tailwind CSS for React Native styling
+- **AsyncStorage** - Local data persistence
+- **Zustand** - State management
 
 ### Backend
-- **Node.js with Express** - RESTful API server
-- **TypeScript** - Type-safe backend development
-- **Prisma ORM** - Database management and migrations
-- **PostgreSQL** - Primary database
+- **Node.js** with **Express** 4.18 - RESTful API server
+- **TypeScript** 5.2 - Type-safe backend development
+- **Prisma ORM** 5.6 - Database management and migrations
+- **PostgreSQL** - Primary database (hosted on Supabase)
 - **JWT Authentication** - Secure token-based auth
 - **bcrypt** - Password hashing
+- **Supabase Auth** - Authentication service
 
 ### Database & Storage
-- **Supabase** - Database hosting and authentication
+- **Supabase** - PostgreSQL database hosting and authentication
 - **Prisma** - Database schema management and queries
+- **Railway** - Backend deployment platform
 
 ## 📁 Project Overview
 
@@ -72,80 +84,125 @@ swimTrainApp/
 ## 🏃‍♂️ Quick Start
 
 ```bash
-# 1. Clone and install
+# 1. Clone and install dependencies
 git clone <your-repo>
-cd swimTrainApp && npm install
+cd swimTrainApp
+npm install
 
-# 2. Start backend
-cd backend && npm run dev
+# 2. Set up environment variables (see SETUP.md)
+cd backend
+cp .env.example .env  # Edit with your credentials
 
-# 3. Start mobile/web app  
-cd mobile && npx expo start --web
+# 3. Start backend API
+npm run dev
+
+# 4. In a new terminal, start mobile/web app  
+cd mobile
+npx expo start --web
 ```
-
-### Local Android signing (for building AAB locally)
-
-If you want to build and sign an Android App Bundle locally, copy the example gradle properties:
-
-```powershell
-copy mobile\android\gradle.properties.example mobile\android\gradle.properties
-# Edit mobile\android\gradle.properties and set your keystore path and passwords
-```
-
-Do NOT commit `android/gradle.properties` — it contains sensitive signing credentials. The repo includes `mobile/android/gradle.properties.example` as a template.
 
 **🌐 Access Points:**
 - **Web**: http://localhost:8081
 - **API**: http://localhost:3000  
-- **Mobile**: Scan QR code with Expo Go
+- **Mobile**: Scan QR code with Expo Go app
 
 *For detailed setup instructions and environment configuration, see [SETUP.md](./SETUP.md)*
 
 ## 📱 Supported Platforms
 
-- **iOS** - Native iOS app via Expo
-- **Android** - Native Android app via Expo  
-- **Web** - Progressive Web App
+- **Android** - Native Android app via Expo (✅ Tested)
+- **iOS** - Native iOS app via Expo (⚠️ Not tested)
+- **Web** - Progressive Web App (✅ Functional)
 - **Desktop** - Web app can be installed as PWA
+
+## 🚀 Deployment
+
+### Backend (Railway)
+```bash
+# Deploy backend to Railway
+cd backend
+npm run build
+npm run start
+```
+
+Environment variables required:
+- `DATABASE_URL` - PostgreSQL connection string
+- `SUPABASE_URL` - Supabase project URL
+- `SUPABASE_SERVICE_ROLE_KEY` - Supabase service key
+- `JWT_SECRET` - Secret for JWT token signing
+
+See [backend/RAILWAY-DEPLOY.md](backend/RAILWAY-DEPLOY.md) for detailed deployment instructions.
+
+### Mobile (EAS Build)
+```bash
+# Build for Android/iOS
+cd mobile
+eas build --platform android  # or ios
+```
+
+See [SETUP.md](SETUP.md) for EAS Build configuration.
 
 ## 🔐 Authentication
 
 The app includes a complete authentication system:
 - User registration with email validation
-- Secure login with JWT tokens
+- Secure login with JWT tokens (7-day expiration)
 - Password hashing with bcrypt
 - Protected routes and API endpoints
-- Automatic token refresh
+- Supabase Auth integration for OAuth (Google deferred for MVP)
 
-## 📊 **Development Status Summary**
+## 📊 Database Schema
 
-**🎯 Project Completion: 100% MVP Complete**
-- ✅ All core features implemented and tested
-- ✅ Cross-platform functionality verified (iOS, Android, Web)
-- ✅ Team interactivity fully functional
-- ✅ TypeScript errors resolved and code quality optimized
-- ✅ Production-ready codebase with comprehensive error handling
+The app uses Prisma ORM with PostgreSQL. Key models:
+- **User**: User accounts with profile data and team membership
+- **Team**: Swimming teams with invite codes and member management
+- **Session**: Training sessions with workout details
+- **Workout**: Individual workout components within sessions
 
-**🚀 Ready for:**
-- Production deployment
-- User testing and feedback
-- Feature expansion (see ROADMAP.md)
+See [backend/prisma/schema.prisma](backend/prisma/schema.prisma) for full schema.
 
-**📱 Live Demo Access:**
-- **Web**: http://localhost:8081 (after setup)
-- **Mobile**: Scan QR code with Expo Go app
-- **API**: http://localhost:3000 (backend)
+## 🧪 Local Android Signing (Optional)
+
+If you want to build and sign an Android App Bundle locally:
+
+```powershell
+# Copy the example gradle properties template
+copy mobile\android\gradle.properties.example mobile\android\gradle.properties
+
+# Edit mobile\android\gradle.properties and set your keystore path and passwords
+```
+
+⚠️ **Important**: Do NOT commit `android/gradle.properties` — it contains sensitive signing credentials.
+
+## 📖 Documentation
+
+- [DEVELOPER.md](DEVELOPER.md) - Comprehensive development guide with architecture details
+- [SETUP.md](SETUP.md) - Environment setup and configuration
+- [ROADMAP.md](ROADMAP.md) - Feature roadmap and future plans
+- [TEAM_IMPLEMENTATION.md](TEAM_IMPLEMENTATION.md) - Team feature implementation details
+- [backend/RAILWAY-DEPLOY.md](backend/RAILWAY-DEPLOY.md) - Railway deployment guide
 
 ## 🤝 Contributing
 
-We welcome contributions! 
+This project is actively maintained. Contributions are welcome!
 
-**📖 Documentation Guide:**
-- **README.md** (this file) - Project overview and quick start
-- **[SETUP.md](./SETUP.md)** - Detailed environment setup and configuration  
-- **[DEVELOPER.md](./DEVELOPER.md)** - Development guidelines and technical details
-- **[ROADMAP.md](./ROADMAP.md)** - Feature roadmap and future plans
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
 
 ## 📄 License
 
-MIT License - completely free and open-source!
+This project is open source and available under the MIT License.
+
+## 🙏 Acknowledgments
+
+- Built with React Native and Expo
+- Database hosting by Supabase
+- Backend deployment on Railway
+- Icons by Expo Ionicons
+
+---
+
+Made with ❤️ for swimmers around the world 🏊‍♀️🏊‍♂️

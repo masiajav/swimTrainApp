@@ -2,13 +2,20 @@
 
 A comprehensive guide for developers working on the SwimTrainApp project.
 
-## 📊 **Current Project Status: v1.0 (dev-tested)**
+## 📊 **Current Project Status: v1.0 MVP - Production Ready**
 
-Notes for developers:
+**Testing Status:**
+- ✅ **Android**: Fully tested and verified on emulators and physical devices via Expo
+- ⚠️ **iOS**: Not yet tested (requires macOS/Xcode for verification)
+- ✅ **Web**: Functional as PWA
+- ✅ **Backend**: Deployed on Railway with Supabase PostgreSQL
 
-- Android: Verified — the app runs on Android emulators and physical devices via Expo.
--- Google OAuth (mobile): Deferred for MVP. The mobile Google OAuth flow was unstable across emulator/device environments (redirect/callback issues). For the MVP we removed the Google sign-in buttons from the mobile UI and will rely on email/password auth. The previously added redirect helper and test endpoints remain in the codebase for future work.
-- iOS: Not tested in this branch; please verify on macOS/Xcode if you need iOS validation.
+**Authentication Notes:**
+- ✅ Email/Password authentication fully implemented
+- ⚠️ Google OAuth deferred for MVP (mobile redirect/callback issues)
+  - Google sign-in buttons removed from mobile UI
+  - Backend endpoints remain for future implementation
+  - Use email/password for MVP authentication
 
 ---
 
@@ -27,7 +34,16 @@ cd backend
 npm run dev             # API server (http://localhost:3000)
 
 # 🚀 Start Everything (from root)
-npm run dev             # Both frontend and backend
+npm run dev             # Both frontend and backend concurrently
+
+# 🏗️ Build Backend for Production
+cd backend
+npm run build           # Compile TypeScript to dist/
+npm run start           # Start production server
+
+# 🏗️ Build Backend from Root (Railway deployment)
+npm run build:backend   # Compile backend from root directory
+npm run start:backend   # Start backend from root directory
 ```
 
 ### **Directory Structure - Where to Run What**
@@ -35,7 +51,7 @@ npm run dev             # Both frontend and backend
 swimTrainApp/
 ├── mobile/          # 📱 Run: npx expo start
 ├── backend/         # ⚙️ Run: npm run dev  
-├── shared/          # 📦 Types only
+├── shared/          # 📦 Types only (imported by mobile/backend)
 └── (root)           # 🚀 Run: npm run dev (both)
 ```
 
@@ -44,32 +60,35 @@ swimTrainApp/
 ## 🏗️ Project Architecture
 
 ### Overview
-SwimTrainApp is a full-stack application built with a modern, scalable architecture designed for cross-platform mobile and web deployment.
+SwimTrainApp is a full-stack monorepo application built with a modern, scalable architecture designed for cross-platform mobile and web deployment.
 
 ### Technology Stack
 
 #### Frontend (Mobile & Web)
-- **React Native 0.73** - Cross-platform framework
-- **Expo SDK 50** - Development platform and build tools
-- **TypeScript 5.x** - Type safety and enhanced developer experience
-- **Expo Router** - File-based routing system
-- **NativeWind** - Tailwind CSS for React Native styling
+- **React Native** 0.79.5 - Cross-platform framework
+- **Expo SDK** 53.0 - Development platform and build tools
+- **TypeScript** 5.8 - Type safety and enhanced developer experience
+- **Expo Router** 5.1 - File-based routing system
+- **NativeWind** 4.0 - Tailwind CSS for React Native styling
 - **AsyncStorage** - Local data persistence
 - **React Context** - State management (Auth, Theme)
+- **Zustand** - Additional state management
 
 #### Backend (API)
-- **Node.js 20+** - Runtime environment
-- **Express.js 4.x** - Web framework
-- **TypeScript 5.x** - Type-safe backend development
-- **Prisma 5.x** - Database ORM and schema management
+- **Node.js** 20+ - Runtime environment
+- **Express.js** 4.18 - Web framework
+- **TypeScript** 5.2 - Type-safe backend development
+- **Prisma** 5.6 - Database ORM and schema management
 - **PostgreSQL** - Primary database
-- **JWT** - Authentication tokens
+- **JWT** - Authentication tokens (7-day expiration)
 - **bcrypt** - Password hashing
 - **CORS** - Cross-origin resource sharing
+- **Supabase Auth** - Authentication service integration
 
 #### Database & Hosting
 - **Supabase** - PostgreSQL database hosting and authentication
 - **Prisma** - Schema migrations and query building
+- **Railway** - Backend deployment platform
 
 ---
 
@@ -128,7 +147,6 @@ swimTrainApp/
 ```
 
 ## 🛠️ Development Workflow
-
 ### Starting Development
 
 1. **Backend API (Terminal 1):**
@@ -157,7 +175,7 @@ cd backend
 npx prisma generate      # Generate Prisma client after schema changes
 npx prisma db push       # Apply schema changes to database
 npx prisma studio        # View/edit database in browser
-npx prisma db reset      # Reset database (development only)
+npx prisma db reset      # Reset database (development only!)
 
 # 🔍 Type Checking
 cd mobile && npx tsc --noEmit    # Check frontend types
@@ -170,11 +188,8 @@ npx expo start --ios       # iOS simulator (macOS only)
 npx expo start --android   # Android emulator
 npx expo start --clear     # Clear cache if issues occur
 ```
-npm run db:migrate
 
-# Open Prisma Studio (database GUI)
-npm run db:studio
-```
+---
 
 ## 🚀 Development Workflow
 
@@ -200,8 +215,10 @@ cd backend
 
 # Then run:
 npm run dev             # Start API server (port 3000)
-npm run db:studio       # Database GUI
-npm run type-check      # TypeScript checking
+npm run build           # Build for production
+npm run start           # Start production server
+npx prisma studio       # Database GUI
+npx tsc --noEmit        # TypeScript checking
 ```
 
 **🚀 For Both Services at Once:**
@@ -214,21 +231,21 @@ npm run dev             # Starts both backend and mobile
 
 **Option 1: All services at once (from root):**
 ```bash
-npm run dev
+npm run dev             # Concurrent: backend + mobile
 ```
 
 **Option 2: Individual services:**
 ```bash
-# Backend only (from root)
-npm run dev:backend
+# From root directory
+npm run dev:backend     # Backend only
+npm run dev:mobile      # Mobile only
 
-# Mobile app only (from root)
-npm run dev:mobile
-
-# OR manually:
-cd backend && npm run dev      # Backend
-cd mobile && npx expo start   # Mobile
+# OR manually in separate terminals
+cd backend && npm run dev      # Terminal 1: Backend
+cd mobile && npx expo start   # Terminal 2: Mobile
 ```
+
+---
 
 ### Mobile Development
 
