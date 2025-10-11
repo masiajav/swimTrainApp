@@ -4,6 +4,14 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { apiService } from '../../../services/api';
 import { useTheme } from '../../../contexts/ThemeContext';
 
+// Set per-screen header options so the stack header shows a friendly title and brand colors
+export const options = {
+  headerTitle: 'Team Member',
+  headerStyle: { backgroundColor: '#0ea5e9' },
+  headerTintColor: '#fff',
+  headerTitleStyle: { fontWeight: 'bold' },
+};
+
 interface TeamMemberSession {
   id: string;
   title: string;
@@ -146,17 +154,9 @@ export default function TeamMemberProfileScreen() {
   }
 
   return (
-    <ScrollView style={[styles.container, { backgroundColor: colors.background }]}>
-      {/* Header */}
-      <View style={[styles.header, { backgroundColor: colors.primary }]}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-          <Text style={styles.backButtonText}>← Back</Text>
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Team Member</Text>
-      </View>
-
+    <ScrollView style={[styles.container, { backgroundColor: colors.background }]}> 
       {/* Profile Card */}
-      <View style={[styles.profileCard, { backgroundColor: colors.surface }]}>
+      <View style={[styles.profileCard, { backgroundColor: colors.surface, marginTop: 12 }]}>
         <View style={styles.avatarContainer}>
           {renderMemberAvatar()}
         </View>
@@ -293,26 +293,7 @@ const styles = StyleSheet.create({
   errorText: {
     fontSize: 16,
   },
-  header: {
-    paddingTop: 60,
-    paddingBottom: 20,
-    paddingHorizontal: 20,
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  backButton: {
-    marginRight: 16,
-  },
-  backButtonText: {
-    color: 'white',
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  headerTitle: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: 'white',
-  },
+  // header styles removed - native header is used for this screen
   profileCard: {
     margin: 16,
     borderRadius: 16,

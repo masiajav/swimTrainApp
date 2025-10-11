@@ -86,6 +86,14 @@ class ApiService {
       const data = await response.json();
 
       if (!response.ok) {
+        // Check if token is expired/invalid - auto-logout and redirect
+        if (response.status === 403 && data.error?.toLowerCase().includes('token')) {
+          console.warn('⚠️ [ApiService] Token expired or invalid - auto logging out');
+          await this.logout();
+          // Dynamic import to avoid circular dependency
+          const { router } = await import('expo-router');
+          router.replace('/auth/login');
+        }
         throw new Error(data.error || 'API request failed');
       }
 
