@@ -11,7 +11,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 //    reach the backend on your machine.
 // 3. When on Android emulator fall back to 10.0.2.2.
 // TODO: make a refactor to centralize this logic with Supabase client init
-let API_BASE_URL = 'http://10.0.2.2:3000/api';
+let API_BASE_URL = 'https://swimtrainapp-production.up.railway.app/api';
 try {
   // eslint-disable-next-line @typescript-eslint/no-var-requires
   const Constants = require('expo-constants');
@@ -86,6 +86,14 @@ class ApiService {
       const data = await response.json();
 
       if (!response.ok) {
+        // Check if token is expired/invalid - auto-logout and redirect
+        if (response.status === 403 && data.error?.toLowerCase().includes('token')) {
+          console.warn('⚠️ [ApiService] Token expired or invalid - auto logging out');
+          await this.logout();
+          // Dynamic import to avoid circular dependency
+          const { router } = await import('expo-router');
+          router.replace('/auth/login');
+        }
         throw new Error(data.error || 'API request failed');
       }
 
