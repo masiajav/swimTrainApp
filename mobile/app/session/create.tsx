@@ -14,8 +14,10 @@ import { useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { apiService } from '../../services/api';
 import { WorkoutType, Stroke, Intensity } from '../../../shared/types';
+import { useTheme } from '../../contexts/ThemeContext';
 
 export default function CreateSession() {
+  const { isDarkMode, colors } = useTheme();
   const navigation = useNavigation();
   React.useEffect(() => {
     // Hide the small back label (e.g. 'session/create') shown next to the back arrow
@@ -261,11 +263,11 @@ export default function CreateSession() {
   }) => (
     <Modal visible={visible} transparent animationType="slide">
       <View style={styles.modalOverlay}>
-        <View style={styles.modalContent}>
+        <View style={[styles.modalContent, { backgroundColor: colors.surface }]}>
           <View style={styles.modalHeader}>
-            <Text style={styles.modalTitle}>{title}</Text>
+            <Text style={[styles.modalTitle, { color: colors.text }]}>{title}</Text>
             <TouchableOpacity onPress={onClose}>
-              <Ionicons name="close" size={24} color="#6b7280" />
+              <Ionicons name="close" size={24} color={colors.textSecondary} />
             </TouchableOpacity>
           </View>
           <ScrollView style={styles.optionsList}>
@@ -274,7 +276,8 @@ export default function CreateSession() {
                 key={option}
                 style={[
                   styles.optionItem,
-                  selectedValue === option && styles.selectedOption
+                  { backgroundColor: colors.background },
+                  selectedValue === option && { backgroundColor: colors.primary }
                 ]}
                 onPress={() => {
                   onSelect(option);
@@ -283,7 +286,7 @@ export default function CreateSession() {
               >
                 <Text style={[
                   styles.optionText,
-                  selectedValue === option && styles.selectedOptionText
+                  { color: selectedValue === option ? 'white' : colors.text }
                 ]}>
                   {option.replace('_', ' ')}
                 </Text>
@@ -296,17 +299,17 @@ export default function CreateSession() {
   );
 
   return (
-    <ScrollView style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>New Swimming Session</Text>
+    <ScrollView style={[styles.container, { backgroundColor: colors.background }]}>
+      <View style={[styles.header, { backgroundColor: colors.surface, borderBottomColor: colors.border }]}>
+        <Text style={[styles.headerTitle, { color: colors.text }]}>New Swimming Session</Text>
         <TouchableOpacity onPress={resetForm} style={styles.resetButton}>
-          <Ionicons name="refresh" size={20} color="#6b7280" />
+          <Ionicons name="refresh" size={20} color={colors.textSecondary} />
         </TouchableOpacity>
       </View>
 
       {/* Success Message */}
       {successMessage && (
-        <View style={styles.successMessage}>
+        <View style={[styles.successMessage, { backgroundColor: colors.success }]}>
           <Text style={styles.successText}>{successMessage}</Text>
         </View>
       )}
@@ -314,108 +317,108 @@ export default function CreateSession() {
       <View style={styles.form}>
         <View style={styles.inputGroup}>
           <View style={styles.labelRow}>
-            <Text style={styles.label}>Session Title *</Text>
-            <Text style={styles.charCounter}>{formData.title.length}/50</Text>
+            <Text style={[styles.label, { color: colors.text }]}>Session Title *</Text>
+            <Text style={[styles.charCounter, { color: colors.textSecondary }]}>{formData.title.length}/50</Text>
           </View>
           <TextInput
-            style={[styles.input, errors.title ? styles.inputError : null]}
+            style={[styles.input, { backgroundColor: colors.surface, borderColor: colors.border, color: colors.text }, errors.title ? styles.inputError : null]}
             value={formData.title}
             onChangeText={(value) => handleInputChange('title', value.slice(0, 50))}
             placeholder="e.g., Morning Freestyle Practice"
-            placeholderTextColor="#9ca3af"
+            placeholderTextColor={colors.textSecondary}
             maxLength={50}
           />
-          {errors.title && <Text style={styles.errorText}>{errors.title}</Text>}
+          {errors.title && <Text style={[styles.errorText, { color: colors.error }]}>{errors.title}</Text>}
         </View>
 
         <View style={styles.inputGroup}>
-          <Text style={styles.label}>Date *</Text>
+          <Text style={[styles.label, { color: colors.text }]}>Date *</Text>
           <TextInput
-            style={[styles.input, errors.date ? styles.inputError : null]}
+            style={[styles.input, { backgroundColor: colors.surface, borderColor: colors.border, color: colors.text }, errors.date ? styles.inputError : null]}
             value={formData.date}
             onChangeText={(value) => handleInputChange('date', value)}
             placeholder="YYYY-MM-DD"
-            placeholderTextColor="#9ca3af"
+            placeholderTextColor={colors.textSecondary}
           />
-          {errors.date && <Text style={styles.errorText}>{errors.date}</Text>}
+          {errors.date && <Text style={[styles.errorText, { color: colors.error }]}>{errors.date}</Text>}
         </View>
 
         <View style={styles.inputGroup}>
-          <Text style={styles.label}>Duration (minutes) *</Text>
+          <Text style={[styles.label, { color: colors.text }]}>Duration (minutes) *</Text>
           <TextInput
-            style={[styles.input, errors.duration ? styles.inputError : null]}
+            style={[styles.input, { backgroundColor: colors.surface, borderColor: colors.border, color: colors.text }, errors.duration ? styles.inputError : null]}
             value={formData.duration}
             onChangeText={(value) => handleInputChange('duration', value)}
             placeholder="e.g., 60"
-            placeholderTextColor="#9ca3af"
+            placeholderTextColor={colors.textSecondary}
             keyboardType="numeric"
           />
-          {errors.duration && <Text style={styles.errorText}>{errors.duration}</Text>}
+          {errors.duration && <Text style={[styles.errorText, { color: colors.error }]}>{errors.duration}</Text>}
         </View>
 
         <View style={styles.inputGroup}>
-          <Text style={styles.label}>Distance (meters)</Text>
+          <Text style={[styles.label, { color: colors.text }]}>Distance (meters)</Text>
           <TextInput
-            style={[styles.input, errors.distance ? styles.inputError : null]}
+            style={[styles.input, { backgroundColor: colors.surface, borderColor: colors.border, color: colors.text }, errors.distance ? styles.inputError : null]}
             value={formData.distance}
             onChangeText={(value) => handleInputChange('distance', value)}
             placeholder="e.g., 2000"
-            placeholderTextColor="#9ca3af"
+            placeholderTextColor={colors.textSecondary}
             keyboardType="numeric"
           />
-          {errors.distance && <Text style={styles.errorText}>{errors.distance}</Text>}
+          {errors.distance && <Text style={[styles.errorText, { color: colors.error }]}>{errors.distance}</Text>}
         </View>
 
         <View style={styles.inputGroup}>
-          <Text style={styles.label}>Workout Type</Text>
+          <Text style={[styles.label, { color: colors.text }]}>Workout Type</Text>
           <TouchableOpacity
-            style={styles.pickerButton}
+            style={[styles.pickerButton, { backgroundColor: colors.surface, borderColor: colors.border }]}
             onPress={() => setShowWorkoutTypePicker(true)}
           >
-            <Text style={[styles.pickerText, !formData.workoutType && styles.placeholderText]}>
+            <Text style={[styles.pickerText, { color: colors.text }, !formData.workoutType && { color: colors.textSecondary }]}>
               {formData.workoutType ? formData.workoutType.replace('_', ' ') : 'Select workout type'}
             </Text>
-            <Ionicons name="chevron-down" size={20} color="#6b7280" />
+            <Ionicons name="chevron-down" size={20} color={colors.textSecondary} />
           </TouchableOpacity>
         </View>
 
         <View style={styles.inputGroup}>
-          <Text style={styles.label}>Primary Stroke</Text>
+          <Text style={[styles.label, { color: colors.text }]}>Primary Stroke</Text>
           <TouchableOpacity
-            style={styles.pickerButton}
+            style={[styles.pickerButton, { backgroundColor: colors.surface, borderColor: colors.border }]}
             onPress={() => setShowStrokePicker(true)}
           >
-            <Text style={[styles.pickerText, !formData.stroke && styles.placeholderText]}>
+            <Text style={[styles.pickerText, { color: colors.text }, !formData.stroke && { color: colors.textSecondary }]}>
               {formData.stroke ? formData.stroke : 'Select stroke'}
             </Text>
-            <Ionicons name="chevron-down" size={20} color="#6b7280" />
+            <Ionicons name="chevron-down" size={20} color={colors.textSecondary} />
           </TouchableOpacity>
         </View>
 
         <View style={styles.inputGroup}>
-          <Text style={styles.label}>Intensity</Text>
+          <Text style={[styles.label, { color: colors.text }]}>Intensity</Text>
           <TouchableOpacity
-            style={styles.pickerButton}
+            style={[styles.pickerButton, { backgroundColor: colors.surface, borderColor: colors.border }]}
             onPress={() => setShowIntensityPicker(true)}
           >
-            <Text style={[styles.pickerText, !formData.intensity && styles.placeholderText]}>
+            <Text style={[styles.pickerText, { color: colors.text }, !formData.intensity && { color: colors.textSecondary }]}>
               {formData.intensity ? formData.intensity.replace('_', ' ') : 'Select intensity'}
             </Text>
-            <Ionicons name="chevron-down" size={20} color="#6b7280" />
+            <Ionicons name="chevron-down" size={20} color={colors.textSecondary} />
           </TouchableOpacity>
         </View>
 
         <View style={styles.inputGroup}>
           <View style={styles.labelRow}>
-            <Text style={styles.label}>Description</Text>
-            <Text style={styles.charCounter}>{formData.description.length}/500</Text>
+            <Text style={[styles.label, { color: colors.text }]}>Description</Text>
+            <Text style={[styles.charCounter, { color: colors.textSecondary }]}>{formData.description.length}/500</Text>
           </View>
           <TextInput
-            style={[styles.input, styles.textArea]}
+            style={[styles.input, styles.textArea, { backgroundColor: colors.surface, borderColor: colors.border, color: colors.text }]}
             value={formData.description}
               onChangeText={(value) => handleInputChange('description', value.slice(0, 500))}
             placeholder="Additional notes about your session..."
-            placeholderTextColor="#9ca3af"
+            placeholderTextColor={colors.textSecondary}
             multiline
             numberOfLines={4}
             textAlignVertical="top"
@@ -424,7 +427,7 @@ export default function CreateSession() {
         </View>
 
         <TouchableOpacity
-          style={[styles.submitButton, loading && styles.disabledButton]}
+          style={[styles.submitButton, { backgroundColor: colors.primary }, loading && styles.disabledButton]}
           onPress={handleSubmit}
           disabled={loading}
         >
@@ -467,21 +470,17 @@ export default function CreateSession() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f9fafb',
   },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     padding: 16,
-    backgroundColor: '#ffffff',
     borderBottomWidth: 1,
-    borderBottomColor: '#e5e7eb',
   },
   /* backButton removed: header now relies on navigation header back control */
   headerTitle: {
     fontSize: 20,
     fontWeight: 'bold',
-    color: '#111827',
   },
   form: {
     padding: 16,
@@ -492,40 +491,31 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#374151',
     marginBottom: 8,
   },
   input: {
     borderWidth: 1,
-    borderColor: '#d1d5db',
     borderRadius: 8,
     padding: 12,
     fontSize: 16,
-    backgroundColor: '#ffffff',
-    color: '#111827',
   },
   textArea: {
     height: 100,
   },
   pickerButton: {
     borderWidth: 1,
-    borderColor: '#d1d5db',
     borderRadius: 8,
     padding: 12,
-    backgroundColor: '#ffffff',
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
   },
   pickerText: {
     fontSize: 16,
-    color: '#111827',
   },
   placeholderText: {
-    color: '#9ca3af',
   },
   submitButton: {
-    backgroundColor: '#0ea5e9',
     borderRadius: 8,
     padding: 16,
     alignItems: 'center',
@@ -546,7 +536,6 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
   },
   modalContent: {
-    backgroundColor: '#ffffff',
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
     maxHeight: '50%',
@@ -557,12 +546,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 20,
     borderBottomWidth: 1,
-    borderBottomColor: '#e5e7eb',
   },
   modalTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#111827',
   },
   optionsList: {
     maxHeight: 300,
@@ -570,17 +557,13 @@ const styles = StyleSheet.create({
   optionItem: {
     padding: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#f3f4f6',
   },
   selectedOption: {
-    backgroundColor: '#eff6ff',
   },
   optionText: {
     fontSize: 16,
-    color: '#374151',
   },
   selectedOptionText: {
-    color: '#0ea5e9',
     fontWeight: '600',
   },
   inputError: {
@@ -588,7 +571,6 @@ const styles = StyleSheet.create({
     borderWidth: 2,
   },
   errorText: {
-    color: '#ef4444',
     fontSize: 12,
     marginTop: 4,
     marginLeft: 4,
@@ -596,10 +578,8 @@ const styles = StyleSheet.create({
   resetButton: {
     padding: 8,
     borderRadius: 8,
-    backgroundColor: '#f3f4f6',
   },
   successMessage: {
-    backgroundColor: '#10b981',
     margin: 20,
     padding: 16,
     borderRadius: 12,
@@ -618,6 +598,5 @@ const styles = StyleSheet.create({
   },
   charCounter: {
     fontSize: 12,
-    color: '#6b7280',
   },
 });

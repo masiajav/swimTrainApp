@@ -3,8 +3,10 @@ import { useState } from 'react';
 import { Link, router } from 'expo-router';
 import { apiService } from '../../services/api';
 import { Ionicons } from '@expo/vector-icons';
+import { useTheme } from '../../contexts/ThemeContext';
 
 export default function RegisterScreen() {
+  const { isDarkMode, colors } = useTheme();
   const [email, setEmail] = useState('');
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
@@ -60,46 +62,46 @@ export default function RegisterScreen() {
   };
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
       {/* Header with Swimming Theme */}
-      <View style={styles.header}>
+      <View style={[styles.header, { backgroundColor: colors.success }]}>
         <Text style={styles.headerEmoji}>🏊‍♂️</Text>
         <Text style={styles.headerTitle}>Join SwimTrainApp</Text>
-        <Text style={styles.headerSubtitle}>Start your swimming journey today</Text>
+        <Text style={[styles.headerSubtitle, { color: isDarkMode ? colors.textSecondary : '#a7f3d0' }]}>Start your swimming journey today</Text>
       </View>
 
       <ScrollView style={styles.scrollContainer} showsVerticalScrollIndicator={false}>
         {/* Registration Form Card */}
-        <View style={styles.formCard}>
+        <View style={[styles.formCard, { backgroundColor: colors.surface }]}>
           <View style={styles.cardHeader}>
-            <Text style={styles.welcomeText}>Create Account</Text>
-            <Text style={styles.welcomeSubtext}>Join our swimming community and track your progress</Text>
+            <Text style={[styles.welcomeText, { color: colors.text }]}>Create Account</Text>
+            <Text style={[styles.welcomeSubtext, { color: colors.textSecondary }]}>Join our swimming community and track your progress</Text>
           </View>
           
           {/* Personal Information Section */}
           <View style={styles.sectionContainer}>
-            <Text style={styles.sectionTitle}>👤 Personal Information</Text>
+            <Text style={[styles.sectionTitle, { color: colors.text, borderBottomColor: colors.border }]}>👤 Personal Information</Text>
             
             <View style={styles.nameRow}>
               <View style={[styles.inputContainer, styles.halfWidth]}>
-                <Text style={styles.inputLabel}>First Name</Text>
+                <Text style={[styles.inputLabel, { color: colors.text }]}>First Name</Text>
                 <TextInput
                   placeholder="John"
                   value={firstName}
                   onChangeText={setFirstName}
-                  style={styles.input}
-                  placeholderTextColor="#94a3b8"
+                  style={[styles.input, { backgroundColor: colors.background, borderColor: colors.border, color: colors.text }]}
+                  placeholderTextColor={colors.textSecondary}
                 />
               </View>
               
               <View style={[styles.inputContainer, styles.halfWidth]}>
-                <Text style={styles.inputLabel}>Last Name</Text>
+                <Text style={[styles.inputLabel, { color: colors.text }]}>Last Name</Text>
                 <TextInput
                   placeholder="Swimmer"
                   value={lastName}
                   onChangeText={setLastName}
-                  style={styles.input}
-                  placeholderTextColor="#94a3b8"
+                  style={[styles.input, { backgroundColor: colors.background, borderColor: colors.border, color: colors.text }]}
+                  placeholderTextColor={colors.textSecondary}
                 />
               </View>
             </View>
@@ -107,50 +109,50 @@ export default function RegisterScreen() {
 
           {/* Account Details Section */}
           <View style={styles.sectionContainer}>
-            <Text style={styles.sectionTitle}>🔐 Account Details</Text>
+            <Text style={[styles.sectionTitle, { color: colors.text, borderBottomColor: colors.border }]}>🔐 Account Details</Text>
             
             <View style={styles.inputContainer}>
-              <Text style={styles.inputLabel}>📧 Email *</Text>
+              <Text style={[styles.inputLabel, { color: colors.text }]}>📧 Email *</Text>
               <TextInput
                 placeholder="your.email@example.com"
                 value={email}
                 onChangeText={setEmail}
                 keyboardType="email-address"
                 autoCapitalize="none"
-                style={styles.input}
-                placeholderTextColor="#94a3b8"
+                style={[styles.input, { backgroundColor: colors.background, borderColor: colors.border, color: colors.text }]}
+                placeholderTextColor={colors.textSecondary}
               />
             </View>
             
             <View style={styles.inputContainer}>
-              <Text style={styles.inputLabel}>👤 Username *</Text>
+              <Text style={[styles.inputLabel, { color: colors.text }]}>👤 Username *</Text>
               <TextInput
                 placeholder="swimmer123"
                 value={username}
                 onChangeText={setUsername}
                 autoCapitalize="none"
-                style={styles.input}
-                placeholderTextColor="#94a3b8"
+                style={[styles.input, { backgroundColor: colors.background, borderColor: colors.border, color: colors.text }]}
+                placeholderTextColor={colors.textSecondary}
               />
             </View>
             
             <View style={styles.inputContainer}>
-              <Text style={styles.inputLabel}>🔒 Password *</Text>
+              <Text style={[styles.inputLabel, { color: colors.text }]}>🔒 Password *</Text>
               <View style={styles.inputOverlayContainer}>
                 <TextInput
                   placeholder="Create a strong password"
                   value={password}
                   onChangeText={setPassword}
                   secureTextEntry={!showPassword}
-                  style={[styles.input, styles.inputWithIcon]}
-                  placeholderTextColor="#94a3b8"
+                  style={[styles.input, styles.inputWithIcon, { backgroundColor: colors.background, borderColor: colors.border, color: colors.text }]}
+                  placeholderTextColor={colors.textSecondary}
                 />
                 <TouchableOpacity
                   onPress={() => setShowPassword((s) => !s)}
                   style={styles.inputIcon}
                   accessibilityLabel={showPassword ? 'Hide password' : 'Show password'}
                 >
-                  <Ionicons name={showPassword ? 'eye-off' : 'eye'} size={20} color="#059669" />
+                  <Ionicons name={showPassword ? 'eye-off' : 'eye'} size={20} color={colors.success} />
                 </TouchableOpacity>
               </View>
             </View>
@@ -158,7 +160,7 @@ export default function RegisterScreen() {
           
           <TouchableOpacity 
             onPress={handleRegister}
-            style={[styles.registerButton, isLoading && styles.registerButtonDisabled]}
+            style={[styles.registerButton, { backgroundColor: colors.success }, isLoading && styles.registerButtonDisabled]}
             disabled={isLoading}
           >
             <Text style={styles.registerButtonText}>
@@ -168,9 +170,9 @@ export default function RegisterScreen() {
 
           {/* Divider */}
           <View style={styles.divider}>
-            <View style={styles.dividerLine} />
-            <Text style={styles.dividerText}>or</Text>
-            <View style={styles.dividerLine} />
+            <View style={[styles.dividerLine, { backgroundColor: colors.border }]} />
+            <Text style={[styles.dividerText, { color: colors.textSecondary }]}>or</Text>
+            <View style={[styles.dividerLine, { backgroundColor: colors.border }]} />
           </View>
 
           {/* Google Sign Up Button hidden for MVP (email/password only) */}
@@ -178,8 +180,8 @@ export default function RegisterScreen() {
           
           <Link href="/auth/login" asChild>
             <TouchableOpacity style={styles.loginLink}>
-              <Text style={styles.loginText}>
-                Already have an account? <Text style={styles.loginTextBold}>Sign in</Text>
+              <Text style={[styles.loginText, { color: colors.textSecondary }]}>
+                Already have an account? <Text style={[styles.loginTextBold, { color: colors.success }]}>Sign in</Text>
               </Text>
             </TouchableOpacity>
           </Link>
@@ -197,13 +199,11 @@ export default function RegisterScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f0f9ff',
   },
   header: {
     paddingTop: 80,
     paddingBottom: 40,
     paddingHorizontal: 20,
-    backgroundColor: '#059669',
     alignItems: 'center',
     borderBottomLeftRadius: 30,
     borderBottomRightRadius: 30,
@@ -220,13 +220,11 @@ const styles = StyleSheet.create({
   },
   headerSubtitle: {
     fontSize: 16,
-    color: '#a7f3d0',
   },
   scrollContainer: {
     flex: 1,
   },
   formCard: {
-    backgroundColor: 'white',
     marginHorizontal: 20,
     marginTop: -20,
     borderRadius: 20,
@@ -248,12 +246,10 @@ const styles = StyleSheet.create({
   welcomeText: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#1e293b',
     marginBottom: 8,
   },
   welcomeSubtext: {
     fontSize: 16,
-    color: '#64748b',
     textAlign: 'center',
     lineHeight: 24,
   },
@@ -263,11 +259,9 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#1e293b',
     marginBottom: 16,
     paddingBottom: 8,
     borderBottomWidth: 2,
-    borderBottomColor: '#f1f5f9',
   },
   nameRow: {
     flexDirection: 'row',
@@ -283,20 +277,15 @@ const styles = StyleSheet.create({
   inputLabel: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#374151',
     marginBottom: 8,
   },
   input: {
     borderWidth: 2,
-    borderColor: '#e2e8f0',
     borderRadius: 12,
     padding: 16,
     fontSize: 16,
-    backgroundColor: '#f8fafc',
-    color: '#1e293b',
   },
   registerButton: {
-    backgroundColor: '#059669',
     borderRadius: 12,
     padding: 18,
     marginTop: 12,
@@ -328,12 +317,10 @@ const styles = StyleSheet.create({
   dividerLine: {
     flex: 1,
     height: 1,
-    backgroundColor: '#e2e8f0',
   },
   dividerText: {
     marginHorizontal: 16,
     fontSize: 14,
-    color: '#64748b',
     fontWeight: '500',
   },
   googleButton: {
@@ -342,7 +329,6 @@ const styles = StyleSheet.create({
     padding: 18,
     marginBottom: 24,
     borderWidth: 2,
-    borderColor: '#e2e8f0',
     shadowColor: '#000',
     shadowOffset: {
       width: 0,
@@ -353,7 +339,6 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   googleButtonText: {
-    color: '#374151',
     fontSize: 18,
     fontWeight: '600',
     textAlign: 'center',
@@ -363,11 +348,9 @@ const styles = StyleSheet.create({
   },
   loginText: {
     fontSize: 16,
-    color: '#64748b',
   },
   loginTextBold: {
     fontWeight: 'bold',
-    color: '#059669',
   },
   waveContainer: {
     alignItems: 'center',
@@ -392,7 +375,6 @@ const styles = StyleSheet.create({
     backgroundColor: 'transparent',
   },
   eyeText: {
-    color: '#059669',
     fontWeight: '600',
   },
   inputOverlayContainer: {
