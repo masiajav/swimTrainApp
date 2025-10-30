@@ -198,7 +198,7 @@ export default function TeamScreen() {
   if (!team) {
     return (
       <ScrollView style={[styles.container, { backgroundColor: colors.background }]}>
-        <View style={[styles.header, { backgroundColor: colors.primary }]}>
+        <View style={[styles.header, { backgroundColor: isDarkMode ? colors.card : colors.primary }]}>
           <Text style={styles.headerTitle}>Join a Team</Text>
           <Text style={styles.headerSubtitle}>
             Connect with swimmers and track progress together
@@ -292,7 +292,7 @@ export default function TeamScreen() {
   return (
     <ScrollView style={[styles.container, { backgroundColor: colors.background }]}>
       {/* Header */}
-      <View style={[styles.header, { backgroundColor: colors.primary }]}>
+      <View style={[styles.header, { backgroundColor: isDarkMode ? colors.card : colors.primary }]}>
         <Text style={styles.headerTitle}>{team.name}</Text>
 
         <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 8, justifyContent: 'space-between' }}>

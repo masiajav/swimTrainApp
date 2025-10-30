@@ -157,7 +157,7 @@ export default function DashboardScreen() {
   return (
     <ScrollView style={[styles.container, { backgroundColor: colors.background }]}>
       {/* Header with Gradient */}
-      <View style={[styles.header, { backgroundColor: colors.primary }]}>
+      <View style={[styles.header, { backgroundColor: isDarkMode ? colors.card : colors.primary }]}>
         <View style={styles.headerContent}>
           <Text style={styles.welcomeText}>Welcome back, Swimmer! 🏊‍♀️</Text>
           <Text style={styles.headerSubtext}>
@@ -297,7 +297,6 @@ const styles = StyleSheet.create({
     backgroundColor: '#f8fafc',
   },
   header: {
-    backgroundColor: '#3b82f6',
     paddingTop: 60,
     paddingBottom: 40,
     paddingHorizontal: 24,
@@ -316,7 +315,7 @@ const styles = StyleSheet.create({
   },
   headerSubtext: {
     fontSize: 16,
-    color: '#bfdbfe',
+    color: 'rgba(255,255,255,0.9)',
     lineHeight: 22,
   },
   floatingElement: {

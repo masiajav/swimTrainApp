@@ -215,7 +215,7 @@ export default function ProfileScreen() {
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
       {/* Header with Gradient */}
-      <View style={[styles.header, { backgroundColor: colors.primary }]}>
+      <View style={[styles.header, { backgroundColor: isDarkMode ? colors.card : colors.primary }]}>
         <Text style={[styles.headerText, { color: 'white' }]}>Profile</Text>
       </View>
 
