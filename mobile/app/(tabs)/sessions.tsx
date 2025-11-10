@@ -465,7 +465,7 @@ export default function SessionsScreen() {
             <Text style={[styles.workoutTypesTitle, { color: colors.text }]}>🏊 Most Common Workouts:</Text>
             <View style={styles.workoutTypesList}>
               {getWorkoutTypeStats().map(([type, count]) => (
-                <View key={type} style={styles.workoutTypeItem}>
+                <View key={type} style={[styles.workoutTypeItem, { backgroundColor: colors.background }]}>
                   <View style={[styles.workoutTypeBadge, { backgroundColor: getTypeColor(type) }]}>
                     <Text style={styles.workoutTypeBadgeText}>{type.replace('_', ' ')}</Text>
                   </View>
@@ -754,7 +754,6 @@ const styles = StyleSheet.create({
   workoutTypeItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#f8fafc',
     borderRadius: 8,
     paddingHorizontal: 8,
     paddingVertical: 4,
