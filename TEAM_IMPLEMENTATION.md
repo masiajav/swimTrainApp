@@ -2,7 +2,7 @@
 
 ## Phase 1: Basic Team Management
 
-### Backend API Endpoints
+### Backend API Endpoint
 
 ```typescript
 // GET /api/teams - Get user's team
