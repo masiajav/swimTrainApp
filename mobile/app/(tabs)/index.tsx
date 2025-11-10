@@ -157,7 +157,7 @@ export default function DashboardScreen() {
   return (
     <ScrollView style={[styles.container, { backgroundColor: colors.background }]}>
       {/* Header with Gradient */}
-      <View style={[styles.header, { backgroundColor: colors.primary }]}>
+      <View style={[styles.header, { backgroundColor: isDarkMode ? colors.card : colors.primary }]}>
         <View style={styles.headerContent}>
           <Text style={styles.welcomeText}>Welcome back, Swimmer! 🏊‍♀️</Text>
           <Text style={styles.headerSubtext}>
@@ -186,7 +186,7 @@ export default function DashboardScreen() {
             ))}
           </View>
           {allSessions.length === 0 && (
-            <View style={styles.noDataMessage}>
+            <View style={[styles.noDataMessage, { backgroundColor: colors.surface, borderLeftColor: colors.primary }]}>
               <Text style={[styles.noDataText, { color: colors.textSecondary }]}>Start swimming to see your weekly stats! 💪</Text>
             </View>
           )}
@@ -206,7 +206,7 @@ export default function DashboardScreen() {
               <Text style={[styles.loadingText, { color: colors.textSecondary }]}>Loading sessions...</Text>
             </View>
           ) : recentSessions.length === 0 ? (
-            <View style={styles.emptyContainer}>
+            <View style={[styles.emptyContainer, { backgroundColor: colors.surface }]}>
               <Text style={[styles.emptyText, { color: colors.text }]}>No sessions yet</Text>
               <Text style={[styles.emptySubtext, { color: colors.textSecondary }]}>Create your first session to get started!</Text>
               <TouchableOpacity 
@@ -255,10 +255,10 @@ export default function DashboardScreen() {
 
         {/* Quick Actions */}
         <View style={styles.actionsContainer}>
-          <Text style={styles.sectionTitle}>Quick Actions</Text>
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>Quick Actions</Text>
           
           <TouchableOpacity 
-            style={styles.primaryAction}
+            style={[styles.primaryAction, { backgroundColor: colors.primary }]}
             onPress={() => router.push('/session/create')}
           >
             <View style={styles.actionContent}>
@@ -273,16 +273,16 @@ export default function DashboardScreen() {
             </View>
           </TouchableOpacity>
           
-          <TouchableOpacity style={styles.secondaryAction}>
+          <TouchableOpacity style={[styles.secondaryAction, { backgroundColor: colors.surface, borderColor: colors.border }]}>
             <View style={styles.actionContent}>
-              <View style={styles.secondaryActionIcon}>
+              <View style={[styles.secondaryActionIcon, { backgroundColor: colors.background }]}>
                 <Text style={styles.actionIconText}>👥</Text>
               </View>
               <View style={styles.actionTextContainer}>
-                <Text style={styles.secondaryActionTitle}>View Team Progress</Text>
-                <Text style={styles.secondaryActionSubtitle}>Check team leaderboard</Text>
+                <Text style={[styles.secondaryActionTitle, { color: colors.text }]}>View Team Progress</Text>
+                <Text style={[styles.secondaryActionSubtitle, { color: colors.textSecondary }]}>Check team leaderboard</Text>
               </View>
-              <Text style={styles.secondaryActionArrow}>→</Text>
+              <Text style={[styles.secondaryActionArrow, { color: colors.primary }]}>→</Text>
             </View>
           </TouchableOpacity>
         </View>
@@ -297,7 +297,6 @@ const styles = StyleSheet.create({
     backgroundColor: '#f8fafc',
   },
   header: {
-    backgroundColor: '#3b82f6',
     paddingTop: 60,
     paddingBottom: 40,
     paddingHorizontal: 24,
@@ -316,7 +315,7 @@ const styles = StyleSheet.create({
   },
   headerSubtext: {
     fontSize: 16,
-    color: '#bfdbfe',
+    color: 'rgba(255,255,255,0.9)',
     lineHeight: 22,
   },
   floatingElement: {
@@ -413,7 +412,6 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: '#f1f5f9',
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: 12,
@@ -457,7 +455,6 @@ const styles = StyleSheet.create({
     marginBottom: 32,
   },
   primaryAction: {
-    backgroundColor: '#3b82f6',
     borderRadius: 16,
     padding: 20,
     marginBottom: 12,
@@ -468,11 +465,9 @@ const styles = StyleSheet.create({
     elevation: 8,
   },
   secondaryAction: {
-    backgroundColor: 'white',
     borderRadius: 16,
     padding: 20,
     borderWidth: 1,
-    borderColor: '#e2e8f0',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
@@ -496,7 +491,6 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: '#f1f5f9',
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: 16,
@@ -522,12 +516,10 @@ const styles = StyleSheet.create({
   secondaryActionTitle: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#1e293b',
     marginBottom: 2,
   },
   secondaryActionSubtitle: {
     fontSize: 14,
-    color: '#64748b',
   },
   actionArrow: {
     fontSize: 18,
@@ -537,7 +529,6 @@ const styles = StyleSheet.create({
   secondaryActionArrow: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#3b82f6',
   },
   loadingContainer: {
     padding: 20,
@@ -550,24 +541,20 @@ const styles = StyleSheet.create({
   emptyContainer: {
     padding: 30,
     alignItems: 'center',
-    backgroundColor: 'white',
     borderRadius: 16,
     margin: 4,
   },
   emptyText: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#374151',
     marginBottom: 8,
   },
   emptySubtext: {
     fontSize: 14,
-    color: '#6b7280',
     textAlign: 'center',
     marginBottom: 20,
   },
   createButton: {
-    backgroundColor: '#3b82f6',
     paddingHorizontal: 20,
     paddingVertical: 10,
     borderRadius: 8,
@@ -597,14 +584,11 @@ const styles = StyleSheet.create({
   noDataMessage: {
     marginTop: 16,
     padding: 12,
-    backgroundColor: '#f0f9ff',
     borderRadius: 8,
     borderLeftWidth: 4,
-    borderLeftColor: '#3b82f6',
   },
   noDataText: {
     fontSize: 14,
-    color: '#1e40af',
     textAlign: 'center',
     fontStyle: 'italic',
   },

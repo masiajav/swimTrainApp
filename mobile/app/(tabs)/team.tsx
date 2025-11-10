@@ -40,15 +40,23 @@ export default function TeamScreen() {
       if ((teamResponse as any).team) {
         console.log('Team members:', (teamResponse as any).team.members);
         setTeam((teamResponse as any).team);
-        // Load team stats if user has a team
-        const statsResponse = await apiService.getTeamStats();
-        setTeamStats((statsResponse as any).stats);
+        // Load team stats if user has a team - but don't fail if stats are unavailable
+        try {
+          const statsResponse = await apiService.getTeamStats();
+          setTeamStats((statsResponse as any).stats);
+        } catch (statsError) {
+          console.log('Team stats not available:', statsError);
+          setTeamStats(null);
+        }
       } else {
         setTeam(null);
         setTeamStats(null);
       }
     } catch (error) {
       console.error('Error loading team data:', error);
+      // Don't crash - just show no team
+      setTeam(null);
+      setTeamStats(null);
     } finally {
       setLoading(false);
     }
@@ -198,7 +206,7 @@ export default function TeamScreen() {
   if (!team) {
     return (
       <ScrollView style={[styles.container, { backgroundColor: colors.background }]}>
-        <View style={[styles.header, { backgroundColor: colors.primary }]}>
+        <View style={[styles.header, { backgroundColor: isDarkMode ? colors.card : colors.primary }]}>
           <Text style={styles.headerTitle}>Join a Team</Text>
           <Text style={styles.headerSubtitle}>
             Connect with swimmers and track progress together
@@ -292,7 +300,7 @@ export default function TeamScreen() {
   return (
     <ScrollView style={[styles.container, { backgroundColor: colors.background }]}>
       {/* Header */}
-      <View style={[styles.header, { backgroundColor: colors.primary }]}>
+      <View style={[styles.header, { backgroundColor: isDarkMode ? colors.card : colors.primary }]}>
         <Text style={styles.headerTitle}>{team.name}</Text>
 
         <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 8, justifyContent: 'space-between' }}>

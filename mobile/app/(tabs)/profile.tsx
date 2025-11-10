@@ -215,7 +215,7 @@ export default function ProfileScreen() {
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
       {/* Header with Gradient */}
-      <View style={[styles.header, { backgroundColor: colors.primary }]}>
+      <View style={[styles.header, { backgroundColor: isDarkMode ? colors.card : colors.primary }]}>
         <Text style={[styles.headerText, { color: 'white' }]}>Profile</Text>
       </View>
 
@@ -310,17 +310,7 @@ export default function ProfileScreen() {
               onPress={() => router.push('/settings')}
             >
               <Text style={styles.settingEmoji}>👤</Text>
-              <Text style={[styles.settingText, { color: colors.text }]}>Edit Profile</Text>
-              <Text style={[styles.settingArrow, { color: colors.textSecondary }]}>›</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={[styles.settingItem, { borderBottomColor: colors.border }]}>
-              <Text style={styles.settingEmoji}>🔔</Text>
-              <Text style={[styles.settingText, { color: colors.text }]}>Notifications</Text>
-              <Text style={[styles.settingArrow, { color: colors.textSecondary }]}>›</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={[styles.settingItem, { borderBottomColor: colors.border }]}>
-              <Text style={styles.settingEmoji}>🔒</Text>
-              <Text style={[styles.settingText, { color: colors.text }]}>Privacy Settings</Text>
+              <Text style={[styles.settingText, { color: colors.text }]}>Edit</Text>
               <Text style={[styles.settingArrow, { color: colors.textSecondary }]}>›</Text>
             </TouchableOpacity>
             <TouchableOpacity style={[styles.settingItem, { borderBottomColor: colors.border }]}>
