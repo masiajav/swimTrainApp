@@ -4,6 +4,7 @@ import { router } from 'expo-router';
 import { apiService } from '../services/api';
 import * as ImagePicker from 'expo-image-picker';
 import { useTheme } from '../contexts/ThemeContext';
+import { useLocale } from '../contexts/LocaleContext';
 
 interface UserProfile {
   id: string;
@@ -26,6 +27,7 @@ interface UserStats {
 
 export default function SettingsScreen() {
   const { isDarkMode, colors, toggleDarkMode } = useTheme();
+  const { locale, setLocale, t } = useLocale();
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [userStats, setUserStats] = useState<UserStats | null>(null);
   const [loading, setLoading] = useState(true);
@@ -369,6 +371,35 @@ export default function SettingsScreen() {
               trackColor={{ false: "#767577", true: colors.primary }}
               thumbColor={isDarkMode ? "#ffffff" : "#f4f3f4"}
             />
+          </View>
+
+          <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 16, borderBottomWidth: 1, borderBottomColor: colors.border }}>
+            <View style={{ flex: 1, marginRight: 16 }}>
+              <Text style={{ fontSize: 16, fontWeight: '600', color: colors.text, marginBottom: 4 }}>Language / Idioma</Text>
+              <Text style={{ fontSize: 14, color: colors.textSecondary, lineHeight: 20 }}>Choose your preferred language</Text>
+            </View>
+            <View style={{ flexDirection: 'row', backgroundColor: colors.border, borderRadius: 8, padding: 2 }}>
+              <TouchableOpacity 
+                style={{ paddingHorizontal: 16, paddingVertical: 8, borderRadius: 6, backgroundColor: locale === 'en' ? colors.primary : 'transparent' }}
+                onPress={async () => {
+                  await setLocale('en');
+                }}
+              >
+                <Text style={{ fontSize: 14, fontWeight: '500', color: locale === 'en' ? '#ffffff' : colors.textSecondary }}>
+                  🇺🇸 English
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity 
+                style={{ paddingHorizontal: 16, paddingVertical: 8, borderRadius: 6, backgroundColor: locale === 'es' ? colors.primary : 'transparent' }}
+                onPress={async () => {
+                  await setLocale('es');
+                }}
+              >
+                <Text style={{ fontSize: 14, fontWeight: '500', color: locale === 'es' ? '#ffffff' : colors.textSecondary }}>
+                  🇪🇸 Español
+                </Text>
+              </TouchableOpacity>
+            </View>
           </View>
 
           <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 16, borderBottomWidth: 1, borderBottomColor: colors.border }}>

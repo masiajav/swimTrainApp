@@ -3,6 +3,7 @@ import { router, useFocusEffect } from 'expo-router';
 import React, { useState, useEffect } from 'react';
 import { apiService } from '../../services/api';
 import { useTheme } from '../../contexts/ThemeContext';
+import { useLocale } from '../../contexts/LocaleContext';
 
 interface Session {
   id: string;
@@ -17,6 +18,7 @@ interface Session {
 
 export default function DashboardScreen() {
   const { isDarkMode, colors } = useTheme();
+  const { t } = useLocale();
   const [recentSessions, setRecentSessions] = useState<Session[]>([]);
   const [allSessions, setAllSessions] = useState<Session[]>([]);
   const [loading, setLoading] = useState(true);
@@ -123,10 +125,10 @@ export default function DashboardScreen() {
   const getWeeklyStats = () => {
     const stats = calculateWeeklyStats();
     return [
-      { title: 'Distance', value: stats.distance, icon: '🏊‍♀️', color: '#3b82f6' },
-      { title: 'Sessions', value: stats.sessions, icon: '📊', color: '#14b8a6' },
-      { title: 'Time', value: stats.time, icon: '⏱️', color: '#8b5cf6' },
-      { title: 'Calories', value: stats.calories, icon: '🔥', color: '#f59e0b' },
+      { title: t('stats.distance'), value: stats.distance, icon: '🏊‍♀️', color: '#3b82f6' },
+      { title: t('stats.sessions'), value: stats.sessions, icon: '📊', color: '#14b8a6' },
+      { title: t('stats.time'), value: stats.time, icon: '⏱️', color: '#8b5cf6' },
+      { title: t('stats.calories'), value: stats.calories, icon: '🔥', color: '#f59e0b' },
     ];
   };
 
@@ -159,9 +161,9 @@ export default function DashboardScreen() {
       {/* Header with Gradient */}
       <View style={[styles.header, { backgroundColor: isDarkMode ? colors.card : colors.primary }]}>
         <View style={styles.headerContent}>
-          <Text style={styles.welcomeText}>Welcome back, Swimmer! 🏊‍♀️</Text>
+          <Text style={styles.welcomeText}>{t('dashboard.welcome')}</Text>
           <Text style={styles.headerSubtext}>
-            Track your progress and stay motivated with your team
+            {t('dashboard.subtitle')}
           </Text>
         </View>
         
@@ -173,7 +175,7 @@ export default function DashboardScreen() {
       <View style={styles.content}>
         {/* Quick Stats Grid */}
         <View style={styles.statsContainer}>
-          <Text style={[styles.sectionTitle, { color: colors.text }]}>Weekly Overview</Text>
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>{t('dashboard.weeklyOverview')}</Text>
           <View style={styles.statsGrid}>
             {getWeeklyStats().map((stat, index) => (
               <View key={index} style={[styles.statCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
@@ -187,7 +189,7 @@ export default function DashboardScreen() {
           </View>
           {allSessions.length === 0 && (
             <View style={[styles.noDataMessage, { backgroundColor: colors.surface, borderLeftColor: colors.primary }]}>
-              <Text style={[styles.noDataText, { color: colors.textSecondary }]}>Start swimming to see your weekly stats! 💪</Text>
+              <Text style={[styles.noDataText, { color: colors.textSecondary }]}>{t('dashboard.startSwimming')}</Text>
             </View>
           )}
         </View>
@@ -195,25 +197,25 @@ export default function DashboardScreen() {
         {/* Recent Sessions */}
         <View style={styles.sessionsContainer}>
           <View style={styles.sectionHeader}>
-            <Text style={[styles.sectionTitle, { color: colors.text }]}>Recent Sessions</Text>
+            <Text style={[styles.sectionTitle, { color: colors.text }]}>{t('dashboard.recentSessions')}</Text>
             <TouchableOpacity onPress={() => router.push('/(tabs)/sessions')}>
-              <Text style={[styles.seeAllText, { color: colors.primary }]}>See All</Text>
+              <Text style={[styles.seeAllText, { color: colors.primary }]}>{t('common.seeAll')}</Text>
             </TouchableOpacity>
           </View>
           
           {loading ? (
             <View style={styles.loadingContainer}>
-              <Text style={[styles.loadingText, { color: colors.textSecondary }]}>Loading sessions...</Text>
+              <Text style={[styles.loadingText, { color: colors.textSecondary }]}>{t('common.loading')}</Text>
             </View>
           ) : recentSessions.length === 0 ? (
             <View style={[styles.emptyContainer, { backgroundColor: colors.surface }]}>
-              <Text style={[styles.emptyText, { color: colors.text }]}>No sessions yet</Text>
-              <Text style={[styles.emptySubtext, { color: colors.textSecondary }]}>Create your first session to get started!</Text>
+              <Text style={[styles.emptyText, { color: colors.text }]}>{t('sessions.noSessions')}</Text>
+              <Text style={[styles.emptySubtext, { color: colors.textSecondary }]}>{t('sessions.createFirst')}</Text>
               <TouchableOpacity 
                 style={[styles.createButton, { backgroundColor: colors.primary }]}
                 onPress={() => router.push('/session/create')}
               >
-                <Text style={styles.createButtonText}>Create Session</Text>
+                <Text style={styles.createButtonText}>{t('sessions.createSession')}</Text>
               </TouchableOpacity>
             </View>
           ) : (
