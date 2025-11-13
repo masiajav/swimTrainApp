@@ -16,7 +16,11 @@ export default function RegisterScreen() {
   const [isLoading, setIsLoading] = useState(false);
 
   const handleRegister = async () => {
-    if (!email || !username || !password) {
+    const trimmedEmail = email.trim();
+    const trimmedUsername = username.trim();
+    const trimmedPassword = password.trim();
+    
+    if (!trimmedEmail || !trimmedUsername || !trimmedPassword) {
       Alert.alert('Error', 'Please fill in required fields');
       return;
     }
@@ -24,11 +28,11 @@ export default function RegisterScreen() {
     setIsLoading(true);
     try {
       const response = await apiService.register({
-        email,
-        username,
-        password,
-        firstName,
-        lastName,
+        email: trimmedEmail,
+        username: trimmedUsername,
+        password: trimmedPassword,
+        firstName: firstName.trim(),
+        lastName: lastName.trim(),
       });
       
       // Store the token for future requests
