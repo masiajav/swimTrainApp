@@ -15,28 +15,28 @@ const supabase = createClient(
 
 // Validation schemas
 const loginSchema = z.object({
-  email: z.string().email(),
-  password: z.string().min(6),
+  email: z.string().trim().email(),
+  password: z.string().trim().min(6),
 });
 
 const registerSchema = z.object({
-  email: z.string().email(),
-  username: z.string().min(3),
-  password: z.string().min(6),
-  firstName: z.string().optional(),
-  lastName: z.string().optional(),
+  email: z.string().trim().email(),
+  username: z.string().trim().min(3),
+  password: z.string().trim().min(6),
+  firstName: z.string().trim().optional(),
+  lastName: z.string().trim().optional(),
 });
 
 const updateProfileSchema = z.object({
-  firstName: z.string().optional(),
-  lastName: z.string().optional(),
-  username: z.string().min(3),
-  avatar: z.string().optional(),
+  firstName: z.string().trim().optional(),
+  lastName: z.string().trim().optional(),
+  username: z.string().trim().min(3),
+  avatar: z.string().trim().optional(),
 });
 
 const changePasswordSchema = z.object({
-  currentPassword: z.string().min(6),
-  newPassword: z.string().min(6),
+  currentPassword: z.string().trim().min(6),
+  newPassword: z.string().trim().min(6),
 });
 
 // Helper function to generate JWT
@@ -270,13 +270,21 @@ router.post('/logout', (req, res) => {
 router.post('/forgot-password', async (req, res) => {
   try {
     const { email } = req.body;
-    if (!email) return res.status(400).json({ error: 'Email is required' });
+    const trimmedEmail = email?.trim();
+    
+    if (!trimmedEmail) return res.status(400).json({ error: 'Email is required' });
+
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(trimmedEmail)) {
+      return res.status(400).json({ error: 'Invalid email format' });
+    }
 
     // Allow an override redirect target via env var; fall back to SITE_URL or localhost dev
     const redirectTo = process.env.PASSWORD_RESET_REDIRECT || process.env.SITE_URL || 'http://localhost:3000/';
 
     // Use Supabase server-side API to send the recovery email
-    const { data, error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo });
+    const { data, error } = await supabase.auth.resetPasswordForEmail(trimmedEmail, { redirectTo });
     if (error) {
       console.error('Supabase resetPasswordForEmail error:', error);
       return res.status(500).json({ error: error.message || 'Failed to send reset email' });

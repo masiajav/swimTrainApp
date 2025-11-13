@@ -33,16 +33,19 @@ export default function LoginScreen() {
   // (keep the AuthSession import available if you later switch to a dev-client)
 
   const handleLogin = async () => {
-    if (!email || !password) {
+    const trimmedEmail = email.trim();
+    const trimmedPassword = password.trim();
+    
+    if (!trimmedEmail || !trimmedPassword) {
       Alert.alert('Error', 'Please fill in all fields');
       return;
     }
 
     setIsLoading(true);
     // eslint-disable-next-line no-console
-    console.log('[Login] handleLogin start for', email);
+    console.log('[Login] handleLogin start for', trimmedEmail);
     try {
-      const response = await apiService.login({ email, password });
+      const response = await apiService.login({ email: trimmedEmail, password: trimmedPassword });
       // Store the token for future requests
       apiService.setAuthToken(response.token);
       // Persist auto-login preference
@@ -261,10 +264,11 @@ export default function LoginScreen() {
             </TouchableOpacity>
             <TouchableOpacity
               onPress={async () => {
-                if (!forgotEmail) { Alert.alert('Error', 'Please enter an email address'); return; }
+                const trimmedForgotEmail = forgotEmail.trim();
+                if (!trimmedForgotEmail) { Alert.alert('Error', 'Please enter an email address'); return; }
                 try {
                   setIsLoading(true);
-                  await apiService.requestPasswordReset(forgotEmail);
+                  await apiService.requestPasswordReset(trimmedForgotEmail);
                   Alert.alert('Success', 'If an account exists for that email, a reset link has been sent.');
                   setForgotModalVisible(false);
                   setForgotEmail('');
