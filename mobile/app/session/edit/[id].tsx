@@ -2,6 +2,8 @@ import { View, Text, TextInput, TouchableOpacity, ScrollView, StyleSheet, Alert 
 import React, { useState, useEffect } from 'react';
 import { router, useLocalSearchParams } from 'expo-router';
 import { apiService } from '../../../services/api';
+import { useTheme } from '../../../contexts/ThemeContext';
+import { useLocale } from '../../../contexts/LocaleContext';
 
 // Define enums locally to avoid import issues
 enum WorkoutType {
@@ -44,6 +46,8 @@ interface Session {
 }
 
 export default function EditSessionScreen() {
+  const { isDarkMode, colors } = useTheme();
+  const { t } = useLocale();
   const { id } = useLocalSearchParams<{ id: string }>();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -227,18 +231,18 @@ export default function EditSessionScreen() {
 
   if (loading) {
     return (
-      <View style={styles.container}>
+      <View style={[styles.container, { backgroundColor: colors.background }]}>
         <View style={styles.loadingContainer}>
-          <Text style={styles.loadingText}>Loading session...</Text>
+          <Text style={[styles.loadingText, { color: colors.textSecondary }]}>Loading session...</Text>
         </View>
       </View>
     );
   }
 
   return (
-    <ScrollView style={styles.container}>
+    <ScrollView style={[styles.container, { backgroundColor: colors.background }]}>
       {/* Header */}
-      <View style={styles.header}>
+      <View style={[styles.header, { backgroundColor: colors.primary }]}>
         <TouchableOpacity style={styles.backButton} onPress={handleCancel}>
           <Text style={styles.backIcon}>←</Text>
         </TouchableOpacity>
@@ -251,73 +255,81 @@ export default function EditSessionScreen() {
       <View style={styles.form}>
         {/* Title */}
         <View style={styles.inputGroup}>
-          <Text style={styles.label}>Session Title *</Text>
+          <Text style={[styles.label, { color: colors.text }]}>Session Title *</Text>
           <TextInput
-            style={styles.input}
+            style={[styles.input, { backgroundColor: colors.surface, borderColor: colors.border, color: colors.text }]}
             value={title}
             onChangeText={setTitle}
             placeholder="e.g., Morning Freestyle Training"
-            placeholderTextColor="#9ca3af"
+            placeholderTextColor={colors.textSecondary}
           />
         </View>
 
         {/* Date */}
         <View style={styles.inputGroup}>
-          <Text style={styles.label}>Date *</Text>
+          <Text style={[styles.label, { color: colors.text }]}>Date *</Text>
           <TextInput
-            style={styles.input}
+            style={[styles.input, { backgroundColor: colors.surface, borderColor: colors.border, color: colors.text }]}
             value={date}
             onChangeText={setDate}
             placeholder="YYYY-MM-DD"
-            placeholderTextColor="#9ca3af"
+            placeholderTextColor={colors.textSecondary}
           />
         </View>
 
         {/* Duration and Distance Row */}
         <View style={styles.row}>
           <View style={[styles.inputGroup, styles.halfWidth]}>
-            <Text style={styles.label}>Duration (minutes) *</Text>
+            <Text style={[styles.label, { color: colors.text }]}>Duration (minutes) *</Text>
             <TextInput
-              style={styles.input}
+              style={[styles.input, { backgroundColor: colors.surface, borderColor: colors.border, color: colors.text }]}
               value={duration}
               onChangeText={setDuration}
               placeholder="60"
               keyboardType="numeric"
-              placeholderTextColor="#9ca3af"
+              placeholderTextColor={colors.textSecondary}
             />
           </View>
 
           <View style={[styles.inputGroup, styles.halfWidth]}>
-            <Text style={styles.label}>Distance (meters)</Text>
+            <Text style={[styles.label, { color: colors.text }]}>Distance (meters)</Text>
             <TextInput
-              style={styles.input}
+              style={[styles.input, { backgroundColor: colors.surface, borderColor: colors.border, color: colors.text }]}
               value={distance}
               onChangeText={setDistance}
               placeholder="2000"
               keyboardType="numeric"
-              placeholderTextColor="#9ca3af"
+              placeholderTextColor={colors.textSecondary}
             />
           </View>
         </View>
 
         {/* Workout Type */}
         <View style={styles.inputGroup}>
-          <Text style={styles.label}>Workout Type</Text>
-          <TouchableOpacity style={styles.pickerButton}>
-            <Text style={styles.pickerText}>
+          <Text style={[styles.label, { color: colors.text }]}>Workout Type</Text>
+          <TouchableOpacity style={[styles.pickerButton, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+            <Text style={[styles.pickerText, { color: colors.text }]}>
               {workoutType ? workoutTypes.find(t => t.value === workoutType)?.label : 'Select workout type...'}
             </Text>
-            <Text style={styles.pickerArrow}>▼</Text>
+            <Text style={[styles.pickerArrow, { color: colors.textSecondary }]}>▼</Text>
           </TouchableOpacity>
-          <Text style={styles.helperText}>Tap to cycle through options</Text>
+          <Text style={[styles.helperText, { color: colors.textSecondary }]}>Tap to cycle through options</Text>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.optionsScroll}>
             {workoutTypes.slice(1).map((type) => (
               <TouchableOpacity 
                 key={type.value} 
-                style={[styles.optionChip, workoutType === type.value && styles.selectedChip]}
+                style={[
+                  styles.optionChip, 
+                  { backgroundColor: colors.background, borderColor: colors.border },
+                  workoutType === type.value && { backgroundColor: colors.primary, borderColor: colors.primary }
+                ]}
                 onPress={() => setWorkoutType(type.value as WorkoutType)}
               >
-                <Text style={[styles.optionText, workoutType === type.value && styles.selectedText]}>
+                <Text style={[
+                  styles.optionText, 
+                  { color: colors.text },
+                  workoutType === type.value && { color: 'white' }
+                ]}>
                   {type.label}
                 </Text>
               </TouchableOpacity>
@@ -327,22 +339,30 @@ export default function EditSessionScreen() {
 
         {/* Stroke */}
         <View style={styles.inputGroup}>
-          <Text style={styles.label}>Primary Stroke</Text>
-          <TouchableOpacity style={styles.pickerButton}>
-            <Text style={styles.pickerText}>
+          <Text style={[styles.label, { color: colors.text }]}>Primary Stroke</Text>
+          <TouchableOpacity style={[styles.pickerButton, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+            <Text style={[styles.pickerText, { color: colors.text }]}>
               {stroke ? strokes.find(s => s.value === stroke)?.label : 'Select stroke...'}
             </Text>
-            <Text style={styles.pickerArrow}>▼</Text>
+            <Text style={[styles.pickerArrow, { color: colors.textSecondary }]}>▼</Text>
           </TouchableOpacity>
-          <Text style={styles.helperText}>Tap to cycle through options</Text>
+          <Text style={[styles.helperText, { color: colors.textSecondary }]}>Tap to cycle through options</Text>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.optionsScroll}>
             {strokes.slice(1).map((strokeOption) => (
               <TouchableOpacity 
                 key={strokeOption.value} 
-                style={[styles.optionChip, stroke === strokeOption.value && styles.selectedChip]}
+                style={[
+                  styles.optionChip,
+                  { backgroundColor: colors.background, borderColor: colors.border },
+                  stroke === strokeOption.value && { backgroundColor: colors.primary, borderColor: colors.primary }
+                ]}
                 onPress={() => setStroke(strokeOption.value as Stroke)}
               >
-                <Text style={[styles.optionText, stroke === strokeOption.value && styles.selectedText]}>
+                <Text style={[
+                  styles.optionText,
+                  { color: colors.text },
+                  stroke === strokeOption.value && { color: 'white' }
+                ]}>
                   {strokeOption.label}
                 </Text>
               </TouchableOpacity>
@@ -352,22 +372,30 @@ export default function EditSessionScreen() {
 
         {/* Intensity */}
         <View style={styles.inputGroup}>
-          <Text style={styles.label}>Intensity Level</Text>
-          <TouchableOpacity style={styles.pickerButton}>
-            <Text style={styles.pickerText}>
+          <Text style={[styles.label, { color: colors.text }]}>Intensity Level</Text>
+          <TouchableOpacity style={[styles.pickerButton, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+            <Text style={[styles.pickerText, { color: colors.text }]}>
               {intensity ? intensities.find(i => i.value === intensity)?.label : 'Select intensity...'}
             </Text>
-            <Text style={styles.pickerArrow}>▼</Text>
+            <Text style={[styles.pickerArrow, { color: colors.textSecondary }]}>▼</Text>
           </TouchableOpacity>
-          <Text style={styles.helperText}>Tap to cycle through options</Text>
+          <Text style={[styles.helperText, { color: colors.textSecondary }]}>Tap to cycle through options</Text>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.optionsScroll}>
             {intensities.slice(1).map((intensityOption) => (
               <TouchableOpacity 
                 key={intensityOption.value} 
-                style={[styles.optionChip, intensity === intensityOption.value && styles.selectedChip]}
+                style={[
+                  styles.optionChip,
+                  { backgroundColor: colors.background, borderColor: colors.border },
+                  intensity === intensityOption.value && { backgroundColor: colors.primary, borderColor: colors.primary }
+                ]}
                 onPress={() => setIntensity(intensityOption.value as Intensity)}
               >
-                <Text style={[styles.optionText, intensity === intensityOption.value && styles.selectedText]}>
+                <Text style={[
+                  styles.optionText,
+                  { color: colors.text },
+                  intensity === intensityOption.value && { color: 'white' }
+                ]}>
                   {intensityOption.label}
                 </Text>
               </TouchableOpacity>
@@ -377,13 +405,13 @@ export default function EditSessionScreen() {
 
         {/* Description */}
         <View style={styles.inputGroup}>
-          <Text style={styles.label}>Description</Text>
+          <Text style={[styles.label, { color: colors.text }]}>Description</Text>
           <TextInput
-            style={[styles.input, styles.textArea]}
+            style={[styles.input, styles.textArea, { backgroundColor: colors.surface, borderColor: colors.border, color: colors.text }]}
             value={description}
             onChangeText={setDescription}
             placeholder="Add session notes, goals, or observations..."
-            placeholderTextColor="#9ca3af"
+            placeholderTextColor={colors.textSecondary}
             multiline
             numberOfLines={4}
             textAlignVertical="top"
@@ -392,12 +420,12 @@ export default function EditSessionScreen() {
 
         {/* Action Buttons */}
         <View style={styles.buttonContainer}>
-          <TouchableOpacity style={styles.cancelButton} onPress={handleCancel}>
+          <TouchableOpacity style={[styles.cancelButton, { backgroundColor: colors.textSecondary }]} onPress={handleCancel}>
             <Text style={styles.cancelButtonText}>Cancel</Text>
           </TouchableOpacity>
           
           <TouchableOpacity 
-            style={[styles.saveButton, saving && styles.disabledButton]} 
+            style={[styles.saveButton, { backgroundColor: colors.primary }, saving && styles.disabledButton]} 
             onPress={handleSave}
             disabled={saving}
           >
@@ -414,7 +442,6 @@ export default function EditSessionScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f8fafc',
   },
   loadingContainer: {
     flex: 1,
@@ -424,7 +451,6 @@ const styles = StyleSheet.create({
   },
   loadingText: {
     fontSize: 16,
-    color: '#64748b',
   },
   header: {
     flexDirection: 'row',
@@ -432,7 +458,6 @@ const styles = StyleSheet.create({
     paddingTop: 60,
     paddingBottom: 20,
     paddingHorizontal: 20,
-    backgroundColor: '#3b82f6',
   },
   backButton: {
     width: 40,
@@ -471,18 +496,14 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#374151',
     marginBottom: 8,
   },
   input: {
-    backgroundColor: 'white',
     borderWidth: 1,
-    borderColor: '#d1d5db',
     borderRadius: 12,
     paddingHorizontal: 16,
     paddingVertical: 12,
     fontSize: 16,
-    color: '#1f2937',
   },
   textArea: {
     height: 100,
@@ -496,9 +517,7 @@ const styles = StyleSheet.create({
     flex: 0.48,
   },
   pickerContainer: {
-    backgroundColor: 'white',
     borderWidth: 1,
-    borderColor: '#d1d5db',
     borderRadius: 12,
     overflow: 'hidden',
   },
@@ -513,7 +532,6 @@ const styles = StyleSheet.create({
   },
   cancelButton: {
     flex: 1,
-    backgroundColor: '#6b7280',
     paddingVertical: 16,
     borderRadius: 12,
     alignItems: 'center',
@@ -525,7 +543,6 @@ const styles = StyleSheet.create({
   },
   saveButton: {
     flex: 1,
-    backgroundColor: '#3b82f6',
     paddingVertical: 16,
     borderRadius: 12,
     alignItems: 'center',
@@ -539,9 +556,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#9ca3af',
   },
   pickerButton: {
-    backgroundColor: 'white',
     borderWidth: 1,
-    borderColor: '#d1d5db',
     borderRadius: 12,
     paddingHorizontal: 16,
     paddingVertical: 12,
@@ -551,15 +566,12 @@ const styles = StyleSheet.create({
   },
   pickerText: {
     fontSize: 16,
-    color: '#1f2937',
   },
   pickerArrow: {
     fontSize: 12,
-    color: '#6b7280',
   },
   helperText: {
     fontSize: 12,
-    color: '#6b7280',
     marginTop: 4,
     marginBottom: 8,
   },
@@ -567,13 +579,11 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
   optionChip: {
-    backgroundColor: '#f3f4f6',
     paddingHorizontal: 12,
     paddingVertical: 8,
     borderRadius: 20,
     marginRight: 8,
     borderWidth: 1,
-    borderColor: '#e5e7eb',
   },
   selectedChip: {
     backgroundColor: '#3b82f6',
@@ -581,7 +591,6 @@ const styles = StyleSheet.create({
   },
   optionText: {
     fontSize: 14,
-    color: '#374151',
   },
   selectedText: {
     color: 'white',

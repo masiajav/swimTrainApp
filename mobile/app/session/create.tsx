@@ -14,8 +14,12 @@ import { useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { apiService } from '../../services/api';
 import { WorkoutType, Stroke, Intensity } from '../../../shared/types';
+import { useTheme } from '../../contexts/ThemeContext';
+import { useLocale } from '../../contexts/LocaleContext';
 
 export default function CreateSession() {
+  const { isDarkMode, colors } = useTheme();
+  const { t } = useLocale();
   const navigation = useNavigation();
   React.useEffect(() => {
     // Hide the small back label (e.g. 'session/create') shown next to the back arrow
@@ -152,19 +156,19 @@ export default function CreateSession() {
     
     // Validate all required fields
     if (!formData.title.trim()) {
-      newErrors.title = 'Session title is required';
+      newErrors.title = t('sessions.titleRequired');
     } else if (formData.title.trim().length < 3) {
-      newErrors.title = 'Title must be at least 3 characters';
+      newErrors.title = t('sessions.titleMinLength');
     }
     
     if (!formData.duration.trim()) {
-      newErrors.duration = 'Duration is required';
+      newErrors.duration = t('sessions.durationRequired');
     } else if (isNaN(Number(formData.duration)) || Number(formData.duration) <= 0) {
-      newErrors.duration = 'Duration must be a positive number';
+      newErrors.duration = t('sessions.durationPositive');
     }
     
     if (formData.distance && (isNaN(Number(formData.distance)) || Number(formData.distance) < 0)) {
-      newErrors.distance = 'Distance must be a positive number';
+      newErrors.distance = t('sessions.distancePositive');
     }
     
     const selectedDate = new Date(formData.date);
@@ -173,7 +177,7 @@ export default function CreateSession() {
     const oneYearAgo = new Date();
     oneYearAgo.setFullYear(today.getFullYear() - 1);
     if (selectedDate < oneYearAgo) {
-      newErrors.date = 'Date cannot be more than a year ago';
+      newErrors.date = t('sessions.dateOld');
     }
     
     setErrors(newErrors);
@@ -211,29 +215,29 @@ export default function CreateSession() {
       console.log('API response:', response);
       
       if (response.data) {
-        setSuccessMessage('Session created successfully! 🎉');
+        setSuccessMessage(t('sessions.sessionCreated'));
         setTimeout(() => {
           router.replace('/(tabs)/sessions');
         }, 1500); // Show success message for 1.5 seconds
       } else {
         console.error('API Error:', response.error);
         if (typeof window !== 'undefined') {
-          window.alert(response.error || 'Failed to create session. Please try again.');
+          window.alert(response.error || t('sessions.createFailed'));
         }
       }
     } catch (error: any) {
       console.error('Create session error:', error);
-      let errorMessage = 'Failed to create session. Please try again.';
+      let errorMessage = t('sessions.createFailed');
       
       // Handle specific error types
       if (error.message?.includes('fetch')) {
-        errorMessage = 'Network error. Please check your connection.';
+        errorMessage = t('sessions.networkError');
       } else if (error.message?.includes('401')) {
-        errorMessage = 'Authentication error. Please log in again.';
+        errorMessage = t('sessions.authError');
         router.replace('/auth/login');
         return;
       } else if (error.message?.includes('400')) {
-        errorMessage = 'Invalid data. Please check your inputs.';
+        errorMessage = t('sessions.invalidData');
       }
       
       if (typeof window !== 'undefined') {
@@ -261,11 +265,11 @@ export default function CreateSession() {
   }) => (
     <Modal visible={visible} transparent animationType="slide">
       <View style={styles.modalOverlay}>
-        <View style={styles.modalContent}>
+        <View style={[styles.modalContent, { backgroundColor: colors.surface }]}>
           <View style={styles.modalHeader}>
-            <Text style={styles.modalTitle}>{title}</Text>
+            <Text style={[styles.modalTitle, { color: colors.text }]}>{title}</Text>
             <TouchableOpacity onPress={onClose}>
-              <Ionicons name="close" size={24} color="#6b7280" />
+              <Ionicons name="close" size={24} color={colors.textSecondary} />
             </TouchableOpacity>
           </View>
           <ScrollView style={styles.optionsList}>
@@ -274,7 +278,8 @@ export default function CreateSession() {
                 key={option}
                 style={[
                   styles.optionItem,
-                  selectedValue === option && styles.selectedOption
+                  { backgroundColor: colors.background },
+                  selectedValue === option && { backgroundColor: colors.primary }
                 ]}
                 onPress={() => {
                   onSelect(option);
@@ -283,7 +288,7 @@ export default function CreateSession() {
               >
                 <Text style={[
                   styles.optionText,
-                  selectedValue === option && styles.selectedOptionText
+                  { color: selectedValue === option ? 'white' : colors.text }
                 ]}>
                   {option.replace('_', ' ')}
                 </Text>
@@ -296,17 +301,17 @@ export default function CreateSession() {
   );
 
   return (
-    <ScrollView style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>New Swimming Session</Text>
+    <ScrollView style={[styles.container, { backgroundColor: colors.background }]}>
+      <View style={[styles.header, { backgroundColor: colors.surface, borderBottomColor: colors.border }]}>
+        <Text style={[styles.headerTitle, { color: colors.text }]}>{t('sessions.newSession')}</Text>
         <TouchableOpacity onPress={resetForm} style={styles.resetButton}>
-          <Ionicons name="refresh" size={20} color="#6b7280" />
+          <Ionicons name="refresh" size={20} color={colors.textSecondary} />
         </TouchableOpacity>
       </View>
 
       {/* Success Message */}
       {successMessage && (
-        <View style={styles.successMessage}>
+        <View style={[styles.successMessage, { backgroundColor: colors.success }]}>
           <Text style={styles.successText}>{successMessage}</Text>
         </View>
       )}
@@ -314,108 +319,108 @@ export default function CreateSession() {
       <View style={styles.form}>
         <View style={styles.inputGroup}>
           <View style={styles.labelRow}>
-            <Text style={styles.label}>Session Title *</Text>
-            <Text style={styles.charCounter}>{formData.title.length}/50</Text>
+            <Text style={[styles.label, { color: colors.text }]}>{t('sessions.sessionTitle')} *</Text>
+            <Text style={[styles.charCounter, { color: colors.textSecondary }]}>{formData.title.length}/50</Text>
           </View>
           <TextInput
-            style={[styles.input, errors.title ? styles.inputError : null]}
+            style={[styles.input, { backgroundColor: colors.surface, borderColor: colors.border, color: colors.text }, errors.title ? styles.inputError : null]}
             value={formData.title}
             onChangeText={(value) => handleInputChange('title', value.slice(0, 50))}
-            placeholder="e.g., Morning Freestyle Practice"
-            placeholderTextColor="#9ca3af"
+            placeholder={t('sessions.sessionTitlePlaceholder')}
+            placeholderTextColor={colors.textSecondary}
             maxLength={50}
           />
-          {errors.title && <Text style={styles.errorText}>{errors.title}</Text>}
+          {errors.title && <Text style={[styles.errorText, { color: colors.error }]}>{errors.title}</Text>}
         </View>
 
         <View style={styles.inputGroup}>
-          <Text style={styles.label}>Date *</Text>
+          <Text style={[styles.label, { color: colors.text }]}>{t('sessions.date')} *</Text>
           <TextInput
-            style={[styles.input, errors.date ? styles.inputError : null]}
+            style={[styles.input, { backgroundColor: colors.surface, borderColor: colors.border, color: colors.text }, errors.date ? styles.inputError : null]}
             value={formData.date}
             onChangeText={(value) => handleInputChange('date', value)}
             placeholder="YYYY-MM-DD"
-            placeholderTextColor="#9ca3af"
+            placeholderTextColor={colors.textSecondary}
           />
-          {errors.date && <Text style={styles.errorText}>{errors.date}</Text>}
+          {errors.date && <Text style={[styles.errorText, { color: colors.error }]}>{errors.date}</Text>}
         </View>
 
         <View style={styles.inputGroup}>
-          <Text style={styles.label}>Duration (minutes) *</Text>
+          <Text style={[styles.label, { color: colors.text }]}>{t('sessions.durationMinutes')} *</Text>
           <TextInput
-            style={[styles.input, errors.duration ? styles.inputError : null]}
+            style={[styles.input, { backgroundColor: colors.surface, borderColor: colors.border, color: colors.text }, errors.duration ? styles.inputError : null]}
             value={formData.duration}
             onChangeText={(value) => handleInputChange('duration', value)}
-            placeholder="e.g., 60"
-            placeholderTextColor="#9ca3af"
+            placeholder={t('sessions.durationPlaceholder')}
+            placeholderTextColor={colors.textSecondary}
             keyboardType="numeric"
           />
-          {errors.duration && <Text style={styles.errorText}>{errors.duration}</Text>}
+          {errors.duration && <Text style={[styles.errorText, { color: colors.error }]}>{errors.duration}</Text>}
         </View>
 
         <View style={styles.inputGroup}>
-          <Text style={styles.label}>Distance (meters)</Text>
+          <Text style={[styles.label, { color: colors.text }]}>{t('sessions.distanceMeters')}</Text>
           <TextInput
-            style={[styles.input, errors.distance ? styles.inputError : null]}
+            style={[styles.input, { backgroundColor: colors.surface, borderColor: colors.border, color: colors.text }, errors.distance ? styles.inputError : null]}
             value={formData.distance}
             onChangeText={(value) => handleInputChange('distance', value)}
-            placeholder="e.g., 2000"
-            placeholderTextColor="#9ca3af"
+            placeholder={t('sessions.distancePlaceholder')}
+            placeholderTextColor={colors.textSecondary}
             keyboardType="numeric"
           />
-          {errors.distance && <Text style={styles.errorText}>{errors.distance}</Text>}
+          {errors.distance && <Text style={[styles.errorText, { color: colors.error }]}>{errors.distance}</Text>}
         </View>
 
         <View style={styles.inputGroup}>
-          <Text style={styles.label}>Workout Type</Text>
+          <Text style={[styles.label, { color: colors.text }]}>{t('sessions.workoutType')}</Text>
           <TouchableOpacity
-            style={styles.pickerButton}
+            style={[styles.pickerButton, { backgroundColor: colors.surface, borderColor: colors.border }]}
             onPress={() => setShowWorkoutTypePicker(true)}
           >
-            <Text style={[styles.pickerText, !formData.workoutType && styles.placeholderText]}>
-              {formData.workoutType ? formData.workoutType.replace('_', ' ') : 'Select workout type'}
+            <Text style={[styles.pickerText, { color: colors.text }, !formData.workoutType && { color: colors.textSecondary }]}>
+              {formData.workoutType ? t(`workoutTypes.${formData.workoutType}`) : t('sessions.selectWorkoutType')}
             </Text>
-            <Ionicons name="chevron-down" size={20} color="#6b7280" />
+            <Ionicons name="chevron-down" size={20} color={colors.textSecondary} />
           </TouchableOpacity>
         </View>
 
         <View style={styles.inputGroup}>
-          <Text style={styles.label}>Primary Stroke</Text>
+          <Text style={[styles.label, { color: colors.text }]}>{t('sessions.primaryStroke')}</Text>
           <TouchableOpacity
-            style={styles.pickerButton}
+            style={[styles.pickerButton, { backgroundColor: colors.surface, borderColor: colors.border }]}
             onPress={() => setShowStrokePicker(true)}
           >
-            <Text style={[styles.pickerText, !formData.stroke && styles.placeholderText]}>
-              {formData.stroke ? formData.stroke : 'Select stroke'}
+            <Text style={[styles.pickerText, { color: colors.text }, !formData.stroke && { color: colors.textSecondary }]}>
+              {formData.stroke ? t(`strokes.${formData.stroke}`) : t('sessions.selectStroke')}
             </Text>
-            <Ionicons name="chevron-down" size={20} color="#6b7280" />
+            <Ionicons name="chevron-down" size={20} color={colors.textSecondary} />
           </TouchableOpacity>
         </View>
 
         <View style={styles.inputGroup}>
-          <Text style={styles.label}>Intensity</Text>
+          <Text style={[styles.label, { color: colors.text }]}>{t('sessions.intensity')}</Text>
           <TouchableOpacity
-            style={styles.pickerButton}
+            style={[styles.pickerButton, { backgroundColor: colors.surface, borderColor: colors.border }]}
             onPress={() => setShowIntensityPicker(true)}
           >
-            <Text style={[styles.pickerText, !formData.intensity && styles.placeholderText]}>
-              {formData.intensity ? formData.intensity.replace('_', ' ') : 'Select intensity'}
+            <Text style={[styles.pickerText, { color: colors.text }, !formData.intensity && { color: colors.textSecondary }]}>
+              {formData.intensity ? t(`intensity.${formData.intensity}`) : t('sessions.selectIntensity')}
             </Text>
-            <Ionicons name="chevron-down" size={20} color="#6b7280" />
+            <Ionicons name="chevron-down" size={20} color={colors.textSecondary} />
           </TouchableOpacity>
         </View>
 
         <View style={styles.inputGroup}>
           <View style={styles.labelRow}>
-            <Text style={styles.label}>Description</Text>
-            <Text style={styles.charCounter}>{formData.description.length}/500</Text>
+            <Text style={[styles.label, { color: colors.text }]}>{t('sessions.description')}</Text>
+            <Text style={[styles.charCounter, { color: colors.textSecondary }]}>{formData.description.length}/500</Text>
           </View>
           <TextInput
-            style={[styles.input, styles.textArea]}
+            style={[styles.input, styles.textArea, { backgroundColor: colors.surface, borderColor: colors.border, color: colors.text }]}
             value={formData.description}
               onChangeText={(value) => handleInputChange('description', value.slice(0, 500))}
-            placeholder="Additional notes about your session..."
-            placeholderTextColor="#9ca3af"
+            placeholder={t('sessions.descriptionPlaceholder')}
+            placeholderTextColor={colors.textSecondary}
             multiline
             numberOfLines={4}
             textAlignVertical="top"
@@ -424,12 +429,12 @@ export default function CreateSession() {
         </View>
 
         <TouchableOpacity
-          style={[styles.submitButton, loading && styles.disabledButton]}
+          style={[styles.submitButton, { backgroundColor: colors.primary }, loading && styles.disabledButton]}
           onPress={handleSubmit}
           disabled={loading}
         >
           <Text style={styles.submitButtonText}>
-            {loading ? 'Creating Session...' : 'Create Session'}
+            {loading ? t('sessions.creatingSession') : t('sessions.createSession')}
           </Text>
         </TouchableOpacity>
       </View>
@@ -437,7 +442,7 @@ export default function CreateSession() {
       <PickerModal
         visible={showWorkoutTypePicker}
         onClose={() => setShowWorkoutTypePicker(false)}
-        title="Select Workout Type"
+        title={t('sessions.selectWorkoutType')}
         options={workoutTypes}
         onSelect={(value) => handleInputChange('workoutType', value)}
         selectedValue={formData.workoutType}
@@ -446,7 +451,7 @@ export default function CreateSession() {
       <PickerModal
         visible={showStrokePicker}
         onClose={() => setShowStrokePicker(false)}
-        title="Select Primary Stroke"
+        title={t('sessions.selectStroke')}
         options={strokes}
         onSelect={(value) => handleInputChange('stroke', value)}
         selectedValue={formData.stroke}
@@ -455,7 +460,7 @@ export default function CreateSession() {
       <PickerModal
         visible={showIntensityPicker}
         onClose={() => setShowIntensityPicker(false)}
-        title="Select Intensity"
+        title={t('sessions.selectIntensity')}
         options={intensities}
         onSelect={(value) => handleInputChange('intensity', value)}
         selectedValue={formData.intensity}
@@ -467,21 +472,17 @@ export default function CreateSession() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f9fafb',
   },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     padding: 16,
-    backgroundColor: '#ffffff',
     borderBottomWidth: 1,
-    borderBottomColor: '#e5e7eb',
   },
   /* backButton removed: header now relies on navigation header back control */
   headerTitle: {
     fontSize: 20,
     fontWeight: 'bold',
-    color: '#111827',
   },
   form: {
     padding: 16,
@@ -492,40 +493,31 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#374151',
     marginBottom: 8,
   },
   input: {
     borderWidth: 1,
-    borderColor: '#d1d5db',
     borderRadius: 8,
     padding: 12,
     fontSize: 16,
-    backgroundColor: '#ffffff',
-    color: '#111827',
   },
   textArea: {
     height: 100,
   },
   pickerButton: {
     borderWidth: 1,
-    borderColor: '#d1d5db',
     borderRadius: 8,
     padding: 12,
-    backgroundColor: '#ffffff',
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
   },
   pickerText: {
     fontSize: 16,
-    color: '#111827',
   },
   placeholderText: {
-    color: '#9ca3af',
   },
   submitButton: {
-    backgroundColor: '#0ea5e9',
     borderRadius: 8,
     padding: 16,
     alignItems: 'center',
@@ -546,7 +538,6 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
   },
   modalContent: {
-    backgroundColor: '#ffffff',
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
     maxHeight: '50%',
@@ -557,12 +548,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 20,
     borderBottomWidth: 1,
-    borderBottomColor: '#e5e7eb',
   },
   modalTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#111827',
   },
   optionsList: {
     maxHeight: 300,
@@ -570,17 +559,13 @@ const styles = StyleSheet.create({
   optionItem: {
     padding: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#f3f4f6',
   },
   selectedOption: {
-    backgroundColor: '#eff6ff',
   },
   optionText: {
     fontSize: 16,
-    color: '#374151',
   },
   selectedOptionText: {
-    color: '#0ea5e9',
     fontWeight: '600',
   },
   inputError: {
@@ -588,7 +573,6 @@ const styles = StyleSheet.create({
     borderWidth: 2,
   },
   errorText: {
-    color: '#ef4444',
     fontSize: 12,
     marginTop: 4,
     marginLeft: 4,
@@ -596,10 +580,8 @@ const styles = StyleSheet.create({
   resetButton: {
     padding: 8,
     borderRadius: 8,
-    backgroundColor: '#f3f4f6',
   },
   successMessage: {
-    backgroundColor: '#10b981',
     margin: 20,
     padding: 16,
     borderRadius: 12,
@@ -618,6 +600,5 @@ const styles = StyleSheet.create({
   },
   charCounter: {
     fontSize: 12,
-    color: '#6b7280',
   },
 });

@@ -3,6 +3,7 @@ import { View, Text, ScrollView, StyleSheet, TouchableOpacity, Alert, Platform }
 import { router, useLocalSearchParams } from 'expo-router';
 import { apiService } from '../../services/api';
 import { useTheme } from '../../contexts/ThemeContext';
+import { useLocale } from '../../contexts/LocaleContext';
 
 interface SessionWorkout {
   id: string;
@@ -40,6 +41,7 @@ interface SessionDetails {
 
 export default function SessionDetailScreen() {
   const { isDarkMode, colors } = useTheme();
+  const { t } = useLocale();
   const { id } = useLocalSearchParams<{ id: string }>();
   const [session, setSession] = useState<SessionDetails | null>(null);
   const [isOwner, setIsOwner] = useState<boolean>(false);
@@ -187,9 +189,9 @@ export default function SessionDetailScreen() {
   }
 
   return (
-    <ScrollView style={styles.container}>
+    <ScrollView style={[styles.container, { backgroundColor: colors.background }]}>
       {/* Header */}
-      <View style={styles.header}>
+      <View style={[styles.header, { backgroundColor: colors.primary }]}>
         <TouchableOpacity style={styles.backButtonHeader} onPress={() => router.back()}>
           <Text style={styles.backIcon}>←</Text>
         </TouchableOpacity>
@@ -205,18 +207,18 @@ export default function SessionDetailScreen() {
       </View>
 
       {/* Main Details Card */}
-      <View style={styles.detailsCard}>
+      <View style={[styles.detailsCard, { backgroundColor: colors.surface }]}>
         <View style={styles.statsGrid}>
           <View style={styles.statCard}>
             <Text style={styles.statIcon}>🏊‍♀️</Text>
-            <Text style={styles.statValue}>{session.distance || 0}m</Text>
-            <Text style={styles.statLabel}>Distance</Text>
+            <Text style={[styles.statValue, { color: colors.text }]}>{session.distance || 0}m</Text>
+            <Text style={[styles.statLabel, { color: colors.textSecondary }]}>Distance</Text>
           </View>
           
           <View style={styles.statCard}>
             <Text style={styles.statIcon}>⏱️</Text>
-            <Text style={styles.statValue}>{session.duration}</Text>
-            <Text style={styles.statLabel}>Minutes</Text>
+            <Text style={[styles.statValue, { color: colors.text }]}>{session.duration}</Text>
+            <Text style={[styles.statLabel, { color: colors.textSecondary }]}>Minutes</Text>
           </View>
           
           {session.workoutType && (
@@ -224,7 +226,7 @@ export default function SessionDetailScreen() {
               <View style={[styles.typeBadge, { backgroundColor: getTypeColor(session.workoutType) }]}>
                 <Text style={styles.typeBadgeText}>{session.workoutType.replace('_', ' ')}</Text>
               </View>
-              <Text style={styles.statLabel}>Workout Type</Text>
+              <Text style={[styles.statLabel, { color: colors.textSecondary }]}>Workout Type</Text>
             </View>
           )}
           
@@ -233,7 +235,7 @@ export default function SessionDetailScreen() {
               <View style={[styles.intensityBadge, { backgroundColor: getIntensityColor(session.intensity) }]}>
                 <Text style={styles.intensityText}>{session.intensity.replace('_', ' ')}</Text>
               </View>
-              <Text style={styles.statLabel}>Intensity</Text>
+              <Text style={[styles.statLabel, { color: colors.textSecondary }]}>Intensity</Text>
             </View>
           )}
         </View>
@@ -241,11 +243,11 @@ export default function SessionDetailScreen() {
 
   {/* Stroke Information */}
       {session.stroke && (
-        <View style={styles.card}>
-          <Text style={styles.cardTitle}>🏊 Swimming Stroke</Text>
+        <View style={[styles.card, { backgroundColor: colors.surface }]}>
+          <Text style={[styles.cardTitle, { color: colors.text }]}>🏊 Swimming Stroke</Text>
           <View style={styles.strokeContainer}>
-            <View style={styles.strokeBadge}>
-              <Text style={styles.strokeText}>{session.stroke}</Text>
+            <View style={[styles.strokeBadge, { backgroundColor: colors.background }]}>
+              <Text style={[styles.strokeText, { color: colors.primary }]}>{session.stroke}</Text>
             </View>
           </View>
         </View>
@@ -253,19 +255,19 @@ export default function SessionDetailScreen() {
 
   {/* Description */}
       {session.description && (
-        <View style={styles.card}>
-          <Text style={styles.cardTitle}>📝 Description</Text>
-          <Text style={styles.descriptionText}>{session.description}</Text>
+        <View style={[styles.card, { backgroundColor: colors.surface }]}>
+          <Text style={[styles.cardTitle, { color: colors.text }]}>📝 Description</Text>
+          <Text style={[styles.descriptionText, { color: colors.text }]}>{session.description}</Text>
         </View>
       )}
 
       {/* Action Buttons (only visible to owner) */}
       {isOwner && (
         <View style={styles.actionButtons}>
-          <TouchableOpacity style={styles.editButton} onPress={handleEdit}>
+          <TouchableOpacity style={[styles.editButton, { backgroundColor: colors.primary }]} onPress={handleEdit}>
             <Text style={styles.editButtonText}>Edit Session</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.deleteButton} onPress={handleDelete}>
+          <TouchableOpacity style={[styles.deleteButton, { backgroundColor: colors.error }]} onPress={handleDelete}>
             <Text style={styles.deleteButtonText}>Delete Session</Text>
           </TouchableOpacity>
         </View>
@@ -278,7 +280,6 @@ export default function SessionDetailScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f8fafc',
   },
   loadingContainer: {
     flex: 1,
@@ -288,7 +289,6 @@ const styles = StyleSheet.create({
   },
   loadingText: {
     fontSize: 16,
-    color: '#64748b',
   },
   errorContainer: {
     flex: 1,
@@ -298,12 +298,10 @@ const styles = StyleSheet.create({
   },
   errorText: {
     fontSize: 16,
-    color: '#ef4444',
     textAlign: 'center',
     marginBottom: 20,
   },
   backButton: {
-    backgroundColor: '#3b82f6',
     paddingHorizontal: 20,
     paddingVertical: 10,
     borderRadius: 8,
@@ -319,7 +317,6 @@ const styles = StyleSheet.create({
     paddingTop: 60,
     paddingBottom: 20,
     paddingHorizontal: 20,
-    backgroundColor: '#3b82f6',
   },
   backButtonHeader: {
     width: 40,
@@ -360,7 +357,6 @@ const styles = StyleSheet.create({
     fontSize: 18,
   },
   detailsCard: {
-    backgroundColor: 'white',
     margin: 20,
     marginTop: -10,
     borderRadius: 16,
@@ -388,12 +384,10 @@ const styles = StyleSheet.create({
   statValue: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#1e293b',
     marginBottom: 4,
   },
   statLabel: {
     fontSize: 14,
-    color: '#64748b',
     textAlign: 'center',
   },
   typeBadge: {
@@ -421,7 +415,6 @@ const styles = StyleSheet.create({
     textTransform: 'capitalize',
   },
   card: {
-    backgroundColor: 'white',
     marginHorizontal: 20,
     marginBottom: 16,
     borderRadius: 16,
@@ -435,7 +428,6 @@ const styles = StyleSheet.create({
   cardTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#1e293b',
     marginBottom: 16,
   },
   strokeContainer: {
@@ -443,7 +435,6 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap',
   },
   strokeBadge: {
-    backgroundColor: '#e0f2fe',
     paddingHorizontal: 12,
     paddingVertical: 8,
     borderRadius: 12,
@@ -451,14 +442,12 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   strokeText: {
-    color: '#0369a1',
     fontSize: 14,
     fontWeight: '600',
     textTransform: 'capitalize',
   },
   descriptionText: {
     fontSize: 16,
-    color: '#374151',
     lineHeight: 24,
   },
   metadataContainer: {
@@ -486,7 +475,6 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   editButton: {
-    backgroundColor: '#3b82f6',
     paddingVertical: 16,
     borderRadius: 12,
     shadowColor: '#000',
@@ -502,7 +490,6 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   deleteButton: {
-    backgroundColor: '#ef4444',
     paddingVertical: 16,
     borderRadius: 12,
     shadowColor: '#000',

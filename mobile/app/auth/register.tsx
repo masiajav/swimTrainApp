@@ -3,8 +3,12 @@ import { useState } from 'react';
 import { Link, router } from 'expo-router';
 import { apiService } from '../../services/api';
 import { Ionicons } from '@expo/vector-icons';
+import { useTheme } from '../../contexts/ThemeContext';
+import { useLocale } from '../../contexts/LocaleContext';
 
 export default function RegisterScreen() {
+  const { isDarkMode, colors } = useTheme();
+  const { t } = useLocale();
   const [email, setEmail] = useState('');
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
@@ -14,30 +18,34 @@ export default function RegisterScreen() {
   const [isLoading, setIsLoading] = useState(false);
 
   const handleRegister = async () => {
-    if (!email || !username || !password) {
-      Alert.alert('Error', 'Please fill in required fields');
+    const trimmedEmail = email.trim();
+    const trimmedUsername = username.trim();
+    const trimmedPassword = password.trim();
+    
+    if (!trimmedEmail || !trimmedUsername || !trimmedPassword) {
+      Alert.alert(t('common.error'), t('auth.fillAllFields'));
       return;
     }
 
     setIsLoading(true);
     try {
       const response = await apiService.register({
-        email,
-        username,
-        password,
-        firstName,
-        lastName,
+        email: trimmedEmail,
+        username: trimmedUsername,
+        password: trimmedPassword,
+        firstName: firstName.trim(),
+        lastName: lastName.trim(),
       });
       
       // Store the token for future requests
       apiService.setAuthToken(response.token);
       
       console.log('Registration successful:', response.user);
-      Alert.alert('Success', `Welcome to SwimTrainApp, ${response.user.firstName || response.user.username}!`);
+      Alert.alert(t('common.success'), t('auth.welcomeUser', { name: response.user.firstName || response.user.username }));
       router.replace('/(tabs)');
     } catch (error: any) {
       console.error('Registration error:', error);
-      Alert.alert('Error', error.message || 'Registration failed. Please try again.');
+      Alert.alert(t('common.error'), error.message || t('auth.registrationFailed'));
     } finally {
       setIsLoading(false);
     }
@@ -60,46 +68,46 @@ export default function RegisterScreen() {
   };
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
       {/* Header with Swimming Theme */}
-      <View style={styles.header}>
+      <View style={[styles.header, { backgroundColor: colors.success }]}>
         <Text style={styles.headerEmoji}>🏊‍♂️</Text>
-        <Text style={styles.headerTitle}>Join SwimTrainApp</Text>
-        <Text style={styles.headerSubtitle}>Start your swimming journey today</Text>
+        <Text style={styles.headerTitle}>{t('auth.joinApp')}</Text>
+        <Text style={[styles.headerSubtitle, { color: isDarkMode ? colors.textSecondary : '#a7f3d0' }]}>{t('auth.startJourney')}</Text>
       </View>
 
       <ScrollView style={styles.scrollContainer} showsVerticalScrollIndicator={false}>
         {/* Registration Form Card */}
-        <View style={styles.formCard}>
+        <View style={[styles.formCard, { backgroundColor: colors.surface }]}>
           <View style={styles.cardHeader}>
-            <Text style={styles.welcomeText}>Create Account</Text>
-            <Text style={styles.welcomeSubtext}>Join our swimming community and track your progress</Text>
+            <Text style={[styles.welcomeText, { color: colors.text }]}>{t('auth.createAccount')}</Text>
+            <Text style={[styles.welcomeSubtext, { color: colors.textSecondary }]}>{t('auth.joinCommunity')}</Text>
           </View>
           
           {/* Personal Information Section */}
           <View style={styles.sectionContainer}>
-            <Text style={styles.sectionTitle}>👤 Personal Information</Text>
+            <Text style={[styles.sectionTitle, { color: colors.text, borderBottomColor: colors.border }]}>👤 {t('auth.personalInfo')}</Text>
             
             <View style={styles.nameRow}>
               <View style={[styles.inputContainer, styles.halfWidth]}>
-                <Text style={styles.inputLabel}>First Name</Text>
+                <Text style={[styles.inputLabel, { color: colors.text }]}>{t('auth.firstName')}</Text>
                 <TextInput
-                  placeholder="John"
+                  placeholder={t('auth.firstNamePlaceholder')}
                   value={firstName}
                   onChangeText={setFirstName}
-                  style={styles.input}
-                  placeholderTextColor="#94a3b8"
+                  style={[styles.input, { backgroundColor: colors.background, borderColor: colors.border, color: colors.text }]}
+                  placeholderTextColor={colors.textSecondary}
                 />
               </View>
               
               <View style={[styles.inputContainer, styles.halfWidth]}>
-                <Text style={styles.inputLabel}>Last Name</Text>
+                <Text style={[styles.inputLabel, { color: colors.text }]}>{t('auth.lastName')}</Text>
                 <TextInput
-                  placeholder="Swimmer"
+                  placeholder={t('auth.lastNamePlaceholder')}
                   value={lastName}
                   onChangeText={setLastName}
-                  style={styles.input}
-                  placeholderTextColor="#94a3b8"
+                  style={[styles.input, { backgroundColor: colors.background, borderColor: colors.border, color: colors.text }]}
+                  placeholderTextColor={colors.textSecondary}
                 />
               </View>
             </View>
@@ -107,50 +115,50 @@ export default function RegisterScreen() {
 
           {/* Account Details Section */}
           <View style={styles.sectionContainer}>
-            <Text style={styles.sectionTitle}>🔐 Account Details</Text>
+            <Text style={[styles.sectionTitle, { color: colors.text, borderBottomColor: colors.border }]}>🔐 {t('auth.accountDetails')}</Text>
             
             <View style={styles.inputContainer}>
-              <Text style={styles.inputLabel}>📧 Email *</Text>
+              <Text style={[styles.inputLabel, { color: colors.text }]}>{t('auth.email')} *</Text>
               <TextInput
-                placeholder="your.email@example.com"
+                placeholder={t('auth.emailPlaceholder')}
                 value={email}
                 onChangeText={setEmail}
                 keyboardType="email-address"
                 autoCapitalize="none"
-                style={styles.input}
-                placeholderTextColor="#94a3b8"
+                style={[styles.input, { backgroundColor: colors.background, borderColor: colors.border, color: colors.text }]}
+                placeholderTextColor={colors.textSecondary}
               />
             </View>
             
             <View style={styles.inputContainer}>
-              <Text style={styles.inputLabel}>👤 Username *</Text>
+              <Text style={[styles.inputLabel, { color: colors.text }]}>{t('auth.username')} *</Text>
               <TextInput
-                placeholder="swimmer123"
+                placeholder={t('auth.usernamePlaceholder')}
                 value={username}
                 onChangeText={setUsername}
                 autoCapitalize="none"
-                style={styles.input}
-                placeholderTextColor="#94a3b8"
+                style={[styles.input, { backgroundColor: colors.background, borderColor: colors.border, color: colors.text }]}
+                placeholderTextColor={colors.textSecondary}
               />
             </View>
             
             <View style={styles.inputContainer}>
-              <Text style={styles.inputLabel}>🔒 Password *</Text>
+              <Text style={[styles.inputLabel, { color: colors.text }]}>{t('auth.password')} *</Text>
               <View style={styles.inputOverlayContainer}>
                 <TextInput
-                  placeholder="Create a strong password"
+                  placeholder={t('auth.createPassword')}
                   value={password}
                   onChangeText={setPassword}
                   secureTextEntry={!showPassword}
-                  style={[styles.input, styles.inputWithIcon]}
-                  placeholderTextColor="#94a3b8"
+                  style={[styles.input, styles.inputWithIcon, { backgroundColor: colors.background, borderColor: colors.border, color: colors.text }]}
+                  placeholderTextColor={colors.textSecondary}
                 />
                 <TouchableOpacity
                   onPress={() => setShowPassword((s) => !s)}
                   style={styles.inputIcon}
-                  accessibilityLabel={showPassword ? 'Hide password' : 'Show password'}
+                  accessibilityLabel={showPassword ? t('auth.hidePassword') : t('auth.showPassword')}
                 >
-                  <Ionicons name={showPassword ? 'eye-off' : 'eye'} size={20} color="#059669" />
+                  <Ionicons name={showPassword ? 'eye-off' : 'eye'} size={20} color={colors.success} />
                 </TouchableOpacity>
               </View>
             </View>
@@ -158,19 +166,19 @@ export default function RegisterScreen() {
           
           <TouchableOpacity 
             onPress={handleRegister}
-            style={[styles.registerButton, isLoading && styles.registerButtonDisabled]}
+            style={[styles.registerButton, { backgroundColor: colors.success }, isLoading && styles.registerButtonDisabled]}
             disabled={isLoading}
           >
             <Text style={styles.registerButtonText}>
-              {isLoading ? '🏊‍♀️ Creating Account...' : '🏊‍♀️ Create Account'}
+              {isLoading ? t('auth.creatingAccount') : t('auth.createAccountButton')}
             </Text>
           </TouchableOpacity>
 
           {/* Divider */}
           <View style={styles.divider}>
-            <View style={styles.dividerLine} />
-            <Text style={styles.dividerText}>or</Text>
-            <View style={styles.dividerLine} />
+            <View style={[styles.dividerLine, { backgroundColor: colors.border }]} />
+            <Text style={[styles.dividerText, { color: colors.textSecondary }]}>{t('common.or')}</Text>
+            <View style={[styles.dividerLine, { backgroundColor: colors.border }]} />
           </View>
 
           {/* Google Sign Up Button hidden for MVP (email/password only) */}
@@ -178,8 +186,8 @@ export default function RegisterScreen() {
           
           <Link href="/auth/login" asChild>
             <TouchableOpacity style={styles.loginLink}>
-              <Text style={styles.loginText}>
-                Already have an account? <Text style={styles.loginTextBold}>Sign in</Text>
+              <Text style={[styles.loginText, { color: colors.textSecondary }]}>
+                {t('auth.alreadyHaveAccount')} <Text style={[styles.loginTextBold, { color: colors.success }]}>{t('auth.signIn')}</Text>
               </Text>
             </TouchableOpacity>
           </Link>
@@ -197,13 +205,11 @@ export default function RegisterScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f0f9ff',
   },
   header: {
     paddingTop: 80,
     paddingBottom: 40,
     paddingHorizontal: 20,
-    backgroundColor: '#059669',
     alignItems: 'center',
     borderBottomLeftRadius: 30,
     borderBottomRightRadius: 30,
@@ -220,13 +226,11 @@ const styles = StyleSheet.create({
   },
   headerSubtitle: {
     fontSize: 16,
-    color: '#a7f3d0',
   },
   scrollContainer: {
     flex: 1,
   },
   formCard: {
-    backgroundColor: 'white',
     marginHorizontal: 20,
     marginTop: -20,
     borderRadius: 20,
@@ -248,12 +252,10 @@ const styles = StyleSheet.create({
   welcomeText: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#1e293b',
     marginBottom: 8,
   },
   welcomeSubtext: {
     fontSize: 16,
-    color: '#64748b',
     textAlign: 'center',
     lineHeight: 24,
   },
@@ -263,11 +265,9 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#1e293b',
     marginBottom: 16,
     paddingBottom: 8,
     borderBottomWidth: 2,
-    borderBottomColor: '#f1f5f9',
   },
   nameRow: {
     flexDirection: 'row',
@@ -283,20 +283,15 @@ const styles = StyleSheet.create({
   inputLabel: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#374151',
     marginBottom: 8,
   },
   input: {
     borderWidth: 2,
-    borderColor: '#e2e8f0',
     borderRadius: 12,
     padding: 16,
     fontSize: 16,
-    backgroundColor: '#f8fafc',
-    color: '#1e293b',
   },
   registerButton: {
-    backgroundColor: '#059669',
     borderRadius: 12,
     padding: 18,
     marginTop: 12,
@@ -328,12 +323,10 @@ const styles = StyleSheet.create({
   dividerLine: {
     flex: 1,
     height: 1,
-    backgroundColor: '#e2e8f0',
   },
   dividerText: {
     marginHorizontal: 16,
     fontSize: 14,
-    color: '#64748b',
     fontWeight: '500',
   },
   googleButton: {
@@ -342,7 +335,6 @@ const styles = StyleSheet.create({
     padding: 18,
     marginBottom: 24,
     borderWidth: 2,
-    borderColor: '#e2e8f0',
     shadowColor: '#000',
     shadowOffset: {
       width: 0,
@@ -353,7 +345,6 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   googleButtonText: {
-    color: '#374151',
     fontSize: 18,
     fontWeight: '600',
     textAlign: 'center',
@@ -363,11 +354,9 @@ const styles = StyleSheet.create({
   },
   loginText: {
     fontSize: 16,
-    color: '#64748b',
   },
   loginTextBold: {
     fontWeight: 'bold',
-    color: '#059669',
   },
   waveContainer: {
     alignItems: 'center',
@@ -392,7 +381,6 @@ const styles = StyleSheet.create({
     backgroundColor: 'transparent',
   },
   eyeText: {
-    color: '#059669',
     fontWeight: '600',
   },
   inputOverlayContainer: {

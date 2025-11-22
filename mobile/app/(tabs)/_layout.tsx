@@ -1,16 +1,32 @@
 import { Tabs } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import { useTheme } from '../../contexts/ThemeContext';
+import { useLocale } from '../../contexts/LocaleContext';
+import { useEffect, useState } from 'react';
 
 export default function TabLayout() {
+  const { isDarkMode, colors } = useTheme();
+  const { t, locale } = useLocale();
+  const [, forceUpdate] = useState({});
+
+  // Force re-render when locale changes to update tab labels
+  useEffect(() => {
+    forceUpdate({});
+  }, [locale]);
+  
   return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: '#0ea5e9',
-        tabBarInactiveTintColor: '#6b7280',
-        headerStyle: {
-          backgroundColor: '#0ea5e9',
+        tabBarActiveTintColor: colors.primary,
+        tabBarInactiveTintColor: colors.textSecondary,
+        tabBarStyle: {
+          backgroundColor: colors.surface,
+          borderTopColor: colors.border,
         },
-        headerTintColor: '#fff',
+        headerStyle: {
+          backgroundColor: colors.card,
+        },
+        headerTintColor: colors.text,
         headerTitleStyle: {
           fontWeight: 'bold',
         },
@@ -18,7 +34,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="index"
         options={{
-          title: 'Dashboard',
+          title: t('common.dashboard'),
           headerTitle: 'SwimTrainApp',
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="home-outline" size={size} color={color} />
@@ -28,7 +44,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="sessions"
         options={{
-          title: 'Sessions',
+          title: t('common.sessions'),
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="water-outline" size={size} color={color} />
           ),
@@ -37,7 +53,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="team"
         options={{
-          title: 'Team',
+          title: t('common.team'),
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="people-outline" size={size} color={color} />
           ),
@@ -46,7 +62,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="profile"
         options={{
-          title: 'Profile',
+          title: t('common.profile'),
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="person-outline" size={size} color={color} />
           ),
