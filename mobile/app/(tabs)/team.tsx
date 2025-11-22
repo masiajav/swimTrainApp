@@ -5,9 +5,11 @@ import { router } from 'expo-router';
 import { apiService } from '../../services/api';
 import { Team, TeamStats, UserRole } from '../../../shared/types';
 import { useTheme } from '../../contexts/ThemeContext';
+import { useLocale } from '../../contexts/LocaleContext';
 
 export default function TeamScreen() {
   const { isDarkMode, colors } = useTheme();
+  const { t } = useLocale();
   const [team, setTeam] = useState<Team | null>(null);
   const [teamStats, setTeamStats] = useState<TeamStats | null>(null);
   const [loading, setLoading] = useState(true);
@@ -64,7 +66,7 @@ export default function TeamScreen() {
 
   const handleJoinTeam = async () => {
     if (!inviteCode.trim()) {
-      Alert.alert('Error', 'Please enter an invite code');
+      Alert.alert(t('common.error'), t('team.enterCodeError'));
       return;
     }
 
@@ -73,11 +75,11 @@ export default function TeamScreen() {
       await apiService.joinTeam(inviteCode.trim());
       setInviteCode('');
       setShowJoinForm(false);
-      Alert.alert('Success', 'Successfully joined team!');
+      Alert.alert(t('common.success'), t('team.joinSuccess'));
       loadTeamData();
     } catch (error: any) {
       console.error('Error joining team:', error);
-      Alert.alert('Error', error.message || 'Failed to join team');
+      Alert.alert(t('common.error'), error.message || t('team.joinError'));
     } finally {
       setLoading(false);
     }
@@ -85,7 +87,7 @@ export default function TeamScreen() {
 
   const handleCreateTeam = async () => {
     if (!teamName.trim()) {
-      Alert.alert('Error', 'Please enter a team name');
+      Alert.alert(t('common.error'), t('team.enterNameError'));
       return;
     }
 
@@ -98,11 +100,11 @@ export default function TeamScreen() {
       setTeamName('');
       setTeamDescription('');
       setShowCreateForm(false);
-      Alert.alert('Success', 'Team created successfully!');
+      Alert.alert(t('common.success'), t('team.createSuccess'));
       loadTeamData();
     } catch (error: any) {
       console.error('Error creating team:', error);
-      Alert.alert('Error', error.message || 'Failed to create team');
+      Alert.alert(t('common.error'), error.message || t('team.createError'));
     } finally {
       setLoading(false);
     }
@@ -111,17 +113,17 @@ export default function TeamScreen() {
   const handleLeaveTeam = () => {
     // For web compatibility, prefer window.confirm if available
     if (Platform.OS === 'web' && typeof window !== 'undefined' && typeof window.confirm === 'function') {
-      const confirmed = window.confirm('Are you sure you want to leave this team?');
+      const confirmed = window.confirm(t('team.leaveConfirm'));
       if (confirmed) leaveTeam();
       return;
     }
 
     Alert.alert(
-      'Leave Team',
-      'Are you sure you want to leave this team?',
+      t('team.leaveTeam'),
+      t('team.leaveConfirm'),
       [
-        { text: 'Cancel', style: 'cancel' },
-        { text: 'Leave', style: 'destructive', onPress: leaveTeam },
+        { text: t('common.cancel'), style: 'cancel' },
+        { text: t('team.leaveTeam'), style: 'destructive', onPress: leaveTeam },
       ]
     );
   };
@@ -130,11 +132,11 @@ export default function TeamScreen() {
     try {
       setLoading(true);
       await apiService.leaveTeam();
-      Alert.alert('Success', 'Successfully left team');
+      Alert.alert(t('common.success'), t('team.leftSuccess'));
       loadTeamData();
     } catch (error: any) {
       console.error('Error leaving team:', error);
-      Alert.alert('Error', error.message || 'Failed to leave team');
+      Alert.alert(t('common.error'), error.message || t('team.leaveError'));
     } finally {
       setLoading(false);
     }
@@ -196,7 +198,7 @@ export default function TeamScreen() {
     return (
       <View style={[styles.container, { backgroundColor: colors.background }]}>
         <View style={styles.loadingContainer}>
-          <Text style={[styles.loadingText, { color: colors.textSecondary }]}>Loading team information...</Text>
+          <Text style={[styles.loadingText, { color: colors.textSecondary }]}>{t('common.loading')}</Text>
         </View>
       </View>
     );
@@ -207,9 +209,9 @@ export default function TeamScreen() {
     return (
       <ScrollView style={[styles.container, { backgroundColor: colors.background }]}>
         <View style={[styles.header, { backgroundColor: isDarkMode ? colors.card : colors.primary }]}>
-          <Text style={styles.headerTitle}>Join a Team</Text>
+          <Text style={styles.headerTitle}>{t('team.joinTeam')}</Text>
           <Text style={styles.headerSubtitle}>
-            Connect with swimmers and track progress together
+            {t('team.connectSwimmers')}
           </Text>
         </View>
 
@@ -217,18 +219,18 @@ export default function TeamScreen() {
           <View style={styles.noTeamIcon}>
             <Text style={styles.noTeamIconText}>🏊‍♀️</Text>
           </View>
-          <Text style={[styles.noTeamTitle, { color: colors.text }]}>No Team Yet</Text>
+          <Text style={[styles.noTeamTitle, { color: colors.text }]}>{t('team.noTeamYet')}</Text>
           <Text style={[styles.noTeamDescription, { color: colors.textSecondary }]}>
-            Join an existing team with an invite code or create your own team to get started.
+            {t('team.noTeamDescription')}
           </Text>
 
           {/* Join Team Form */}
           {showJoinForm ? (
             <View style={styles.formContainer}>
-              <Text style={styles.formTitle}>Join Team</Text>
+              <Text style={styles.formTitle}>{t('team.joinTeam')}</Text>
               <TextInput
                 style={styles.input}
-                placeholder="Enter invite code"
+                placeholder={t('team.enterInviteCode')}
                 value={inviteCode}
                 onChangeText={setInviteCode}
                 autoCapitalize="characters"
@@ -238,25 +240,25 @@ export default function TeamScreen() {
                   style={styles.secondaryButton} 
                   onPress={() => setShowJoinForm(false)}
                 >
-                  <Text style={styles.secondaryButtonText}>Cancel</Text>
+                  <Text style={styles.secondaryButtonText}>{t('common.cancel')}</Text>
                 </TouchableOpacity>
                 <TouchableOpacity style={styles.primaryButton} onPress={handleJoinTeam}>
-                  <Text style={styles.primaryButtonText}>Join Team</Text>
+                  <Text style={styles.primaryButtonText}>{t('team.joinTeam')}</Text>
                 </TouchableOpacity>
               </View>
             </View>
           ) : showCreateForm ? (
             <View style={styles.formContainer}>
-              <Text style={styles.formTitle}>Create Team</Text>
+              <Text style={styles.formTitle}>{t('team.createTeam')}</Text>
               <TextInput
                 style={styles.input}
-                placeholder="Team name"
+                placeholder={t('team.teamName')}
                 value={teamName}
                 onChangeText={setTeamName}
               />
               <TextInput
                 style={styles.input}
-                placeholder="Description (optional)"
+                placeholder={t('team.teamDescriptionPlaceholder')}
                 value={teamDescription}
                 onChangeText={setTeamDescription}
                 multiline
@@ -267,10 +269,10 @@ export default function TeamScreen() {
                   style={styles.secondaryButton} 
                   onPress={() => setShowCreateForm(false)}
                 >
-                  <Text style={styles.secondaryButtonText}>Cancel</Text>
+                  <Text style={styles.secondaryButtonText}>{t('common.cancel')}</Text>
                 </TouchableOpacity>
                 <TouchableOpacity style={styles.primaryButton} onPress={handleCreateTeam}>
-                  <Text style={styles.primaryButtonText}>Create Team</Text>
+                  <Text style={styles.primaryButtonText}>{t('team.createTeam')}</Text>
                 </TouchableOpacity>
               </View>
             </View>
@@ -280,14 +282,14 @@ export default function TeamScreen() {
                 style={styles.primaryAction} 
                 onPress={() => setShowJoinForm(true)}
               >
-                <Text style={styles.actionText}>Join Team</Text>
+                <Text style={styles.actionText}>{t('team.joinTeam')}</Text>
               </TouchableOpacity>
               
               <TouchableOpacity 
                 style={styles.secondaryAction} 
                 onPress={() => setShowCreateForm(true)}
               >
-                <Text style={styles.secondaryActionText}>Create Team</Text>
+                <Text style={styles.secondaryActionText}>{t('team.createTeam')}</Text>
               </TouchableOpacity>
             </View>
           )}
@@ -309,7 +311,7 @@ export default function TeamScreen() {
 
             <View style={styles.inviteRow}>
               <View style={styles.invitePill}>
-                <Text style={styles.inviteLabel}>Invite</Text>
+                <Text style={styles.inviteLabel}>{t('team.invite')}</Text>
                 <Text style={styles.inviteCode} numberOfLines={1} ellipsizeMode="middle">{team.inviteCode}</Text>
               </View>
             </View>
@@ -322,7 +324,7 @@ export default function TeamScreen() {
                 // Web clipboard
                 if (Platform.OS === 'web' && typeof navigator !== 'undefined' && (navigator as any).clipboard && (navigator as any).clipboard.writeText) {
                   await (navigator as any).clipboard.writeText(code);
-                  Alert.alert('Copied', 'Invite code copied to clipboard');
+                  Alert.alert(t('team.copied'), t('team.codeCopiedMessage'));
                   return;
                 }
 
@@ -333,7 +335,7 @@ export default function TeamScreen() {
                   const ClipboardModule: any = require('expo-clipboard');
                   if (ClipboardModule && ClipboardModule.setStringAsync) {
                     await ClipboardModule.setStringAsync(code);
-                    Alert.alert('Copied', 'Invite code copied to clipboard');
+                    Alert.alert(t('team.copied'), t('team.codeCopiedMessage'));
                     return;
                   }
                 } catch (e) {
@@ -344,12 +346,12 @@ export default function TeamScreen() {
                 await Share.share({ message: code });
               } catch (err) {
                 console.error('Failed to copy invite code', err);
-                Alert.alert('Error', 'Could not copy invite code');
+                Alert.alert(t('common.error'), t('team.copyError'));
               }
             }}
             style={styles.copyButton}
           >
-            <Text style={styles.copyButtonText}>📋 Copy</Text>
+            <Text style={styles.copyButtonText}>📋 {t('team.copy')}</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -357,35 +359,35 @@ export default function TeamScreen() {
       {/* Team Stats */}
       {teamStats && (
         <View style={styles.statsContainer}>
-          <Text style={[styles.sectionTitle, { color: colors.text }]}>Team Overview</Text>
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>{t('team.teamOverview')}</Text>
           <View style={styles.statsGrid}>
             <View style={[styles.statCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
               <View style={[styles.statIcon, { backgroundColor: '#3b82f6' }]}>
                 <Text style={styles.statIconText}>👥</Text>
               </View>
               <Text style={[styles.statValue, { color: colors.text }]}>{teamStats.members}</Text>
-              <Text style={[styles.statTitle, { color: colors.textSecondary }]}>Members</Text>
+              <Text style={[styles.statTitle, { color: colors.textSecondary }]}>{t('team.members')}</Text>
             </View>
             <View style={[styles.statCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
               <View style={[styles.statIcon, { backgroundColor: '#14b8a6' }]}>
                 <Text style={styles.statIconText}>🏊‍♀️</Text>
               </View>
               <Text style={[styles.statValue, { color: colors.text }]}>{teamStats.totalSessions}</Text>
-              <Text style={[styles.statTitle, { color: colors.textSecondary }]}>Sessions</Text>
+              <Text style={[styles.statTitle, { color: colors.textSecondary }]}>{t('stats.sessions')}</Text>
             </View>
             <View style={[styles.statCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
               <View style={[styles.statIcon, { backgroundColor: '#8b5cf6' }]}>
                 <Text style={styles.statIconText}>📏</Text>
               </View>
               <Text style={[styles.statValue, { color: colors.text }]}>{formatDistance(teamStats.totalDistance)}</Text>
-              <Text style={[styles.statTitle, { color: colors.textSecondary }]}>Distance</Text>
+              <Text style={[styles.statTitle, { color: colors.textSecondary }]}>{t('stats.distance')}</Text>
             </View>
             <View style={[styles.statCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
               <View style={[styles.statIcon, { backgroundColor: '#f59e0b' }]}>
                 <Text style={styles.statIconText}>🏊‍♂️</Text>
               </View>
               <Text style={[styles.statValue, { color: colors.text }]}>{teamStats.mostCommonStroke ? prettifyStroke(teamStats.mostCommonStroke) : '—'}</Text>
-              <Text style={[styles.statTitle, { color: colors.textSecondary }]}>Top Stroke</Text>
+              <Text style={[styles.statTitle, { color: colors.textSecondary }]}>{t('team.topStroke')}</Text>
             </View>
           </View>
         </View>
@@ -393,7 +395,7 @@ export default function TeamScreen() {
 
       {/* Team Members */}
       <View style={styles.membersContainer}>
-        <Text style={[styles.sectionTitle, { color: colors.text }]}>Team Members</Text>
+        <Text style={[styles.sectionTitle, { color: colors.text }]}>{t('team.teamMembers')}</Text>
         {team.members.map((member: any) => (
           <TouchableOpacity 
             key={member.id} 
@@ -410,7 +412,7 @@ export default function TeamScreen() {
                   <Text style={styles.roleText}>{member.role}</Text>
                 </View>
               </View>
-              <Text style={[styles.viewProfileText, { color: colors.primary }]}>View →</Text>
+              <Text style={[styles.viewProfileText, { color: colors.primary }]}>{t('team.view')} →</Text>
             </View>
           </TouchableOpacity>
         ))}
@@ -419,7 +421,7 @@ export default function TeamScreen() {
       {/* Team Actions */}
       <View style={styles.teamActions}>
         <TouchableOpacity style={[styles.leaveButton, { backgroundColor: colors.surface, borderColor: '#ef4444' }]} onPress={handleLeaveTeam}>
-          <Text style={[styles.leaveButtonText, { color: '#ef4444' }]}>Leave Team</Text>
+          <Text style={[styles.leaveButtonText, { color: '#ef4444' }]}>{t('team.leaveTeam')}</Text>
         </TouchableOpacity>
       </View>
     </ScrollView>

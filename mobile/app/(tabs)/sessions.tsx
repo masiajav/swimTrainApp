@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { router, useFocusEffect } from 'expo-router';
 import { apiService } from '../../services/api';
 import { useTheme } from '../../contexts/ThemeContext';
+import { useLocale } from '../../contexts/LocaleContext';
 
 interface Session {
   id: string;
@@ -18,6 +19,7 @@ interface Session {
 
 export default function SessionsScreen() {
   const { isDarkMode, colors } = useTheme();
+  const { t } = useLocale();
   const [sessions, setSessions] = useState<Session[]>([]);
   const [filteredSessions, setFilteredSessions] = useState<Session[]>([]);
   const [loading, setLoading] = useState(true);
@@ -199,7 +201,7 @@ export default function SessionsScreen() {
         <View style={styles.errorContainer}>
           <Text style={[styles.errorText, { color: colors.text }]}>{error}</Text>
           <TouchableOpacity style={[styles.retryButton, { backgroundColor: colors.primary }]} onPress={loadSessions}>
-            <Text style={styles.retryButtonText}>Retry</Text>
+            <Text style={styles.retryButtonText}>{t('common.retry')}</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -210,8 +212,8 @@ export default function SessionsScreen() {
     <ScrollView style={[styles.container, { backgroundColor: colors.background }]}>
       {/* Header */}
       <View style={[styles.header, { backgroundColor: isDarkMode ? colors.card : colors.primary }]}>
-        <Text style={styles.headerTitle}>Swimming Sessions</Text>
-        <Text style={styles.headerSubtitle}>Track and review your training progress</Text>
+        <Text style={styles.headerTitle}>{t('sessions.title')}</Text>
+        <Text style={styles.headerSubtitle}>{t('sessions.subtitle')}</Text>
       </View>
 
       {/* Filter/Add Section */}
@@ -221,12 +223,12 @@ export default function SessionsScreen() {
           onPress={() => router.push('/session/create')}
         >
           <Text style={styles.addButtonIcon}>+</Text>
-          <Text style={styles.addButtonText}>New Session</Text>
+          <Text style={styles.addButtonText}>{t('sessions.newSession')}</Text>
         </TouchableOpacity>
         
         <TouchableOpacity style={[styles.filterButton, { backgroundColor: colors.surface, borderColor: colors.border }]} onPress={() => setFilterModalVisible(true)}>
           <Text style={styles.filterIcon}>⚙️</Text>
-          <Text style={[styles.filterText, { color: colors.text }]}>Filter</Text>
+          <Text style={[styles.filterText, { color: colors.text }]}>{t('common.filter')}</Text>
         </TouchableOpacity>
       </View>
 
@@ -234,13 +236,13 @@ export default function SessionsScreen() {
       <View style={styles.sessionsContainer}>
         {filteredSessions.length === 0 ? (
           <View style={styles.emptyState}>
-            <Text style={[styles.emptyStateText, { color: colors.text }]}>No sessions yet</Text>
-            <Text style={[styles.emptyStateSubtext, { color: colors.textSecondary }]}>Create your first swimming session to get started!</Text>
+            <Text style={[styles.emptyStateText, { color: colors.text }]}>{t('sessions.noSessions')}</Text>
+            <Text style={[styles.emptyStateSubtext, { color: colors.textSecondary }]}>{t('sessions.createFirst')}</Text>
             <TouchableOpacity 
               style={[styles.emptyStateButton, { backgroundColor: colors.primary }]}
               onPress={() => router.push('/session/create')}
             >
-              <Text style={styles.emptyStateButtonText}>Create Session</Text>
+              <Text style={styles.emptyStateButtonText}>{t('sessions.createSession')}</Text>
             </TouchableOpacity>
           </View>
         ) : (
@@ -268,7 +270,7 @@ export default function SessionsScreen() {
                     <Text style={styles.statIcon}>🏊‍♀️</Text>
                     <View style={styles.statContent}>
                       <Text style={[styles.statValue, { color: colors.text }]}>{session.distance}m</Text>
-                      <Text style={[styles.statLabel, { color: colors.textSecondary }]}>Distance</Text>
+                      <Text style={[styles.statLabel, { color: colors.textSecondary }]}>{t('stats.distance')}</Text>
                     </View>
                   </View>
                 )}
@@ -277,7 +279,7 @@ export default function SessionsScreen() {
                   <Text style={styles.statIcon}>⏱️</Text>
                   <View style={styles.statContent}>
                     <Text style={[styles.statValue, { color: colors.text }]}>{session.duration}min</Text>
-                    <Text style={[styles.statLabel, { color: colors.textSecondary }]}>Duration</Text>
+                    <Text style={[styles.statLabel, { color: colors.textSecondary }]}>{t('stats.duration')}</Text>
                   </View>
                 </View>
 
@@ -294,7 +296,7 @@ export default function SessionsScreen() {
 
               {session.stroke && (
                 <View style={styles.strokesContainer}>
-                  <Text style={[styles.strokesLabel, { color: colors.textSecondary }]}>Primary Stroke:</Text>
+                  <Text style={[styles.strokesLabel, { color: colors.textSecondary }]}>{t('sessions.primaryStroke')}:</Text>
                   <View style={styles.strokesList}>
                     <View style={[styles.strokeBadge, { backgroundColor: colors.background }]}>
                       <Text style={[styles.strokeText, { color: colors.text }]}>{session.stroke}</Text>
@@ -316,13 +318,13 @@ export default function SessionsScreen() {
                   style={[styles.viewButton, { backgroundColor: colors.primary }]}
                   onPress={() => router.push(`/session/${session.id}`)}
                 >
-                  <Text style={styles.viewButtonText}>View Details</Text>
+                  <Text style={styles.viewButtonText}>{t('common.viewDetails')}</Text>
                 </TouchableOpacity>
                 <TouchableOpacity 
                   style={[styles.editButton, { backgroundColor: colors.surface, borderColor: colors.border }]}
                   onPress={() => router.push(`/session/edit/${session.id}`)}
                 >
-                  <Text style={[styles.editButtonText, { color: colors.primary }]}>Edit</Text>
+                  <Text style={[styles.editButtonText, { color: colors.primary }]}>{t('common.edit')}</Text>
                 </TouchableOpacity>
                 <TouchableOpacity
                   style={[styles.deleteButton, { backgroundColor: colors.error }]}
@@ -337,9 +339,9 @@ export default function SessionsScreen() {
                         console.error('Failed to delete session', e);
                         if (Platform.OS === 'web') {
                           // eslint-disable-next-line no-alert
-                          alert('Failed to delete session');
+                          alert(t('sessions.deleteFailed'));
                         } else {
-                          Alert.alert('Error', 'Failed to delete session');
+                          Alert.alert(t('common.error'), t('sessions.deleteFailed'));
                         }
                       } finally {
                         setLoading(false);
@@ -347,21 +349,21 @@ export default function SessionsScreen() {
                     };
 
                     if (Platform.OS === 'web' && typeof window !== 'undefined' && (window as any).confirm) {
-                      const ok = (window as any).confirm('Are you sure you want to delete this session? This cannot be undone.');
+                      const ok = (window as any).confirm(t('sessions.deleteConfirm'));
                       if (ok) confirmDelete();
                     } else {
                       Alert.alert(
-                        'Delete session',
-                        'Are you sure you want to delete this session? This cannot be undone.',
+                        t('sessions.deleteSession'),
+                        t('sessions.deleteConfirm'),
                         [
-                          { text: 'Cancel', style: 'cancel' },
-                          { text: 'Delete', style: 'destructive', onPress: confirmDelete }
+                          { text: t('common.cancel'), style: 'cancel' },
+                          { text: t('common.delete'), style: 'destructive', onPress: confirmDelete }
                         ]
                       );
                     }
                   }}
                 >
-                  <Text style={styles.deleteButtonText}>Delete</Text>
+                  <Text style={styles.deleteButtonText}>{t('common.delete')}</Text>
                 </TouchableOpacity>
               </View>
             </TouchableOpacity>
@@ -423,15 +425,15 @@ export default function SessionsScreen() {
         <View style={styles.summaryStats}>
           <View style={styles.summaryItem}>
             <Text style={[styles.summaryValue, { color: colors.primary }]}>{calculateWeeklySummary().sessionCount}</Text>
-            <Text style={[styles.summaryLabel, { color: colors.textSecondary }]}>Sessions</Text>
+            <Text style={[styles.summaryLabel, { color: colors.textSecondary }]}>{t('stats.sessions')}</Text>
           </View>
           <View style={styles.summaryItem}>
             <Text style={[styles.summaryValue, { color: colors.primary }]}>{formatDistance(calculateWeeklySummary().totalDistance)}</Text>
-            <Text style={[styles.summaryLabel, { color: colors.textSecondary }]}>Total Distance</Text>
+            <Text style={[styles.summaryLabel, { color: colors.textSecondary }]}>{t('stats.totalDistance')}</Text>
           </View>
           <View style={styles.summaryItem}>
             <Text style={[styles.summaryValue, { color: colors.primary }]}>{formatDuration(calculateWeeklySummary().totalDuration)}</Text>
-            <Text style={[styles.summaryLabel, { color: colors.textSecondary }]}>Total Time</Text>
+            <Text style={[styles.summaryLabel, { color: colors.textSecondary }]}>{t('stats.totalTime')}</Text>
           </View>
         </View>
         {calculateWeeklySummary().sessionCount === 0 && (
@@ -447,15 +449,15 @@ export default function SessionsScreen() {
         <View style={styles.summaryStats}>
           <View style={styles.summaryItem}>
             <Text style={[styles.summaryValue, { color: colors.primary }]}>{calculateMonthlySummary().sessionCount}</Text>
-            <Text style={[styles.summaryLabel, { color: colors.textSecondary }]}>Sessions</Text>
+            <Text style={[styles.summaryLabel, { color: colors.textSecondary }]}>{t('stats.sessions')}</Text>
           </View>
           <View style={styles.summaryItem}>
             <Text style={[styles.summaryValue, { color: colors.primary }]}>{formatDistance(calculateMonthlySummary().totalDistance)}</Text>
-            <Text style={[styles.summaryLabel, { color: colors.textSecondary }]}>Total Distance</Text>
+            <Text style={[styles.summaryLabel, { color: colors.textSecondary }]}>{t('stats.totalDistance')}</Text>
           </View>
           <View style={styles.summaryItem}>
             <Text style={[styles.summaryValue, { color: colors.primary }]}>{formatDistance(Math.round(calculateMonthlySummary().avgDistance))}</Text>
-            <Text style={[styles.summaryLabel, { color: colors.textSecondary }]}>Avg Distance</Text>
+            <Text style={[styles.summaryLabel, { color: colors.textSecondary }]}>{t('stats.avgDistance')}</Text>
           </View>
         </View>
 

@@ -3,6 +3,7 @@ import { router, useFocusEffect } from 'expo-router';
 import React, { useState, useEffect } from 'react';
 import { apiService } from '../../services/api';
 import { useTheme } from '../../contexts/ThemeContext';
+import { useLocale } from '../../contexts/LocaleContext';
 
 interface Session {
   id: string;
@@ -27,6 +28,7 @@ interface UserProfile {
 
 export default function ProfileScreen() {
   const { isDarkMode, colors } = useTheme();
+  const { t } = useLocale();
   const [sessions, setSessions] = useState<Session[]>([]);
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
@@ -216,7 +218,7 @@ export default function ProfileScreen() {
     <View style={[styles.container, { backgroundColor: colors.background }]}>
       {/* Header with Gradient */}
       <View style={[styles.header, { backgroundColor: isDarkMode ? colors.card : colors.primary }]}>
-        <Text style={[styles.headerText, { color: 'white' }]}>Profile</Text>
+        <Text style={[styles.headerText, { color: 'white' }]}>{t('profile.title')}</Text>
       </View>
 
       <ScrollView style={[styles.content, { backgroundColor: colors.background }]} showsVerticalScrollIndicator={false}>
@@ -247,7 +249,7 @@ export default function ProfileScreen() {
               {loading ? '...' : formatDistance(calculateStats().totalDistance)}
             </Text>
             <Text style={[styles.statLabel, { color: colors.textSecondary }]}>
-              {calculateStats().totalDistance >= 1000 ? 'Total km' : 'Total m'}
+              {calculateStats().totalDistance >= 1000 ? t('stats.totalKm') : t('stats.totalM')}
             </Text>
           </View>
           <View style={[styles.statCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
@@ -255,27 +257,27 @@ export default function ProfileScreen() {
             <Text style={[styles.statValue, { color: colors.text }]}>
               {loading ? '...' : calculateStats().sessionCount}
             </Text>
-            <Text style={[styles.statLabel, { color: colors.textSecondary }]}>Sessions</Text>
+            <Text style={[styles.statLabel, { color: colors.textSecondary }]}>{t('stats.sessions')}</Text>
           </View>
           <View style={[styles.statCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
             <Text style={styles.statEmoji}>⏱️</Text>
             <Text style={[styles.statValue, { color: colors.text }]}>
               {loading ? '...' : formatDuration(calculateStats().totalDuration)}
             </Text>
-            <Text style={[styles.statLabel, { color: colors.textSecondary }]}>Total Time</Text>
+            <Text style={[styles.statLabel, { color: colors.textSecondary }]}>{t('profile.totalTime')}</Text>
           </View>
           <View style={[styles.statCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
             <Text style={styles.statEmoji}>🏆</Text>
             <Text style={[styles.statValue, { color: colors.text }]}>
               {loading ? '...' : Math.round(calculateStats().avgDistance)}
             </Text>
-            <Text style={[styles.statLabel, { color: colors.textSecondary }]}>Avg Distance</Text>
+            <Text style={[styles.statLabel, { color: colors.textSecondary }]}>{t('profile.avgDistance')}</Text>
           </View>
         </View>
 
         {/* Achievements Section */}
         <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}>
-          <Text style={[styles.sectionTitle, { color: colors.text }]}>🏆 Recent Achievements</Text>
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>🏆 {t('profile.recentActivity')}</Text>
           {loading ? (
             <View style={styles.loadingContainer}>
               <Text style={[styles.loadingText, { color: colors.textSecondary }]}>Loading achievements...</Text>
@@ -303,24 +305,32 @@ export default function ProfileScreen() {
 
         {/* Settings Section */}
         <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}>
-          <Text style={[styles.sectionTitle, { color: colors.text }]}>⚙️ Settings</Text>
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>⚙️ {t('profile.options')}</Text>
           <View style={styles.settingsList}>
+            <TouchableOpacity 
+              style={[styles.settingItem, { borderBottomColor: colors.border }]}
+              onPress={() => router.push('/profile-edit')}
+            >
+              <Text style={styles.settingEmoji}>👤</Text>
+              <Text style={[styles.settingText, { color: colors.text }]}>{t('profile.editProfile')}</Text>
+              <Text style={[styles.settingArrow, { color: colors.textSecondary }]}>›</Text>
+            </TouchableOpacity>
             <TouchableOpacity 
               style={[styles.settingItem, { borderBottomColor: colors.border }]}
               onPress={() => router.push('/settings')}
             >
-              <Text style={styles.settingEmoji}>👤</Text>
-              <Text style={[styles.settingText, { color: colors.text }]}>Edit</Text>
+              <Text style={styles.settingEmoji}>⚙️</Text>
+              <Text style={[styles.settingText, { color: colors.text }]}>{t('profile.settings')}</Text>
               <Text style={[styles.settingArrow, { color: colors.textSecondary }]}>›</Text>
             </TouchableOpacity>
             <TouchableOpacity style={[styles.settingItem, { borderBottomColor: colors.border }]}>
               <Text style={styles.settingEmoji}>📊</Text>
-              <Text style={[styles.settingText, { color: colors.text }]}>Analytics</Text>
+              <Text style={[styles.settingText, { color: colors.text }]}>{t('profile.analytics')}</Text>
               <Text style={[styles.settingArrow, { color: colors.textSecondary }]}>›</Text>
             </TouchableOpacity>
             <TouchableOpacity style={[styles.settingItem, styles.lastSettingItem]}>
               <Text style={styles.settingEmoji}>❓</Text>
-              <Text style={[styles.settingText, { color: colors.text }]}>Help & Support</Text>
+              <Text style={[styles.settingText, { color: colors.text }]}>{t('profile.helpSupport')}</Text>
               <Text style={[styles.settingArrow, { color: colors.textSecondary }]}>›</Text>
             </TouchableOpacity>
           </View>
@@ -328,7 +338,7 @@ export default function ProfileScreen() {
 
         {/* Logout Button */}
         <TouchableOpacity style={[styles.logoutButton, { backgroundColor: colors.surface, borderColor: colors.border }]} onPress={handleLogout}>
-          <Text style={[styles.logoutText, { color: '#FF4444' }]}>🚪 Logout</Text>
+          <Text style={[styles.logoutText, { color: '#FF4444' }]}>🚪 {t('common.logout')}</Text>
         </TouchableOpacity>
       </ScrollView>
     </View>

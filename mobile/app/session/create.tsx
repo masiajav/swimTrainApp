@@ -15,9 +15,11 @@ import { Ionicons } from '@expo/vector-icons';
 import { apiService } from '../../services/api';
 import { WorkoutType, Stroke, Intensity } from '../../../shared/types';
 import { useTheme } from '../../contexts/ThemeContext';
+import { useLocale } from '../../contexts/LocaleContext';
 
 export default function CreateSession() {
   const { isDarkMode, colors } = useTheme();
+  const { t } = useLocale();
   const navigation = useNavigation();
   React.useEffect(() => {
     // Hide the small back label (e.g. 'session/create') shown next to the back arrow
@@ -154,19 +156,19 @@ export default function CreateSession() {
     
     // Validate all required fields
     if (!formData.title.trim()) {
-      newErrors.title = 'Session title is required';
+      newErrors.title = t('sessions.titleRequired');
     } else if (formData.title.trim().length < 3) {
-      newErrors.title = 'Title must be at least 3 characters';
+      newErrors.title = t('sessions.titleMinLength');
     }
     
     if (!formData.duration.trim()) {
-      newErrors.duration = 'Duration is required';
+      newErrors.duration = t('sessions.durationRequired');
     } else if (isNaN(Number(formData.duration)) || Number(formData.duration) <= 0) {
-      newErrors.duration = 'Duration must be a positive number';
+      newErrors.duration = t('sessions.durationPositive');
     }
     
     if (formData.distance && (isNaN(Number(formData.distance)) || Number(formData.distance) < 0)) {
-      newErrors.distance = 'Distance must be a positive number';
+      newErrors.distance = t('sessions.distancePositive');
     }
     
     const selectedDate = new Date(formData.date);
@@ -175,7 +177,7 @@ export default function CreateSession() {
     const oneYearAgo = new Date();
     oneYearAgo.setFullYear(today.getFullYear() - 1);
     if (selectedDate < oneYearAgo) {
-      newErrors.date = 'Date cannot be more than a year ago';
+      newErrors.date = t('sessions.dateOld');
     }
     
     setErrors(newErrors);
@@ -213,29 +215,29 @@ export default function CreateSession() {
       console.log('API response:', response);
       
       if (response.data) {
-        setSuccessMessage('Session created successfully! 🎉');
+        setSuccessMessage(t('sessions.sessionCreated'));
         setTimeout(() => {
           router.replace('/(tabs)/sessions');
         }, 1500); // Show success message for 1.5 seconds
       } else {
         console.error('API Error:', response.error);
         if (typeof window !== 'undefined') {
-          window.alert(response.error || 'Failed to create session. Please try again.');
+          window.alert(response.error || t('sessions.createFailed'));
         }
       }
     } catch (error: any) {
       console.error('Create session error:', error);
-      let errorMessage = 'Failed to create session. Please try again.';
+      let errorMessage = t('sessions.createFailed');
       
       // Handle specific error types
       if (error.message?.includes('fetch')) {
-        errorMessage = 'Network error. Please check your connection.';
+        errorMessage = t('sessions.networkError');
       } else if (error.message?.includes('401')) {
-        errorMessage = 'Authentication error. Please log in again.';
+        errorMessage = t('sessions.authError');
         router.replace('/auth/login');
         return;
       } else if (error.message?.includes('400')) {
-        errorMessage = 'Invalid data. Please check your inputs.';
+        errorMessage = t('sessions.invalidData');
       }
       
       if (typeof window !== 'undefined') {
@@ -301,7 +303,7 @@ export default function CreateSession() {
   return (
     <ScrollView style={[styles.container, { backgroundColor: colors.background }]}>
       <View style={[styles.header, { backgroundColor: colors.surface, borderBottomColor: colors.border }]}>
-        <Text style={[styles.headerTitle, { color: colors.text }]}>New Swimming Session</Text>
+        <Text style={[styles.headerTitle, { color: colors.text }]}>{t('sessions.newSession')}</Text>
         <TouchableOpacity onPress={resetForm} style={styles.resetButton}>
           <Ionicons name="refresh" size={20} color={colors.textSecondary} />
         </TouchableOpacity>
@@ -317,14 +319,14 @@ export default function CreateSession() {
       <View style={styles.form}>
         <View style={styles.inputGroup}>
           <View style={styles.labelRow}>
-            <Text style={[styles.label, { color: colors.text }]}>Session Title *</Text>
+            <Text style={[styles.label, { color: colors.text }]}>{t('sessions.sessionTitle')} *</Text>
             <Text style={[styles.charCounter, { color: colors.textSecondary }]}>{formData.title.length}/50</Text>
           </View>
           <TextInput
             style={[styles.input, { backgroundColor: colors.surface, borderColor: colors.border, color: colors.text }, errors.title ? styles.inputError : null]}
             value={formData.title}
             onChangeText={(value) => handleInputChange('title', value.slice(0, 50))}
-            placeholder="e.g., Morning Freestyle Practice"
+            placeholder={t('sessions.sessionTitlePlaceholder')}
             placeholderTextColor={colors.textSecondary}
             maxLength={50}
           />
@@ -332,7 +334,7 @@ export default function CreateSession() {
         </View>
 
         <View style={styles.inputGroup}>
-          <Text style={[styles.label, { color: colors.text }]}>Date *</Text>
+          <Text style={[styles.label, { color: colors.text }]}>{t('sessions.date')} *</Text>
           <TextInput
             style={[styles.input, { backgroundColor: colors.surface, borderColor: colors.border, color: colors.text }, errors.date ? styles.inputError : null]}
             value={formData.date}
@@ -344,12 +346,12 @@ export default function CreateSession() {
         </View>
 
         <View style={styles.inputGroup}>
-          <Text style={[styles.label, { color: colors.text }]}>Duration (minutes) *</Text>
+          <Text style={[styles.label, { color: colors.text }]}>{t('sessions.durationMinutes')} *</Text>
           <TextInput
             style={[styles.input, { backgroundColor: colors.surface, borderColor: colors.border, color: colors.text }, errors.duration ? styles.inputError : null]}
             value={formData.duration}
             onChangeText={(value) => handleInputChange('duration', value)}
-            placeholder="e.g., 60"
+            placeholder={t('sessions.durationPlaceholder')}
             placeholderTextColor={colors.textSecondary}
             keyboardType="numeric"
           />
@@ -357,12 +359,12 @@ export default function CreateSession() {
         </View>
 
         <View style={styles.inputGroup}>
-          <Text style={[styles.label, { color: colors.text }]}>Distance (meters)</Text>
+          <Text style={[styles.label, { color: colors.text }]}>{t('sessions.distanceMeters')}</Text>
           <TextInput
             style={[styles.input, { backgroundColor: colors.surface, borderColor: colors.border, color: colors.text }, errors.distance ? styles.inputError : null]}
             value={formData.distance}
             onChangeText={(value) => handleInputChange('distance', value)}
-            placeholder="e.g., 2000"
+            placeholder={t('sessions.distancePlaceholder')}
             placeholderTextColor={colors.textSecondary}
             keyboardType="numeric"
           />
@@ -370,39 +372,39 @@ export default function CreateSession() {
         </View>
 
         <View style={styles.inputGroup}>
-          <Text style={[styles.label, { color: colors.text }]}>Workout Type</Text>
+          <Text style={[styles.label, { color: colors.text }]}>{t('sessions.workoutType')}</Text>
           <TouchableOpacity
             style={[styles.pickerButton, { backgroundColor: colors.surface, borderColor: colors.border }]}
             onPress={() => setShowWorkoutTypePicker(true)}
           >
             <Text style={[styles.pickerText, { color: colors.text }, !formData.workoutType && { color: colors.textSecondary }]}>
-              {formData.workoutType ? formData.workoutType.replace('_', ' ') : 'Select workout type'}
+              {formData.workoutType ? t(`workoutTypes.${formData.workoutType}`) : t('sessions.selectWorkoutType')}
             </Text>
             <Ionicons name="chevron-down" size={20} color={colors.textSecondary} />
           </TouchableOpacity>
         </View>
 
         <View style={styles.inputGroup}>
-          <Text style={[styles.label, { color: colors.text }]}>Primary Stroke</Text>
+          <Text style={[styles.label, { color: colors.text }]}>{t('sessions.primaryStroke')}</Text>
           <TouchableOpacity
             style={[styles.pickerButton, { backgroundColor: colors.surface, borderColor: colors.border }]}
             onPress={() => setShowStrokePicker(true)}
           >
             <Text style={[styles.pickerText, { color: colors.text }, !formData.stroke && { color: colors.textSecondary }]}>
-              {formData.stroke ? formData.stroke : 'Select stroke'}
+              {formData.stroke ? t(`strokes.${formData.stroke}`) : t('sessions.selectStroke')}
             </Text>
             <Ionicons name="chevron-down" size={20} color={colors.textSecondary} />
           </TouchableOpacity>
         </View>
 
         <View style={styles.inputGroup}>
-          <Text style={[styles.label, { color: colors.text }]}>Intensity</Text>
+          <Text style={[styles.label, { color: colors.text }]}>{t('sessions.intensity')}</Text>
           <TouchableOpacity
             style={[styles.pickerButton, { backgroundColor: colors.surface, borderColor: colors.border }]}
             onPress={() => setShowIntensityPicker(true)}
           >
             <Text style={[styles.pickerText, { color: colors.text }, !formData.intensity && { color: colors.textSecondary }]}>
-              {formData.intensity ? formData.intensity.replace('_', ' ') : 'Select intensity'}
+              {formData.intensity ? t(`intensity.${formData.intensity}`) : t('sessions.selectIntensity')}
             </Text>
             <Ionicons name="chevron-down" size={20} color={colors.textSecondary} />
           </TouchableOpacity>
@@ -410,14 +412,14 @@ export default function CreateSession() {
 
         <View style={styles.inputGroup}>
           <View style={styles.labelRow}>
-            <Text style={[styles.label, { color: colors.text }]}>Description</Text>
+            <Text style={[styles.label, { color: colors.text }]}>{t('sessions.description')}</Text>
             <Text style={[styles.charCounter, { color: colors.textSecondary }]}>{formData.description.length}/500</Text>
           </View>
           <TextInput
             style={[styles.input, styles.textArea, { backgroundColor: colors.surface, borderColor: colors.border, color: colors.text }]}
             value={formData.description}
               onChangeText={(value) => handleInputChange('description', value.slice(0, 500))}
-            placeholder="Additional notes about your session..."
+            placeholder={t('sessions.descriptionPlaceholder')}
             placeholderTextColor={colors.textSecondary}
             multiline
             numberOfLines={4}
@@ -432,7 +434,7 @@ export default function CreateSession() {
           disabled={loading}
         >
           <Text style={styles.submitButtonText}>
-            {loading ? 'Creating Session...' : 'Create Session'}
+            {loading ? t('sessions.creatingSession') : t('sessions.createSession')}
           </Text>
         </TouchableOpacity>
       </View>
@@ -440,7 +442,7 @@ export default function CreateSession() {
       <PickerModal
         visible={showWorkoutTypePicker}
         onClose={() => setShowWorkoutTypePicker(false)}
-        title="Select Workout Type"
+        title={t('sessions.selectWorkoutType')}
         options={workoutTypes}
         onSelect={(value) => handleInputChange('workoutType', value)}
         selectedValue={formData.workoutType}
@@ -449,7 +451,7 @@ export default function CreateSession() {
       <PickerModal
         visible={showStrokePicker}
         onClose={() => setShowStrokePicker(false)}
-        title="Select Primary Stroke"
+        title={t('sessions.selectStroke')}
         options={strokes}
         onSelect={(value) => handleInputChange('stroke', value)}
         selectedValue={formData.stroke}
@@ -458,7 +460,7 @@ export default function CreateSession() {
       <PickerModal
         visible={showIntensityPicker}
         onClose={() => setShowIntensityPicker(false)}
-        title="Select Intensity"
+        title={t('sessions.selectIntensity')}
         options={intensities}
         onSelect={(value) => handleInputChange('intensity', value)}
         selectedValue={formData.intensity}

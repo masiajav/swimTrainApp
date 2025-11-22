@@ -3,6 +3,7 @@ import { View, Text, ScrollView, StyleSheet, TouchableOpacity, Alert, Platform }
 import { router, useLocalSearchParams } from 'expo-router';
 import { apiService } from '../../services/api';
 import { useTheme } from '../../contexts/ThemeContext';
+import { useLocale } from '../../contexts/LocaleContext';
 
 interface SessionWorkout {
   id: string;
@@ -40,6 +41,7 @@ interface SessionDetails {
 
 export default function SessionDetailScreen() {
   const { isDarkMode, colors } = useTheme();
+  const { t } = useLocale();
   const { id } = useLocalSearchParams<{ id: string }>();
   const [session, setSession] = useState<SessionDetails | null>(null);
   const [isOwner, setIsOwner] = useState<boolean>(false);

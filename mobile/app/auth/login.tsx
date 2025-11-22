@@ -7,9 +7,11 @@ import * as Linking from 'expo-linking';
 import Constants from 'expo-constants';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../../contexts/ThemeContext';
+import { useLocale } from '../../contexts/LocaleContext';
 
 export default function LoginScreen() {
   const { isDarkMode, colors } = useTheme();
+  const { t, locale } = useLocale();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -37,7 +39,7 @@ export default function LoginScreen() {
     const trimmedPassword = password.trim();
     
     if (!trimmedEmail || !trimmedPassword) {
-      Alert.alert('Error', 'Please fill in all fields');
+      Alert.alert(t('common.error'), t('auth.fillAllFields'));
       return;
     }
 
@@ -64,7 +66,7 @@ export default function LoginScreen() {
       router.replace('/(tabs)');
     } catch (error: any) {
       console.error('Login error:', error);
-      Alert.alert('Error', error.message || 'Login failed. Please try again.');
+      Alert.alert(t('common.error'), error.message || t('auth.loginFailed'));
     } finally {
       setIsLoading(false);
     }
@@ -159,20 +161,20 @@ export default function LoginScreen() {
       <View style={[styles.header, { backgroundColor: colors.primary }]}>
         <Text style={styles.headerEmoji}>🏊‍♀️</Text>
         <Text style={styles.headerTitle}>SwimTrainApp</Text>
-        <Text style={[styles.headerSubtitle, { color: isDarkMode ? colors.textSecondary : '#e0f2fe' }]}>Welcome back to your training</Text>
+        <Text style={[styles.headerSubtitle, { color: isDarkMode ? colors.textSecondary : '#e0f2fe' }]}>{t('auth.welcomeMessage')}</Text>
       </View>
 
       {/* Login Form Card */}
       <View style={[styles.formCard, { backgroundColor: colors.surface }]}>
         <View style={styles.cardHeader}>
-          <Text style={[styles.welcomeText, { color: colors.text }]}>Welcome Back!</Text>
-          <Text style={[styles.welcomeSubtext, { color: colors.textSecondary }]}>Sign in to continue your training journey</Text>
+          <Text style={[styles.welcomeText, { color: colors.text }]}>{t('auth.welcomeBack')}</Text>
+          <Text style={[styles.welcomeSubtext, { color: colors.textSecondary }]}>{t('auth.welcomeMessage')}</Text>
         </View>
         
         <View style={styles.inputContainer}>
-          <Text style={[styles.inputLabel, { color: colors.text }]}>📧 Email</Text>
+          <Text style={[styles.inputLabel, { color: colors.text }]}>{t('auth.email')}</Text>
           <TextInput
-            placeholder="Enter your email"
+            placeholder={t('auth.emailPlaceholder')}
             value={email}
             onChangeText={setEmail}
             keyboardType="email-address"
@@ -183,10 +185,10 @@ export default function LoginScreen() {
         </View>
         
         <View style={styles.inputContainer}>
-          <Text style={[styles.inputLabel, { color: colors.text }]}>🔒 Password</Text>
+          <Text style={[styles.inputLabel, { color: colors.text }]}>{t('auth.password')}</Text>
           <View style={styles.inputOverlayContainer}>
             <TextInput
-              placeholder="Enter your password"
+              placeholder={t('auth.passwordPlaceholder')}
               value={password}
               onChangeText={setPassword}
               secureTextEntry={!showPassword}
@@ -203,10 +205,10 @@ export default function LoginScreen() {
           </View>
         </View>
         <TouchableOpacity onPress={() => setForgotModalVisible(true)} style={{ marginBottom: 12 }}>
-          <Text style={{ color: colors.primary, textAlign: 'right', fontWeight: '600' }}>Forgot password?</Text>
+          <Text style={{ color: colors.primary, textAlign: 'right', fontWeight: '600' }}>{t('auth.forgotPassword')}</Text>
         </TouchableOpacity>
         <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 12 }}>
-          <Text style={{ marginRight: 12, color: colors.text, fontWeight: '600' }}>Enable Auto-login</Text>
+          <Text style={{ marginRight: 12, color: colors.text, fontWeight: '600' }}>{t('auth.enableAutoLogin')}</Text>
           <Switch value={autoLogin} onValueChange={setAutoLogin} trackColor={{ false: '#767577', true: colors.primary }} thumbColor={autoLogin ? '#ffffff' : '#f4f3f4'} />
         </View>
         <TouchableOpacity 
@@ -215,7 +217,7 @@ export default function LoginScreen() {
           disabled={isLoading}
         >
           <Text style={styles.loginButtonText}>
-            {isLoading ? '🏊‍♀️ Signing In...' : '🏊‍♀️ Sign In'}
+            {isLoading ? t('auth.signingIn') : t('auth.signIn')}
           </Text>
         </TouchableOpacity>
 
@@ -232,7 +234,7 @@ export default function LoginScreen() {
         <Link href="/auth/register" asChild>
           <TouchableOpacity style={styles.signUpLink}>
             <Text style={[styles.signUpText, { color: colors.textSecondary }]}>
-              Don't have an account? <Text style={[styles.signUpTextBold, { color: colors.primary }]}>Sign up</Text>
+              {t('auth.dontHaveAccount')} <Text style={[styles.signUpTextBold, { color: colors.primary }]}>{t('auth.signUp')}</Text>
             </Text>
           </TouchableOpacity>
         </Link>
@@ -247,10 +249,10 @@ export default function LoginScreen() {
     >
       <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: 'rgba(0,0,0,0.4)' }}>
         <View style={{ width: '90%', backgroundColor: colors.surface, padding: 20, borderRadius: 12 }}>
-          <Text style={{ fontSize: 18, fontWeight: '700', marginBottom: 8, color: colors.text }}>Reset your password</Text>
-          <Text style={{ color: colors.textSecondary, marginBottom: 12 }}>Enter the email address for your account and we'll send a reset link.</Text>
+          <Text style={{ fontSize: 18, fontWeight: '700', marginBottom: 8, color: colors.text }}>{t('auth.resetPassword')}</Text>
+          <Text style={{ color: colors.textSecondary, marginBottom: 12 }}>{t('auth.resetPasswordMessage')}</Text>
           <TextInput
-            placeholder="Email"
+            placeholder={t('auth.email')}
             value={forgotEmail}
             onChangeText={setForgotEmail}
             keyboardType="email-address"
@@ -260,27 +262,27 @@ export default function LoginScreen() {
           />
           <View style={{ flexDirection: 'row', justifyContent: 'flex-end' }}>
             <TouchableOpacity onPress={() => setForgotModalVisible(false)} style={{ marginRight: 12 }}>
-              <Text style={{ color: colors.textSecondary }}>Cancel</Text>
+              <Text style={{ color: colors.textSecondary }}>{t('common.cancel')}</Text>
             </TouchableOpacity>
             <TouchableOpacity
               onPress={async () => {
                 const trimmedForgotEmail = forgotEmail.trim();
-                if (!trimmedForgotEmail) { Alert.alert('Error', 'Please enter an email address'); return; }
+                if (!trimmedForgotEmail) { Alert.alert(t('common.error'), t('auth.enterEmail')); return; }
                 try {
                   setIsLoading(true);
                   await apiService.requestPasswordReset(trimmedForgotEmail);
-                  Alert.alert('Success', 'If an account exists for that email, a reset link has been sent.');
+                  Alert.alert(t('common.success'), t('auth.resetSuccess'));
                   setForgotModalVisible(false);
                   setForgotEmail('');
                 } catch (err: any) {
                   console.error('Forgot password error', err);
-                  Alert.alert('Error', err?.message || 'Failed to request password reset');
+                  Alert.alert(t('common.error'), err?.message || t('auth.resetFailed'));
                 } finally {
                   setIsLoading(false);
                 }
               }}
             >
-              <Text style={{ color: colors.primary, fontWeight: '700' }}>{isLoading ? 'Sending...' : 'Send email'}</Text>
+              <Text style={{ color: colors.primary, fontWeight: '700' }}>{isLoading ? t('auth.sending') : t('auth.sendEmail')}</Text>
             </TouchableOpacity>
           </View>
         </View>

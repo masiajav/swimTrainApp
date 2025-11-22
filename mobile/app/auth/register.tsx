@@ -4,9 +4,11 @@ import { Link, router } from 'expo-router';
 import { apiService } from '../../services/api';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../../contexts/ThemeContext';
+import { useLocale } from '../../contexts/LocaleContext';
 
 export default function RegisterScreen() {
   const { isDarkMode, colors } = useTheme();
+  const { t } = useLocale();
   const [email, setEmail] = useState('');
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
@@ -21,7 +23,7 @@ export default function RegisterScreen() {
     const trimmedPassword = password.trim();
     
     if (!trimmedEmail || !trimmedUsername || !trimmedPassword) {
-      Alert.alert('Error', 'Please fill in required fields');
+      Alert.alert(t('common.error'), t('auth.fillAllFields'));
       return;
     }
 
@@ -39,11 +41,11 @@ export default function RegisterScreen() {
       apiService.setAuthToken(response.token);
       
       console.log('Registration successful:', response.user);
-      Alert.alert('Success', `Welcome to SwimTrainApp, ${response.user.firstName || response.user.username}!`);
+      Alert.alert(t('common.success'), t('auth.welcomeUser', { name: response.user.firstName || response.user.username }));
       router.replace('/(tabs)');
     } catch (error: any) {
       console.error('Registration error:', error);
-      Alert.alert('Error', error.message || 'Registration failed. Please try again.');
+      Alert.alert(t('common.error'), error.message || t('auth.registrationFailed'));
     } finally {
       setIsLoading(false);
     }
@@ -70,27 +72,27 @@ export default function RegisterScreen() {
       {/* Header with Swimming Theme */}
       <View style={[styles.header, { backgroundColor: colors.success }]}>
         <Text style={styles.headerEmoji}>🏊‍♂️</Text>
-        <Text style={styles.headerTitle}>Join SwimTrainApp</Text>
-        <Text style={[styles.headerSubtitle, { color: isDarkMode ? colors.textSecondary : '#a7f3d0' }]}>Start your swimming journey today</Text>
+        <Text style={styles.headerTitle}>{t('auth.joinApp')}</Text>
+        <Text style={[styles.headerSubtitle, { color: isDarkMode ? colors.textSecondary : '#a7f3d0' }]}>{t('auth.startJourney')}</Text>
       </View>
 
       <ScrollView style={styles.scrollContainer} showsVerticalScrollIndicator={false}>
         {/* Registration Form Card */}
         <View style={[styles.formCard, { backgroundColor: colors.surface }]}>
           <View style={styles.cardHeader}>
-            <Text style={[styles.welcomeText, { color: colors.text }]}>Create Account</Text>
-            <Text style={[styles.welcomeSubtext, { color: colors.textSecondary }]}>Join our swimming community and track your progress</Text>
+            <Text style={[styles.welcomeText, { color: colors.text }]}>{t('auth.createAccount')}</Text>
+            <Text style={[styles.welcomeSubtext, { color: colors.textSecondary }]}>{t('auth.joinCommunity')}</Text>
           </View>
           
           {/* Personal Information Section */}
           <View style={styles.sectionContainer}>
-            <Text style={[styles.sectionTitle, { color: colors.text, borderBottomColor: colors.border }]}>👤 Personal Information</Text>
+            <Text style={[styles.sectionTitle, { color: colors.text, borderBottomColor: colors.border }]}>👤 {t('auth.personalInfo')}</Text>
             
             <View style={styles.nameRow}>
               <View style={[styles.inputContainer, styles.halfWidth]}>
-                <Text style={[styles.inputLabel, { color: colors.text }]}>First Name</Text>
+                <Text style={[styles.inputLabel, { color: colors.text }]}>{t('auth.firstName')}</Text>
                 <TextInput
-                  placeholder="John"
+                  placeholder={t('auth.firstNamePlaceholder')}
                   value={firstName}
                   onChangeText={setFirstName}
                   style={[styles.input, { backgroundColor: colors.background, borderColor: colors.border, color: colors.text }]}
@@ -99,9 +101,9 @@ export default function RegisterScreen() {
               </View>
               
               <View style={[styles.inputContainer, styles.halfWidth]}>
-                <Text style={[styles.inputLabel, { color: colors.text }]}>Last Name</Text>
+                <Text style={[styles.inputLabel, { color: colors.text }]}>{t('auth.lastName')}</Text>
                 <TextInput
-                  placeholder="Swimmer"
+                  placeholder={t('auth.lastNamePlaceholder')}
                   value={lastName}
                   onChangeText={setLastName}
                   style={[styles.input, { backgroundColor: colors.background, borderColor: colors.border, color: colors.text }]}
@@ -113,12 +115,12 @@ export default function RegisterScreen() {
 
           {/* Account Details Section */}
           <View style={styles.sectionContainer}>
-            <Text style={[styles.sectionTitle, { color: colors.text, borderBottomColor: colors.border }]}>🔐 Account Details</Text>
+            <Text style={[styles.sectionTitle, { color: colors.text, borderBottomColor: colors.border }]}>🔐 {t('auth.accountDetails')}</Text>
             
             <View style={styles.inputContainer}>
-              <Text style={[styles.inputLabel, { color: colors.text }]}>📧 Email *</Text>
+              <Text style={[styles.inputLabel, { color: colors.text }]}>{t('auth.email')} *</Text>
               <TextInput
-                placeholder="your.email@example.com"
+                placeholder={t('auth.emailPlaceholder')}
                 value={email}
                 onChangeText={setEmail}
                 keyboardType="email-address"
@@ -129,9 +131,9 @@ export default function RegisterScreen() {
             </View>
             
             <View style={styles.inputContainer}>
-              <Text style={[styles.inputLabel, { color: colors.text }]}>👤 Username *</Text>
+              <Text style={[styles.inputLabel, { color: colors.text }]}>{t('auth.username')} *</Text>
               <TextInput
-                placeholder="swimmer123"
+                placeholder={t('auth.usernamePlaceholder')}
                 value={username}
                 onChangeText={setUsername}
                 autoCapitalize="none"
@@ -141,10 +143,10 @@ export default function RegisterScreen() {
             </View>
             
             <View style={styles.inputContainer}>
-              <Text style={[styles.inputLabel, { color: colors.text }]}>🔒 Password *</Text>
+              <Text style={[styles.inputLabel, { color: colors.text }]}>{t('auth.password')} *</Text>
               <View style={styles.inputOverlayContainer}>
                 <TextInput
-                  placeholder="Create a strong password"
+                  placeholder={t('auth.createPassword')}
                   value={password}
                   onChangeText={setPassword}
                   secureTextEntry={!showPassword}
@@ -154,7 +156,7 @@ export default function RegisterScreen() {
                 <TouchableOpacity
                   onPress={() => setShowPassword((s) => !s)}
                   style={styles.inputIcon}
-                  accessibilityLabel={showPassword ? 'Hide password' : 'Show password'}
+                  accessibilityLabel={showPassword ? t('auth.hidePassword') : t('auth.showPassword')}
                 >
                   <Ionicons name={showPassword ? 'eye-off' : 'eye'} size={20} color={colors.success} />
                 </TouchableOpacity>
@@ -168,14 +170,14 @@ export default function RegisterScreen() {
             disabled={isLoading}
           >
             <Text style={styles.registerButtonText}>
-              {isLoading ? '🏊‍♀️ Creating Account...' : '🏊‍♀️ Create Account'}
+              {isLoading ? t('auth.creatingAccount') : t('auth.createAccountButton')}
             </Text>
           </TouchableOpacity>
 
           {/* Divider */}
           <View style={styles.divider}>
             <View style={[styles.dividerLine, { backgroundColor: colors.border }]} />
-            <Text style={[styles.dividerText, { color: colors.textSecondary }]}>or</Text>
+            <Text style={[styles.dividerText, { color: colors.textSecondary }]}>{t('common.or')}</Text>
             <View style={[styles.dividerLine, { backgroundColor: colors.border }]} />
           </View>
 
@@ -185,7 +187,7 @@ export default function RegisterScreen() {
           <Link href="/auth/login" asChild>
             <TouchableOpacity style={styles.loginLink}>
               <Text style={[styles.loginText, { color: colors.textSecondary }]}>
-                Already have an account? <Text style={[styles.loginTextBold, { color: colors.success }]}>Sign in</Text>
+                {t('auth.alreadyHaveAccount')} <Text style={[styles.loginTextBold, { color: colors.success }]}>{t('auth.signIn')}</Text>
               </Text>
             </TouchableOpacity>
           </Link>

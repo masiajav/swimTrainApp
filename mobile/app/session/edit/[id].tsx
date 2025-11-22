@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { router, useLocalSearchParams } from 'expo-router';
 import { apiService } from '../../../services/api';
 import { useTheme } from '../../../contexts/ThemeContext';
+import { useLocale } from '../../../contexts/LocaleContext';
 
 // Define enums locally to avoid import issues
 enum WorkoutType {
@@ -46,6 +47,7 @@ interface Session {
 
 export default function EditSessionScreen() {
   const { isDarkMode, colors } = useTheme();
+  const { t } = useLocale();
   const { id } = useLocalSearchParams<{ id: string }>();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
