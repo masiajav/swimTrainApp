@@ -57,58 +57,6 @@ export default function SettingsScreen() {
     }
   };
 
-  const showImageOptions = () => {
-    Alert.alert(
-      t('settings.selectImage'),
-      t('settings.selectImageDesc'),
-      [
-        { text: t('settings.camera'), onPress: takePhoto },
-        { text: t('settings.photoLibrary'), onPress: pickImage },
-        { text: t('common.cancel'), style: 'cancel' }
-      ]
-    );
-  };
-
-  const pickImage = async () => {
-    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (status !== 'granted') {
-      Alert.alert(t('common.error'), t('settings.cameraRollPermissionDenied'));
-      return;
-    }
-
-    const result = await ImagePicker.launchImageLibraryAsync({
-  // Use MediaTypeOptions.Images when available, otherwise fall back to the string 'Images'
-  mediaTypes: (ImagePicker as any).MediaTypeOptions?.Images || 'Images',
-      allowsEditing: true,
-      aspect: [1, 1],
-      quality: 0.5,
-      base64: true,
-    });
-
-    if (!result.canceled && result.assets[0].base64) {
-      setAvatar(`data:image/jpeg;base64,${result.assets[0].base64}`);
-    }
-  };
-
-  const takePhoto = async () => {
-    const { status } = await ImagePicker.requestCameraPermissionsAsync();
-    if (status !== 'granted') {
-      Alert.alert(t('common.error'), t('settings.cameraPermissionDenied'));
-      return;
-    }
-
-    const result = await ImagePicker.launchCameraAsync({
-      allowsEditing: true,
-      aspect: [1, 1],
-      quality: 0.5,
-      base64: true,
-    });
-
-    if (!result.canceled && result.assets[0].base64) {
-      setAvatar(`data:image/jpeg;base64,${result.assets[0].base64}`);
-    }
-  };
-
   if (loading) {
     return (
       <View style={{ flex: 1, backgroundColor: colors.background }}>
