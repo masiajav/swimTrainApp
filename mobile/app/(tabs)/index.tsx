@@ -257,7 +257,7 @@ export default function DashboardScreen() {
 
         {/* Quick Actions */}
         <View style={styles.actionsContainer}>
-          <Text style={[styles.sectionTitle, { color: colors.text }]}>Quick Actions</Text>
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>{t('dashboard.quickActions')}</Text>
           
           <TouchableOpacity 
             style={[styles.primaryAction, { backgroundColor: colors.primary }]}
@@ -268,8 +268,8 @@ export default function DashboardScreen() {
                 <Text style={styles.actionIconText}>+</Text>
               </View>
               <View style={styles.actionTextContainer}>
-                <Text style={styles.actionTitle}>Start New Session</Text>
-                <Text style={styles.actionSubtitle}>Begin tracking your swim</Text>
+                <Text style={styles.actionTitle}>{t('dashboard.newSession')}</Text>
+                <Text style={styles.actionSubtitle}>{t('dashboard.newSessionDesc')}</Text>
               </View>
               <Text style={styles.actionArrow}>→</Text>
             </View>
@@ -281,8 +281,8 @@ export default function DashboardScreen() {
                 <Text style={styles.actionIconText}>👥</Text>
               </View>
               <View style={styles.actionTextContainer}>
-                <Text style={[styles.secondaryActionTitle, { color: colors.text }]}>View Team Progress</Text>
-                <Text style={[styles.secondaryActionSubtitle, { color: colors.textSecondary }]}>Check team leaderboard</Text>
+                <Text style={[styles.secondaryActionTitle, { color: colors.text }]}>{t('dashboard.viewTeamProgress')}</Text>
+                <Text style={[styles.secondaryActionSubtitle, { color: colors.textSecondary }]}>{t('dashboard.viewTeamProgressDesc')}</Text>
               </View>
               <Text style={[styles.secondaryActionArrow, { color: colors.primary }]}>→</Text>
             </View>

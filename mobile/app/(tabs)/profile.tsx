@@ -305,14 +305,22 @@ export default function ProfileScreen() {
 
         {/* Settings Section */}
         <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}>
-          <Text style={[styles.sectionTitle, { color: colors.text }]}>⚙️ {t('profile.settings')}</Text>
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>⚙️ {t('profile.options')}</Text>
           <View style={styles.settingsList}>
+            <TouchableOpacity 
+              style={[styles.settingItem, { borderBottomColor: colors.border }]}
+              onPress={() => router.push('/profile-edit')}
+            >
+              <Text style={styles.settingEmoji}>👤</Text>
+              <Text style={[styles.settingText, { color: colors.text }]}>{t('profile.editProfile')}</Text>
+              <Text style={[styles.settingArrow, { color: colors.textSecondary }]}>›</Text>
+            </TouchableOpacity>
             <TouchableOpacity 
               style={[styles.settingItem, { borderBottomColor: colors.border }]}
               onPress={() => router.push('/settings')}
             >
-              <Text style={styles.settingEmoji}>👤</Text>
-              <Text style={[styles.settingText, { color: colors.text }]}>{t('profile.editProfile')}</Text>
+              <Text style={styles.settingEmoji}>⚙️</Text>
+              <Text style={[styles.settingText, { color: colors.text }]}>{t('profile.settings')}</Text>
               <Text style={[styles.settingArrow, { color: colors.textSecondary }]}>›</Text>
             </TouchableOpacity>
             <TouchableOpacity style={[styles.settingItem, { borderBottomColor: colors.border }]}>
