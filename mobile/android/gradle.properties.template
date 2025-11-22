@@ -1,0 +1,32 @@
+# Project-wide Gradle settings for EAS Build
+
+# Specifies the JVM arguments used for the daemon process.
+org.gradle.jvmargs=-Xmx2048m -XX:MaxMetaspaceSize=512m
+
+# AndroidX package structure
+android.useAndroidX=true
+
+# Automatically convert third-party libraries to AndroidX
+android.enableJetifier=true
+
+# Enable AAPT2 PNG crunching
+android.enablePngCrunchInReleaseBuilds=true
+
+# Architecture support
+reactNativeArchitectures=armeabi-v7a,arm64-v8a,x86,x86_64
+
+# New Architecture (disabled for now)
+newArchEnabled=false
+
+# Use Hermes JS engine
+hermesEnabled=true
+
+# Expo features
+expo.gif.enabled=true
+expo.webp.enabled=true
+expo.webp.animated=false
+expo.useLegacyPackaging=false
+expo.edgeToEdgeEnabled=false
+
+# Enable network inspector for dev client
+EX_DEV_CLIENT_NETWORK_INSPECTOR=true
