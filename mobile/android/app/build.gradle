@@ -75,9 +75,9 @@ react {
 def enableProguardInReleaseBuilds = (findProperty('android.enableProguardInReleaseBuilds') ?: false).toBoolean()
 
 /**
- * Use Hermes engine
+ * Use Hermes engine (defined at root project level)
  */
-def hermesEnabled = (findProperty('expo.jsEngine') ?: "hermes") == "hermes"
+def hermesEnabled = rootProject.ext.hermesEnabled
 
 /**
  * The preferred build flavor of JavaScriptCore (JSC)

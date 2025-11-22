@@ -33,5 +33,10 @@ allprojects {
   }
 }
 
+// Define hermesEnabled at project root level so expo modules can access it
+ext {
+  hermesEnabled = (findProperty('expo.jsEngine') ?: "hermes") == "hermes"
+}
+
 apply plugin: "expo-root-project"
 apply plugin: "com.facebook.react.rootproject"
