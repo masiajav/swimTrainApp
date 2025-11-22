@@ -11,7 +11,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 //    reach the backend on your machine.
 // 3. When on Android emulator fall back to 10.0.2.2.
 // TODO: make a refactor to centralize this logic with Supabase client init
-let API_BASE_URL = 'http://10.0.2.2:3000/api';
+let API_BASE_URL = 'https://swimtrainapp-production.up.railway.app/api';
 try {
   // eslint-disable-next-line @typescript-eslint/no-var-requires
   const Constants = require('expo-constants');
@@ -23,7 +23,7 @@ try {
   // Supabase Edge Functions for the token-exchange and user provisioning,
   // point this at your Supabase project URL (we will call the function
   // /functions/v1/google-auth from the mobile app).
-  const defaultProdUrl = 'http://10.0.2.2:3000/api';
+  const defaultProdUrl = 'https://swimtrainapp-production.up.railway.app/api';
 
   // Allow an explicit override coming from app.json (Expo Constants extra)
   // or process.env to take precedence even when running in dev. This is
