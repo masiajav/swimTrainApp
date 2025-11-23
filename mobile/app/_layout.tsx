@@ -16,7 +16,7 @@ export default function RootLayout() {
       <ThemeProvider>
         <BootWrapper>
           <Stack>
-            <Stack.Screen name="index" options={{ title: 'SwimTrainApp' }} />
+            <Stack.Screen name="index" options={{ title: 'Lapster' }} />
             <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
             <Stack.Screen name="auth" options={{ headerShown: false }} />
             <Stack.Screen name="settings" options={{ headerShown: false }} />

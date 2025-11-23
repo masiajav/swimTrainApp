@@ -31,7 +31,7 @@ export default function WelcomeScreen() {
               numberOfLines={1}
               allowFontScaling={false}
             >
-              SwimTrainApp
+              Lapster
             </Text>
             <View style={styles.titleUnderline} />
             <Text style={styles.subtitle}>

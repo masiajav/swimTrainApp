@@ -35,7 +35,7 @@ export const BootWrapper: React.FC<PropsWithChildren<Record<string, unknown>>> =
     return (
       <View style={styles.container}>
         <ActivityIndicator size="large" color="#3b82f6" />
-        {Platform.OS === 'web' ? <Text style={styles.text}>Starting SwimTrainApp…</Text> : null}
+        {Platform.OS === 'web' ? <Text style={styles.text}>Starting Lapster…</Text> : null}
       </View>
     );
   }
