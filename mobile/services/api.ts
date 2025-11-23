@@ -11,7 +11,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 //    reach the backend on your machine.
 // 3. When on Android emulator fall back to 10.0.2.2.
 // TODO: make a refactor to centralize this logic with Supabase client init
-let API_BASE_URL = 'https://swimtrainapp-production.up.railway.app/api';
+let API_BASE_URL = 'http://10.0.2.2:3000/api';
 try {
   // eslint-disable-next-line @typescript-eslint/no-var-requires
   const Constants = require('expo-constants');

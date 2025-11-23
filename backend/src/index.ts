@@ -47,7 +47,7 @@ app.use(express.urlencoded({ extended: true }));
 
 // Health check endpoint
 app.get('/health', (req, res) => {
-  res.json({ status: 'OK', message: 'SwimTrainApp API is running!' });
+  res.json({ status: 'OK', message: 'Lapster API is running!' });
 });
 
 // Root redirect helper
@@ -366,7 +366,7 @@ app.use('*', (req, res) => {
 
 // Start server
 const server = app.listen(PORT, () => {
-  console.log(`🏊‍♀️ SwimTrainApp API running on port ${PORT}`);
+  console.log(`🏊‍♀️ Lapster API running on port ${PORT}`);
 });
 
 // Handle server 'error' events (for example EADDRINUSE when the port is already taken)

@@ -1,8 +1,8 @@
 {
   "expo": {
     "owner": "masiajav",
-    "name": "SwimTrainApp",
-    "slug": "swimtrainapp",
+    "name": "Lapster",
+    "slug": "lapster",
     "version": "1.0.0",
     "orientation": "portrait",
     "userInterfaceStyle": "light",

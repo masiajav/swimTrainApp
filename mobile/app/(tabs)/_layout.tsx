@@ -35,7 +35,7 @@ export default function TabLayout() {
         name="index"
         options={{
           title: t('common.dashboard'),
-          headerTitle: 'SwimTrainApp',
+          headerTitle: 'Lapster',
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="home-outline" size={size} color={color} />
           ),

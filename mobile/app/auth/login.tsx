@@ -160,7 +160,7 @@ export default function LoginScreen() {
       {/* Header with Swimming Theme */}
       <View style={[styles.header, { backgroundColor: colors.primary }]}>
         <Text style={styles.headerEmoji}>🏊‍♀️</Text>
-        <Text style={styles.headerTitle}>SwimTrainApp</Text>
+        <Text style={styles.headerTitle}>Lapster</Text>
         <Text style={[styles.headerSubtitle, { color: isDarkMode ? colors.textSecondary : '#e0f2fe' }]}>{t('auth.welcomeMessage')}</Text>
       </View>
 

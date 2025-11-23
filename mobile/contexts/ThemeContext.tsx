@@ -56,7 +56,7 @@ const darkColors: ThemeColors = {
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
-const DARK_MODE_KEY = '@swimTrainApp:darkMode';
+const DARK_MODE_KEY = '@lapster:darkMode';
 
 interface ThemeProviderProps {
   children: ReactNode;
